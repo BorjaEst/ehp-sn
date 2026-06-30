@@ -1,0 +1,38 @@
+{
+    // Python configuration
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true
+    },
+    "black-formatter.args": [
+        "--config",
+        "${workspaceFolder}/pyproject.toml"
+    ],
+    "isort.args": [
+        "--settings-path",
+        "${workspaceFolder}/pyproject.toml"
+    ],
+    // TOML configuration
+    "evenBetterToml.formatter.alignEntries": true,
+    "evenBetterToml.formatter.indentEntries": true,
+    "evenBetterToml.formatter.alignComments": false,
+    // Copilot configuration
+    "chat.agent.maxRequests": 200,
+    "chat.tools.terminal.autoApprove": {
+        "/.*/": true,
+        "git": false,
+        "sudo": false,
+    },
+    "python.analysis.autoImportCompletions": true,
+    "editor.rulers": [
+        80,
+        100,
+        130
+    ],
+    "notebook.output.textLineLimit": 100,
+}

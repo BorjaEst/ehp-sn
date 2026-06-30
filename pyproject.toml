@@ -1,0 +1,117 @@
+[build-system]
+    requires      = ["setuptools>=68,<81", "wheel"]
+    build-backend = "setuptools.build_meta"
+
+[project]
+    name = "ehp-sn"
+    description = "Entorhinal-Hippocampal Circuit (EHP) Spatial Navigation library"
+    authors = [{ name = "Borja Esteban Sanchis" }]
+    license = { text = "GNU General Public License v3.0" }
+    classifiers = [
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.12",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: Scientific/Engineering :: Bio-Informatics",
+        "Topic :: Scientific/Engineering :: Neuroscience",
+    ]
+    keywords = [
+        "neuroscience",
+        "spatial navigation",
+        "hippocampus",
+        "entorhinal cortex",
+        "neural modeling",
+    ]
+    requires-python = ">=3.12"
+    dynamic = ["version", "readme"]
+    dependencies = [
+        "setuptools~=80.0",
+        "gymnasium~=1.2.0",
+        "torch",
+        "torchrl~=0.11.0",
+        "adam-atan2-pytorch",
+        "lightning",
+        "pydantic",
+        "pydantic_settings",
+        "rich",
+        "scipy",
+        "numba",
+        "matplotlib",
+        "tensorboard",
+        "networkx",
+        "SciencePlots",
+        "pub-ready-plots",
+        "huggingface_hub",
+        "maze-nd",
+        "dungeongen",
+        "typer",
+        "markdown",
+        "tomli_w",
+    ]
+
+[project.optional-dependencies]
+    dev = [
+        "pytest",
+        "black",
+        "isort",
+        "flake8",
+        "mypy",
+        "import-linter",
+        "ruff",
+        "pyupgrade",
+        "mkdocs",
+        "mkdocstrings[python]",
+    ]
+    eval = [
+        "zarr~=3.1.0",
+        "pyarrow",
+        "mlflow",
+    ]
+
+[project.urls]
+    "Homepage"      = "https://github.com/BorjaEst/ehp-sn"
+    "Bug Tracker"   = "https://github.com/BorjaEst/ehp-sn/issues"
+    "Documentation" = "https://ehp-sn.readthedocs.io"
+
+[tool.setuptools]
+    package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+    where   = ["src"]
+    include = ["ehc_sn*"]
+
+[project.scripts]
+    ehp-sn = "ehc_sn.cli:app"
+
+[tool.setuptools.dynamic]
+    version = { file = "src/ehc_sn/VERSION" }
+    readme  = { file = ["README.md"] }
+
+[tool.setuptools.package-data]
+    ehc_sn = ["py.typed", "**/*.yaml", "**/*.yml"]
+
+[tool.black]
+    line-length    = 80
+    target-version = ["py312"]
+    include        = '\.pyi?$'
+
+[tool.isort]
+    profile           = "black"
+    line_length       = 80
+    known_first_party = ["ehc_sn"]
+
+[tool.mypy]
+    python_version           = "3.12"
+    warn_return_any          = false
+    warn_unused_configs      = false
+    disallow_untyped_defs    = false
+    disallow_incomplete_defs = false
+
+[tool.pytest.ini_options]
+    pythonpath       = [".", "src"]
+    testpaths        = ["tests"]
+    python_files     = "test_*.py"
+    python_classes   = "Test*"
+    python_functions = "test_*"
+    addopts          = "--import-mode=importlib"
