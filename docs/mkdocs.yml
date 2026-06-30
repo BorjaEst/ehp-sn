@@ -1,0 +1,23 @@
+site_name: ehp-sn
+site_description: Entorhinal-Hippocampal-Prefrontal Circuit for Spatial Navigation library
+site_author: Borja Esteban Sanchis
+docs_dir: docs
+
+theme:
+  name: mkdocs
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - ../src
+
+nav:
+  - Home: index.md
+
+markdown_extensions:
+  - tables
+  - toc:
+      permalink: true
