@@ -25,7 +25,7 @@ Before recommending a fix:
 - find all producers and consumers of the affected state or interface;
 - identify the semantic owner and source of truth;
 - distinguish task, runtime, adapter, model, controller, objective, training-regime, experiment, evaluation, and reporting responsibilities;
-- check every affected family or regime, including ACT, critic/actor-critic, TEM, variational replay, and EHC when relevant.
+- check every affected family or regime, including ACT, critic/actor-critic, TEM, variational replay, and EHP when relevant.
 
 Do not infer a repository-wide contract from one class or failing call.
 
