@@ -1,0 +1,53 @@
+[build-system]
+    requires      = ["setuptools>=68,<81", "wheel"]
+    build-backend = "setuptools.build_meta"
+
+[project]
+    name = "ehp-sn"
+    description = "Entorhinal-Hippocampal Circuit (EHP) Spatial Navigation library"
+    authors = [{ name = "Borja Esteban Sanchis" }]
+    license = { text = "GNU General Public License v3.0" }
+    classifiers = [
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.12",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: Scientific/Engineering :: Bio-Informatics",
+        "Topic :: Scientific/Engineering :: Neuroscience",
+    ]
+    keywords = [
+        "neuroscience",
+        "spatial navigation",
+        "hippocampus",
+        "entorhinal cortex",
+        "neural modeling",
+    ]
+    requires-python = ">=3.12"
+    dynamic = ["version", "readme"]
+    dependencies = [
+        "gymnasium~=1.2.0",
+        "torch~=2.12.1",
+        "torchrl~=0.11.0",
+    ]
+
+[project.urls]
+    "Homepage"      = "https://github.com/BorjaEst/ehp-sn"
+    "Bug Tracker"   = "https://github.com/BorjaEst/ehp-sn/issues"
+    "Documentation" = "https://ehp-sn.readthedocs.io"
+
+[tool.setuptools]
+    package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+    where   = ["src"]
+
+[project.scripts]
+    ehp-sn = "ehp_sn.cli:app"
+
+[tool.setuptools.dynamic]
+    version = { file = "VERSION" }
+    readme  = { file = "README.md" }
+
+[tool.setuptools.package-data]
+    ehp_sn = ["py.typed", "**/*.yaml", "**/*.yml"]
