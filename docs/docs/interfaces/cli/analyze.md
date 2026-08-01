@@ -38,6 +38,12 @@ ehp-sn analyze COMMAND [OPTIONS]
 | `run ANALYSIS`      | Execute the analysis                          |
 | `inspect ARTIFACT`  | Inspect an analysis artifact                  |
 
+## Analysis identity and reuse
+
+Analysis identity includes ordered input identities and verified digests, analysis version, semantic parameters, rendering parameters, selected figures, renderer version, and figure output format. The manifest may additionally expose a `scientific_result_id` that excludes presentation-only fields.
+
+A verified result may be reused only when the analysis declares deterministic, idempotent behavior and every identity-affecting field matches. Reuse reports `action = "reused"` and does not modify provenance.
+
 ## `list`
 
 List scientific analyses available to the current installation.
@@ -73,9 +79,9 @@ ehp-sn analyze show ANALYSIS [--format text|json]
 
 ### Arguments
 
-| Argument   | Required | Description                                                                                       |
-| ---------- | -------- | ------------------------------------------------------------------------------------------------- |
-| `ANALYSIS` | Yes      | Canonical analysis reference, such as `analysis:memory-diagnostics/v1`, or an accepted short form |
+| Argument   | Required | Description                                                             |
+| ---------- | -------- | ----------------------------------------------------------------------- |
+| `ANALYSIS` | Yes      | Canonical analysis reference, such as `analysis:memory-diagnostics/v1`, |
 
 ### Outputs
 
@@ -222,7 +228,7 @@ ehp-sn analyze run ANALYSIS --input ARTIFACT [OPTIONS]
 7. Validates the completed artifact.
 8. Atomically commits the artifact and prints its reference.
 
-An analysis may reuse an existing result only when its definition declares deterministic, idempotent identity semantics and the analysis version, ordered inputs, input digests, and semantic parameters match.
+An analysis artifact may be reused only when the analysis declares deterministic, idempotent behavior and every identity-affecting field matches: ordered input identities and verified digests, analysis version, semantic parameters, rendering parameters, selected figures, renderer version, and figure output format. A matching `scientific_result_id` alone is insufficient to reuse a rendered analysis artifact.
 
 For the initial CLI contract, rendering parameters are part of the analysis request. Changing format, DPI, labels, theme, renderer version, or selected figures therefore produces a different analysis artifact. The manifest may additionally record a shared `scientific_result_id` derived only from scientific inputs, analysis version, and semantic parameters. A separate rendering-projection command is not part of the initial interface.
 

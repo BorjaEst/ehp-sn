@@ -3,7 +3,7 @@
 <!-- authority: provisional  status: provisional -->
 
 > **Provisional.** This command group should not become stable until at least two completed experiment workflows demonstrate shared reporting requirements. Command names and package details on this page are proposed rather than implementation commitments.
-See the [CLI overview](_index.md) for shared help, configuration, output, and error conventions.
+> See the [CLI overview](_index.md) for shared help, configuration, output, and error conventions.
 
 Package existing evaluation and analysis results for presentation or export.
 
@@ -33,13 +33,13 @@ For this reason, report operations may expose `--overwrite`. Authoritative data,
 ehp-sn report COMMAND [OPTIONS]
 ```
 
-| Command | Purpose |
-| --- | --- |
-| `plan SOURCE` | Resolve a report build without writing |
-| `build SOURCE` | Build a proposed report package |
+| Command           | Purpose                                      |
+| ----------------- | -------------------------------------------- |
+| `plan SOURCE`     | Resolve a report build without writing       |
+| `build SOURCE`    | Build a proposed report package              |
 | `validate REPORT` | Validate an existing proposed report package |
-| `inspect REPORT` | Inspect package contents and provenance |
-| `export REPORT` | Export a package to a delivery format |
+| `inspect REPORT`  | Inspect package contents and provenance      |
+| `export REPORT`   | Export a package to a delivery format        |
 
 ## `plan SOURCE`
 
@@ -51,20 +51,20 @@ ehp-sn report plan SOURCE --output PATH [OPTIONS]
 
 ### Arguments
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `SOURCE` | Yes | Evaluation or analysis artifact used as report input |
+| Argument | Required | Description                                          |
+| -------- | -------- | ---------------------------------------------------- |
+| `SOURCE` | Yes      | Evaluation or analysis artifact used as report input |
 
 The initial contract accepts one source artifact. Multi-source reports remain provisional.
 
 ### Options
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `--output PATH` | Required | Destination of the report package |
-| `--config PATH` | Report defaults | Report-build configuration |
-| `--report-profile NAME` | None | Presentation profile selecting existing resources |
-| `--format text\|json` | `text` | Terminal output format |
+| Option                  | Default         | Description                                       |
+| ----------------------- | --------------- | ------------------------------------------------- |
+| `--output PATH`         | Required        | Destination of the report package                 |
+| `--config PATH`         | Report defaults | Report-build configuration                        |
+| `--report-profile NAME` | None            | Presentation profile selecting existing resources |
+| `--format text\|json`   | `text`          | Terminal output format                            |
 
 ### Behavior
 
@@ -110,13 +110,13 @@ ehp-sn report build SOURCE --output PATH [OPTIONS]
 
 ### Options
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `--output PATH` | Required | Destination report package |
-| `--config PATH` | Report defaults | Report-build configuration |
-| `--report-profile NAME` | None | Presentation profile |
-| `--overwrite` | Disabled | Replace an existing report projection; never modifies source scientific artifacts |
-| `--format text\|json` | `text` | Terminal result format |
+| Option                  | Default         | Description                                                                       |
+| ----------------------- | --------------- | --------------------------------------------------------------------------------- |
+| `--output PATH`         | Required        | Destination report package                                                        |
+| `--config PATH`         | Report defaults | Report-build configuration                                                        |
+| `--report-profile NAME` | None            | Presentation profile                                                              |
+| `--overwrite`           | Disabled        | Replace an existing report projection; never modifies source scientific artifacts |
+| `--format text\|json`   | `text`          | Terminal result format                                                            |
 
 ### Behavior
 
@@ -172,9 +172,9 @@ ehp-sn report validate REPORT [--format text|json]
 
 ### Arguments
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `REPORT` | Yes | Report package path or accepted artifact reference |
+| Argument | Required | Description                                        |
+| -------- | -------- | -------------------------------------------------- |
+| `REPORT` | Yes      | Report package path or accepted artifact reference |
 
 ### Behavior
 
@@ -233,12 +233,12 @@ ehp-sn report export REPORT --export-format FORMAT --output PATH [OPTIONS]
 
 ### Options
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `--export-format FORMAT` | Required | Accepted delivery format |
-| `--output PATH` | Required | Export file or directory |
-| `--overwrite` | Disabled | Explicitly replace the export destination |
-| `--format text\|json` | `text` | Terminal result format |
+| Option                   | Default  | Description                               |
+| ------------------------ | -------- | ----------------------------------------- |
+| `--export-format FORMAT` | Required | Accepted delivery format                  |
+| `--output PATH`          | Required | Export file or directory                  |
+| `--overwrite`            | Disabled | Explicitly replace the export destination |
+| `--format text\|json`    | `text`   | Terminal result format                    |
 
 ### Behavior
 

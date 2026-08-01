@@ -103,10 +103,23 @@ Rules:
 - the key is a dot-separated path into the selected typed configuration;
 - the key must already exist unless the command explicitly supports extension fields;
 - values use TOML value syntax for strings, booleans, integers, floats, arrays, inline tables, and date/time values;
-- clearing an optional configuration field is not supported by the initial CLI; a dedicated mechanism such as `--unset KEY` may be introduced only after a concrete workflow requires it and its schema and provenance semantics are specified;
+- clearing an optional configuration field is not supported by the initial CLI; users clear inherited optional values by supplying another configuration file;
+- structured values should be shell-quoted, and complex nested changes should use `--config` instead of repeated `--set` options;
 - the parsed value must validate against the target field type;
 - unknown keys, ambiguous paths, and type-invalid values are rejected;
 - every accepted override and its source are recorded in the resolved request and artifact provenance.
+
+Shell-quoting examples:
+
+```console
+# Bash and Zsh
+ehp-sn analyze plan analysis:memory-diagnostics/v1 \
+    --set 'analysis.case_ids=["case-01", "case-02"]'
+
+# PowerShell
+ehp-sn analyze plan analysis:memory-diagnostics/v1 `
+    --set 'analysis.case_ids=["case-01", "case-02"]'
+```
 
 Scientific parameters belong in version-controlled configuration or explicit recorded overrides. Hydra-specific syntax such as `++key=value`, Defaults List mutation, sweeps, and deletion operators is not part of the stable CLI contract.
 
@@ -143,6 +156,30 @@ debug    verbose output plus diagnostic context and tracebacks
 
 Operations that expose `--quiet` suppress progress bars and non-essential telemetry while preserving errors and the final result.
 
+## Shared option support
+
+| Option                | Supported operations                                                                                         |
+| --------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `--no-color`          | All operations that emit terminal text                                                                       |
+| `--verbose`           | `plan`, `validate`, `build`, `run`, and `inspect`                                                            |
+| `--debug`             | All operations                                                                                               |
+| `--quiet`             | `data build`, `tasks build`, `train run`, `evaluate run`, `analyze run`, `report build`, and `report export` |
+| `--format text\|json` | All operations that return structured terminal results                                                       |
+
+Command pages may omit repeated shared options from local tables, but this matrix is normative.
+
+## Bounded inspection
+
+`inspect` is read-only and bounded by default.
+
+- Results use deterministic artifact-defined ordering.
+- Text output is truncated before excessive terminal output; truncation is stated explicitly.
+- JSON output includes `truncated`, `returned_items`, and `available_items` where counts are known.
+- `data inspect --samples N` requests representative records.
+- `tasks inspect --split NAME --index INDEX` requests one exact case.
+- Analysis and report inspectors return bounded summaries of tables, figures, resources, and provenance.
+- Pagination is not part of the initial CLI contract; exhaustive traversal belongs to the Python interface.
+
 ## Proposed environment variables
 
 Environment variables are reserved for execution and deployment concerns, not as a generic replacement for scientific configuration. The names below are proposed and do not become stable public API until required and verified by an implementation.
@@ -169,13 +206,19 @@ experiment:arena-tem/v1
 experiment:goaltrace-hrm/v1
 ```
 
-Where the expected reference kind is unambiguous, the shorter form may be accepted:
-
-```text
-arena-tem/v1
-```
+The initial CLI accepts canonical references only. Short aliases are not part of the stable contract.
 
 The CLI must not maintain separate public training and evaluation recipe catalogues for the same scientific experiment.
+
+## Requested and resolved values
+
+Whenever a value may be automatic or inherited, `plan`, JSON output, and committed provenance distinguish:
+
+- `requested`: the literal CLI or configuration value, such as `device = "auto"`;
+- `resolved`: the concrete value used, such as `device = "cuda:0"`;
+- `source`: dedicated option, `--set`, configuration file, environment, package default, or automatic resolution.
+
+This applies to device, precision, regime, seed policy, output destination, hardware profile, and other resolved defaults.
 
 ## Artifact and checkpoint references
 
@@ -188,23 +231,55 @@ artifact:<logical-id>
 checkpoint:<logical-id>
 ```
 
-Filesystem forms are:
+Filesystem forms include:
 
 ```text
 ./relative/path
 /absolute/path
+C:\absolute\windows\path
 ```
 
 Resolution rules:
 
 1. A value beginning with a recognized kind prefix, such as `artifact:` or `checkpoint:`, is resolved only as that logical reference kind.
-2. Any other value is treated as a filesystem path when the command permits paths.
-3. A path and a logical reference never compete for precedence because the prefix makes the intended form explicit.
-4. A command that prints a logical artifact or checkpoint reference must emit a value accepted unchanged by downstream commands.
-5. Logical references may be resolved by local or configured persistence adapters. Their manifests or content digests, not machine-specific physical paths, determine identity.
-6. Filesystem paths are invocation locations and are recorded in provenance; they are not assumed to remain portable across machines.
+2. URI forms are not part of the initial CLI contract unless a command explicitly documents them.
+3. Any other accepted value is treated as a filesystem path.
+4. Relative paths are resolved against the current working directory.
+5. Windows drive-letter paths are treated as paths, not logical references.
+6. Commands print canonical logical references when one exists; text output may additionally display a physical path.
+7. JSON output returns logical identity and physical location in separate fields.
+8. A printed logical reference must be accepted unchanged by downstream commands.
+9. Logical references may be resolved by local or configured persistence adapters. Their manifests or content digests, not machine-specific physical paths, determine identity.
+10. Filesystem paths are recorded in provenance and are not assumed portable across machines.
 
-Malformed or unknown logical references are resolution errors. A well-formed reference that resolves to a known identity but whose payload is unavailable on the current machine is a planning warning and a resource-validation error.
+Canonical examples:
+
+```text
+artifact:runs/01JXYZ123
+checkpoint:runs/01JXYZ123/best
+```
+
+The precise `<logical-id>` grammar belongs to the artifact-reference specification. Malformed or unknown logical references are resolution errors. A well-formed reference whose payload is unavailable is a planning warning and a resource-validation error.
+
+## Shared request and artifact identity
+
+The CLI distinguishes scientific identity, resolved request identity, durable artifact identity, and physical location. Identity is semantic rather than path-based; the hashing implementation belongs elsewhere.
+
+| Command        | Identity-affecting properties                                                                                                                                            |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `data build`   | Generator version, effective semantic configuration, generation seed, and ordered source identities                                                                      |
+| `tasks build`  | Task protocol version, effective semantic configuration, seed policy, and ordered parent identities                                                                      |
+| `train run`    | Every non-resumed invocation creates a new run identity; lineage records the originating run or resume checkpoint plus the resolved experiment and request               |
+| `evaluate run` | Checkpoint, regime, data identity, case-selection policy, evaluation seed, metric set, trace set, and numerically relevant runtime settings                              |
+| `analyze run`  | Ordered input identities and verified digests, analysis version, semantic parameters, rendering parameters, selected figures, renderer version, and figure output format |
+| `report`       | **Proposed:** source identities, report profile or configuration, and selected package or export format; exact identity semantics remain provisional                     |
+
+Shared rules:
+
+- `--output` changes placement and provenance, not scientific identity.
+- Device topology, precision, distributed strategy, and deterministic-execution settings do not select a different experiment definition, but are recorded in request identity and provenance because they may affect numerical reproducibility.
+- Implementation and package versions are recorded in provenance and affect identity only where a command explicitly says so.
+- Commands are equivalent only when all documented identity-affecting fields resolve identically.
 
 ## Artifact identity, placement, and reuse
 
@@ -234,6 +309,19 @@ For commands that permit reuse:
 
 `--overwrite` is reserved for replaceable presentation projections such as provisional report packages and exports. `--replace-incomplete` applies only to failed or uncommitted staging state for authoritative artifacts.
 
+## Declared and verified resource identity
+
+Planning may use definitions and manifests without loading bulk payloads.
+
+| State         | Meaning                                                                 |
+| ------------- | ----------------------------------------------------------------------- |
+| `declared`    | Identity comes from a definition, catalogue entry, or manifest          |
+| `verified`    | Required payload was read and declared integrity metadata was confirmed |
+| `unavailable` | Identity is known, but payload is not readable                          |
+| `unresolved`  | No unique identity can be established                                   |
+
+`plan` may report `declared` or `unavailable` resources. `validate`, `build`, and `run` require `verified` resources where payload content is consumed. Text output labels unverified identities; JSON uses separate `identity`, `verification`, and `location` fields.
+
 ## Planning and validation boundary
 
 `plan` resolves definitions, identities, effective configuration, intended inputs, destinations, and actions. It may report unavailable resources as warnings, but it does not require all runtime resources to be readable unless the command module explicitly says otherwise.
@@ -244,23 +332,71 @@ A plan describes only the exact request arguments used to create it. Changing `-
 
 ## Machine-readable output
 
-Commands that return structured information support:
+When `--format json` is selected:
 
-```console
---format json
-```
+- stdout contains exactly one complete JSON document;
+- stdout contains no progress bars, ANSI styling, tracebacks, or human prefixes;
+- progress, verbose diagnostics, and debug tracebacks go to stderr;
+- warnings appear in a top-level `warnings` array and may also be summarized on stderr;
+- interruption emits a valid JSON error document when safe, then exits with code `130`;
+- human-readable text output is not a stable machine interface;
+- the JSON envelope is versioned through `schema_version`;
+- stable field names are `schema_version`, `status`, `action`, `code`, `message`, `warnings`, `identity`, `verification`, `location`, `requested`, and `resolved`; their meanings are stable when present, while required presence follows the table below.
 
-Successful JSON output contains a `status` field and the command-specific result. Failed JSON output contains at least:
+`--quiet`, `--verbose`, and `--debug` affect stderr only in JSON mode and never change stdout validity.
+
+### JSON field presence
+
+| Field            | Presence                                               |
+| ---------------- | ------------------------------------------------------ |
+| `schema_version` | Always                                                 |
+| `status`         | Always; one of `success` or `error`                    |
+| `action`         | Always                                                 |
+| `warnings`       | Always; an array, possibly empty                       |
+| `code`           | Required on error; omitted or `null` on success        |
+| `message`        | Required on error; optional on success                 |
+| `identity`       | Present when the operation resolves a durable identity |
+| `verification`   | Present when resources are resolved or checked         |
+| `location`       | Present when a physical location exists                |
+| `requested`      | Present for `plan`, `validate`, `build`, and `run`     |
+| `resolved`       | Present after successful resolution                    |
+
+Warnings use this stable shape:
 
 ```json
 {
-  "status": "error",
-  "code": "evaluate.checkpoint.not_found",
-  "message": "Checkpoint does not exist: runs/arena-tem/best.ckpt"
+  "code": "resource.payload.unavailable",
+  "message": "Checkpoint identity is known, but its payload is not available.",
+  "resource": "checkpoint:runs/01JXYZ123/best"
 }
 ```
 
-The string `code` identifies the domain-specific failure. The process exit code identifies the broad failure category.
+`resource` is optional when the warning does not concern a specific logical resource.
+
+Interrupted commands use `status = "error"`, `code = "cli.interrupted"`, and process exit code `130`; no additional status value is introduced.
+
+```json
+{
+  "schema_version": "1",
+  "status": "error",
+  "action": "validated",
+  "code": "evaluate.regime.unknown",
+  "message": "Experiment experiment:arena-tem/v1 does not declare regime 'stress'.",
+  "warnings": []
+}
+```
+
+| Action      | Meaning                                     |
+| ----------- | ------------------------------------------- |
+| `listed`    | Catalogue entries returned                  |
+| `shown`     | Definition or resource description returned |
+| `planned`   | Request resolved without execution          |
+| `validated` | Request or existing resource validated      |
+| `created`   | New artifact committed                      |
+| `reused`    | Existing equivalent artifact returned       |
+| `resumed`   | Existing training lineage continued         |
+| `inspected` | Resource inspected                          |
+| `exported`  | Presentation export produced                |
 
 ## Exit codes
 
@@ -278,6 +414,20 @@ The string `code` identifies the domain-specific failure. The process exit code 
 | `130` | Interrupted by the user                    |
 
 These codes are a proposed stable contract until verified by CLI acceptance tests.
+
+### Classification examples
+
+| Failure                                                     | Exit code |
+| ----------------------------------------------------------- | --------: |
+| Unknown option or missing required argument                 |       `2` |
+| Invalid configuration value or schema violation             |       `3` |
+| Referenced file or artifact absent or unreadable            |       `4` |
+| Readable checkpoint or artifact incompatible                |       `5` |
+| Failure during training, inference, evaluation, or analysis |       `6` |
+| Failure committing otherwise completed output               |       `7` |
+| Existing valid conflicting destination                      |       `8` |
+
+The most specific applicable category is used; domain-specific JSON `code` values provide detail.
 
 ## Example lifecycle
 

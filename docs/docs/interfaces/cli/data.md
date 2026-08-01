@@ -27,14 +27,14 @@ ehp-sn tasks
 ehp-sn data COMMAND [OPTIONS]
 ```
 
-| Command | Purpose |
-| --- | --- |
-| `list` | List available substrate generators |
-| `show TARGET` | Describe one generator and its configuration contract |
-| `plan TARGET` | Resolve a build without writing data |
-| `build TARGET` | Build one immutable substrate artifact |
-| `validate ARTIFACT` | Validate an existing substrate artifact |
-| `inspect ARTIFACT` | Display artifact metadata and bounded samples |
+| Command             | Purpose                                               |
+| ------------------- | ----------------------------------------------------- |
+| `list`              | List available substrate generators                   |
+| `show TARGET`       | Describe one generator and its configuration contract |
+| `plan TARGET`       | Resolve a build without writing data                  |
+| `build TARGET`      | Build one immutable substrate artifact                |
+| `validate ARTIFACT` | Validate an existing substrate artifact               |
+| `inspect ARTIFACT`  | Display artifact metadata and bounded samples         |
 
 ## `list`
 
@@ -71,9 +71,9 @@ ehp-sn data show TARGET [--format text|json]
 
 ### Arguments
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `TARGET` | Yes | Substrate generator name, such as `openfield` |
+| Argument | Required | Description                                   |
+| -------- | -------- | --------------------------------------------- |
+| `TARGET` | Yes      | Substrate generator name, such as `openfield` |
 
 ### Outputs
 
@@ -102,19 +102,19 @@ ehp-sn data plan TARGET --config PATH [OPTIONS]
 
 ### Arguments
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `TARGET` | Yes | Substrate generator to resolve |
+| Argument | Required | Description                    |
+| -------- | -------- | ------------------------------ |
+| `TARGET` | Yes      | Substrate generator to resolve |
 
 ### Options
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `--config PATH` | Required unless the target has an accepted default | Generation configuration |
-| `--set KEY=VALUE` | None | Typed configuration override; repeatable |
-| `--output PATH` | Configuration value | Override the artifact destination |
-| `--seed INT` | Configuration value | Override the generation seed |
-| `--format text\|json` | `text` | Terminal output format |
+| Option                | Default                                            | Description                              |
+| --------------------- | -------------------------------------------------- | ---------------------------------------- |
+| `--config PATH`       | Required unless the target has an accepted default | Generation configuration                 |
+| `--set KEY=VALUE`     | None                                               | Typed configuration override; repeatable |
+| `--output PATH`       | Configuration value                                | Override the artifact destination        |
+| `--seed INT`          | Configuration value                                | Override the generation seed             |
+| `--format text\|json` | `text`                                             | Terminal output format                   |
 
 `--seed INT` overrides the configured substrate-generation seed and therefore participates in artifact content identity. Supplying both `--seed` and a `--set` override for the same seed field is rejected as ambiguous.
 
@@ -163,20 +163,20 @@ ehp-sn data build TARGET --config PATH [OPTIONS]
 
 ### Arguments
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `TARGET` | Yes | Substrate generator to execute |
+| Argument | Required | Description                    |
+| -------- | -------- | ------------------------------ |
+| `TARGET` | Yes      | Substrate generator to execute |
 
 ### Options
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `--config PATH` | Required unless the target has an accepted default | Generation configuration |
-| `--set KEY=VALUE` | None | Typed configuration override; repeatable |
-| `--output PATH` | Configuration value | Override the artifact destination |
-| `--seed INT` | Configuration value | Override the generation seed |
-| `--replace-incomplete` | Disabled | Remove an incomplete or uncommitted destination before rebuilding |
-| `--format text\|json` | `text` | Terminal result format |
+| Option                 | Default                                            | Description                                                       |
+| ---------------------- | -------------------------------------------------- | ----------------------------------------------------------------- |
+| `--config PATH`        | Required unless the target has an accepted default | Generation configuration                                          |
+| `--set KEY=VALUE`      | None                                               | Typed configuration override; repeatable                          |
+| `--output PATH`        | Configuration value                                | Override the artifact destination                                 |
+| `--seed INT`           | Configuration value                                | Override the generation seed                                      |
+| `--replace-incomplete` | Disabled                                           | Remove an incomplete or uncommitted destination before rebuilding |
+| `--format text\|json`  | `text`                                             | Terminal result format                                            |
 
 ### Behavior
 
@@ -190,6 +190,10 @@ ehp-sn data build TARGET --config PATH [OPTIONS]
 8. Prints the resulting artifact reference.
 
 A failed build must not leave a destination that appears completed. An identical existing artifact may be reused when its manifest and fingerprint match; a semantically different artifact requires a different identity or version. `--replace-incomplete` applies only to failed staging state or an uncommitted invalid destination; it cannot replace a committed valid artifact.
+
+### Reuse result
+
+An equivalent verified artifact is a successful `action = "reused"`. Existing content and provenance are not modified. If the equivalent artifact exists elsewhere, the command returns its logical reference rather than copying it. A different valid artifact at `--output` exits with code `8`.
 
 ### Inputs
 
@@ -216,7 +220,7 @@ ehp-sn data build openfield \
     --config config/data/openfield/default.toml
 ```
 
-On success, the command creates or reuses the configured OpenField artifact and prints its path or logical reference.
+On success, the command creates or reuses the configured OpenField artifact and prints the canonical logical reference and, where useful, its physical location.
 
 ### Errors
 
@@ -236,16 +240,16 @@ ehp-sn data validate ARTIFACT [--level quick|full] [--format text|json]
 
 ### Arguments
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `ARTIFACT` | Yes | Path or accepted artifact reference |
+| Argument   | Required | Description                         |
+| ---------- | -------- | ----------------------------------- |
+| `ARTIFACT` | Yes      | Path or accepted artifact reference |
 
 ### Options
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `--level quick\|full` | `full` | Validation depth |
-| `--format text\|json` | `text` | Terminal result format |
+| Option                | Default | Description            |
+| --------------------- | ------- | ---------------------- |
+| `--level quick\|full` | `full`  | Validation depth       |
+| `--format text\|json` | `text`  | Terminal result format |
 
 ### Behavior
 
@@ -274,15 +278,15 @@ The command reports whether the complete OpenField artifact satisfies its declar
 Display substrate metadata and bounded content without modifying the artifact.
 
 ```console
-ehp-sn data inspect ARTIFACT [--sample N] [--format text|json]
+ehp-sn data inspect ARTIFACT [--samples N] [--format text|json]
 ```
 
 ### Options
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `--samples N` | `0` | Number of representative records to include |
-| `--format text\|json` | `text` | Terminal result format |
+| Option                | Default | Description                                 |
+| --------------------- | ------- | ------------------------------------------- |
+| `--samples N`         | `0`     | Number of representative records to include |
+| `--format text\|json` | `text`  | Terminal result format                      |
 
 ### Outputs
 

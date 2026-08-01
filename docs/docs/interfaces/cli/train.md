@@ -60,9 +60,9 @@ ehp-sn train show EXPERIMENT [--format text|json]
 
 ### Arguments
 
-| Argument     | Required | Description                                           |
-| ------------ | -------- | ----------------------------------------------------- |
-| `EXPERIMENT` | Yes      | Canonical experiment reference or accepted short form |
+| Argument     | Required | Description                    |
+| ------------ | -------- | ------------------------------ |
+| `EXPERIMENT` | Yes      | Canonical experiment reference |
 
 ### Outputs
 
@@ -90,6 +90,22 @@ The result describes the standard Arena–TEM training protocol and its required
 - Experiment reference is unknown or ambiguous.
 - Experiment does not declare a training protocol.
 - Experiment definition is internally invalid.
+
+## Public resume compatibility
+
+A checkpoint declares one capability: `resumable`, `initialization-only`, or `inference-only`.
+
+| Category                                                  | Resume rule                                                                  |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Experiment, task data, and model structure                | Must match                                                                   |
+| Optimizer and scheduler semantics                         | Must match unless protocol explicitly permits a compatible change            |
+| Completed-step and phase history                          | Must match checkpoint record                                                 |
+| Logging frequency, verbosity, and monitoring presentation | May change                                                                   |
+| Output placement                                          | May change while remaining in the same lineage                               |
+| Device topology and precision                             | Protocol-defined; resolved changes are reported and recorded                 |
+| Source revision                                           | Must match unless an explicit compatibility policy is declared and validated |
+
+`--resume` requires a `resumable` checkpoint with model, optimizer, scheduler, step, and protocol state. `--init-from` accepts only checkpoints that explicitly permit initialization. Incompatible capability or metadata is rejected before a run artifact is created. Successful resume reports `action = "resumed"`.
 
 ## `plan EXPERIMENT`
 

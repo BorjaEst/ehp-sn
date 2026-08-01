@@ -19,13 +19,13 @@ Evaluation uses the experiment's declared evaluation protocol and named regimes.
 ehp-sn evaluate COMMAND [OPTIONS]
 ```
 
-| Command | Purpose |
-| --- | --- |
-| `list` | List experiments that declare evaluation regimes |
-| `show EXPERIMENT` | Show an experiment's evaluation definition |
-| `plan EXPERIMENT` | Resolve an evaluation without executing |
+| Command               | Purpose                                              |
+| --------------------- | ---------------------------------------------------- |
+| `list`                | List experiments that declare evaluation regimes     |
+| `show EXPERIMENT`     | Show an experiment's evaluation definition           |
+| `plan EXPERIMENT`     | Resolve an evaluation without executing              |
 | `validate EXPERIMENT` | Validate checkpoint, data, regime, and compatibility |
-| `run EXPERIMENT` | Execute evaluation and commit an artifact |
+| `run EXPERIMENT`      | Execute evaluation and commit an artifact            |
 
 ## `list`
 
@@ -62,9 +62,9 @@ ehp-sn evaluate show EXPERIMENT [--format text|json]
 
 ### Arguments
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `EXPERIMENT` | Yes | Canonical experiment reference or accepted short form |
+| Argument     | Required | Description                    |
+| ------------ | -------- | ------------------------------ |
+| `EXPERIMENT` | Yes      | Canonical experiment reference |
 
 ### Outputs
 
@@ -91,6 +91,18 @@ The result lists the Arena–TEM evaluation regimes and their declared outcomes.
 - Experiment does not declare evaluation regimes.
 - Evaluation protocol is invalid.
 
+## Evaluation identity and reuse
+
+A complete evaluation identity includes experiment and regime versions, checkpoint logical identity and verified digest, evaluation-data identity, case-selection policy and selected case IDs, evaluation seed, metric versions, trace versions, and numerically relevant runtime settings.
+
+Changing only `--output` changes placement, not identity. Changing metrics, traces, seed, case selection, precision, or deterministic runtime settings changes request identity.
+
+Evaluation reuse is request-identity based, not merely scientific-result based. Equivalent complete evaluations are reused only when all identity-affecting request fields match and the existing artifact is verified. Reuse reports success with `action = "reused"`, does not modify provenance, and returns the existing logical reference rather than silently copying it to another location. A conflicting valid destination exits with code `8`.
+
+### Diagnostic case selection
+
+`--max-cases N` creates a diagnostic request unless the regime explicitly defines `N` as complete. Cases are selected deterministically from the regime's ordered candidate set using the resolved seed and case-selection policy. Ordered selected case IDs are recorded. Diagnostic evaluations record `purpose = "diagnostic"` and cannot satisfy complete-regime or reference-result requirements.
+
 ## `plan EXPERIMENT`
 
 Resolve one concrete evaluation request without loading the full model or running inference.
@@ -101,24 +113,24 @@ ehp-sn evaluate plan EXPERIMENT --checkpoint CHECKPOINT [OPTIONS]
 
 ### Arguments
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `EXPERIMENT` | Yes | Experiment definition to evaluate |
+| Argument     | Required | Description                       |
+| ------------ | -------- | --------------------------------- |
+| `EXPERIMENT` | Yes      | Experiment definition to evaluate |
 
 ### Options
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `--checkpoint CHECKPOINT` | Required | Local path or accepted checkpoint reference |
-| `--regime NAME` | Experiment default when one is declared | Named regime from the experiment protocol |
-| `--config PATH` | Experiment defaults | Additional evaluation configuration |
-| `--set KEY=VALUE` | None | Typed override; repeatable |
-| `--output PATH` | Configured evaluation root | Override the artifact destination |
-| `--seed INT` | Regime or request default | Evaluation sampling seed |
-| `--device DEVICE` | `auto` | Runtime device |
-| `--precision POLICY` | Experiment or runtime default | Runtime precision |
-| `--max-cases INT` | Regime default | Bound execution for diagnostics |
-| `--format text\|json` | `text` | Terminal output format |
+| Option                    | Default                                 | Description                                 |
+| ------------------------- | --------------------------------------- | ------------------------------------------- |
+| `--checkpoint CHECKPOINT` | Required                                | Local path or accepted checkpoint reference |
+| `--regime NAME`           | Experiment default when one is declared | Named regime from the experiment protocol   |
+| `--config PATH`           | Experiment defaults                     | Additional evaluation configuration         |
+| `--set KEY=VALUE`         | None                                    | Typed override; repeatable                  |
+| `--output PATH`           | Configured evaluation root              | Override the artifact destination           |
+| `--seed INT`              | Regime or request default               | Evaluation sampling seed                    |
+| `--device DEVICE`         | `auto`                                  | Runtime device                              |
+| `--precision POLICY`      | Experiment or runtime default           | Runtime precision                           |
+| `--max-cases INT`         | Regime default                          | Bound execution for diagnostics             |
+| `--format text\|json`     | `text`                                  | Terminal output format                      |
 
 `--seed INT` overrides the request-level evaluation sampling seed. Supplying both `--seed` and a `--set` override for the same seed field is rejected as ambiguous.
 

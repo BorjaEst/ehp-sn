@@ -199,6 +199,10 @@ ehp-sn tasks build TASK --config PATH [OPTIONS]
 
 A different corpus identity or semantic configuration requires a different version. `--replace-incomplete` never removes or mutates a committed valid corpus.
 
+### Reuse result
+
+An equivalent verified corpus is a successful `action = "reused"`. Existing content and provenance are not modified. If the equivalent corpus exists elsewhere, the command returns its logical reference rather than copying it. A different valid corpus at `--output` exits with code `8`.
+
 ### Inputs
 
 - all parent substrates reported by `tasks plan`;
@@ -298,7 +302,7 @@ ehp-sn tasks inspect CORPUS [OPTIONS]
 
 ### Outputs
 
-Without `--index`, the command reports corpus identity, parent artifacts, split counts, channel summaries, and bounded aggregate statistics. With `--sample`, it prints a decoded task-specific view of that sample. It does not dump the full corpus.
+Without `--index`, the command reports corpus identity, parent artifacts, split counts, channel summaries, and bounded aggregate statistics. With `--index`, it prints a decoded task-specific view of that sample. It does not dump the full corpus.
 
 ### Example
 
@@ -313,7 +317,7 @@ The result displays the selected Arena episode and its declared inputs and targe
 ### Errors
 
 - Corpus or manifest cannot be read.
-- Requested split or sample does not exist.
+- Requested split or case index does not exist.
 - Artifact kind is not a processed task corpus.
 
 ## Related commands
