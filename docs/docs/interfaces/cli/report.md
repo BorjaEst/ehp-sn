@@ -1,13 +1,13 @@
 ---
-authority: provisional
-status: provisional
+authority: normative
+document_status: specified
+capability_status: planned
 api_stability: provisional
 ---
 
 # `ehp-sn report`
 
-> **Provisional.** This command group should not become stable until at least two completed experiment workflows demonstrate shared reporting requirements. Command names and package details on this page are proposed rather than implementation commitments.
-> See the [CLI overview](_index.md) for shared help, configuration, output, and error conventions.
+> **Provisional.** This command group remains provisional until at least two completed experiment workflows demonstrate shared reporting requirements. Subcommand details are deferred until the report-package specification is accepted.
 
 Package existing evaluation and analysis results for presentation or export.
 

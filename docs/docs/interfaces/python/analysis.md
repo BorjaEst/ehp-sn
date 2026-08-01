@@ -1,7 +1,8 @@
 ---
 title: Analysis interface
 authority: normative
-status: specified
+document_status: specified
+capability_status: planned
 api_stability: provisional
 ---
 
@@ -177,10 +178,6 @@ On `KeyboardInterrupt`:
 
 Reuse requires matching analysis version, ordered input identities and digests, semantic parameters, and—at artifact level—rendering parameters and renderer identity. Reuse never changes source artifacts.
 
-## Side effects
-
-Analysis may read committed resources, create staging state, compute derived outputs, render figures, and commit one immutable analysis artifact.
-
 ## Current scope
 
 Analysis and rendering remain one operation initially, but semantic and rendering parameters are distinct in requests, plans, results, and manifests. Generic bulk analysis, asynchronous handles, and remote futures are not part of the initial interface.
@@ -193,7 +190,3 @@ Analysis and rendering remain one operation initially, but semantic and renderin
 - [Shared conventions](conventions.md)
 - [CLI analysis](../cli/analyze.md)
 - [Framework semantics](../../framework/_index.md)
-
-## Non-goals
-
-Analysis does not own training, inference, primary evaluation, checkpoint selection, report packaging, generic batching, or arbitrary notebook exploration.

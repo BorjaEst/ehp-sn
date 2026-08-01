@@ -112,16 +112,16 @@ print(evaluation.metrics)
 
 The experiment factory supplies the standard Arena–TEM components, evaluation regimes, metrics, and traces.
 
-The same workflow, expressed through configuration:
+The same workflow, expressed through the CLI:
 
-```bash id="dstban"
-ehp-sn train \
-    experiment=arena-tem/v1 \
-    protocol.training.max_steps=50000 \
-    seeds.master=42 \
-    runtime=cuda \
-    tracking=mlflow
+```bash
+ehp-sn train run experiment:arena-tem/v1 \
+    --set protocol.training.max_steps=50000 \
+    --seed 42 \
+    --device cuda
 ```
+
+See the [CLI reference](docs/docs/interfaces/cli/_index.md) for the full command grammar.
 
 Both paths use the same constructors and validation. These examples show the target interface; they become runnable as each component is implemented.
 

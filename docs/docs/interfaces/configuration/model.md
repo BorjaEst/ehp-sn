@@ -1,10 +1,9 @@
 ---
 title: Configuration model
 authority: normative
-status: specified
-interface_stability: provisional
-serialized_schema_stability: proposed
-semantic_resolution_stability: proposed
+document_status: specified
+capability_status: planned
+api_stability: provisional
 ---
 
 # Configuration model
@@ -17,11 +16,56 @@ Definition defaults are package-owned scientific values supplied by experiments,
 
 Resources associated with a definition are classified by [Resource requirements](resource-requirements.md) as fixed, replaceable defaults, or absent.
 
-## Workspace settings
+## Workspace
 
 Workspace settings provide local deployment defaults and exact bindings for package-declared resource requirements.
 
 They must not redefine scientific task, model, binding, protocol, metric, regime, or analysis semantics.
+
+### Admission
+
+A workspace field is permitted only when it supplies a local deployment default or an exact resource binding consumed during operation resolution.
+
+The workspace must not contain scientific definitions, tool-native configuration trees, arbitrary environment variables, package discovery settings, user-interface preferences, or unrelated project metadata.
+
+### Workspace file
+
+```toml
+schema = "ehp-sn/workspace/v1"
+
+[artifact_store]
+root = "artifacts"
+
+[cache]
+root = ".cache/ehp-sn"
+
+[runtime]
+device = "auto"
+
+[tracking]
+backend = "local"
+
+[bindings]
+"requirement:corpus/arena-training/v1" = "artifact:arena-corpus/default/v1"
+```
+
+### Effective projection
+
+Two distinct digests are defined:
+
+| Digest                       | Scope                                                  | Role                                                         |
+| ---------------------------- | ------------------------------------------------------ | ------------------------------------------------------------ |
+| `workspace_document_digest`  | Digest of the complete selected workspace file         | Diagnostic provenance only; identifies the authored document |
+| `effective_workspace_digest` | Digest of only consumed normalized fields and bindings | Identity-bearing; contributes to plan identity               |
+
+Resolution constructs an effective workspace projection containing only consumed workspace defaults and consumed resource bindings.
+
+Identity and staleness rules use the effective projection, not the full workspace document:
+
+- unused workspace fields do not affect semantic identity;
+- shadowed workspace values do not affect semantic identity;
+- changing unused fields changes `workspace_document_digest` but not `effective_workspace_digest` or plan identity;
+- changing a consumed default or binding changes `effective_workspace_digest` and may change identity and stale the plan.
 
 ## Operation configuration
 
@@ -82,7 +126,7 @@ The authoritative resource state definitions are in [Resource requirements](reso
 
 ## Execution plan
 
-An `ExecutionPlan` is an immutable, portable description of one exact operation to validate and execute.
+An `ExecutionPlan` is an immutable, serializable, backend-independent description of an execution. It may contain logical or local placement requirements and is not necessarily relocatable between machines.
 
 At planning time, every required resource must satisfy the BOUND postcondition defined by `resource-requirements.md`.
 
@@ -97,6 +141,16 @@ immutable resolved scientific definition
     ↓
 request construction
 ```
+
+## Related interfaces
+
+- [Resource requirements](resource-requirements.md)
+- [Identities and provenance](identities-and-provenance.md)
+- [Resolution](resolution.md)
+
+## Non-goals
+
+This page does not define artifact commit semantics, storage races, or runtime allocation.
 
 A request must never contain pending experiment or analysis mutations.
 

@@ -1,13 +1,13 @@
 ---
 authority: normative
-status: specified
+document_status: specified
+capability_status: planned
 api_stability: provisional
 ---
 
 # `ehp-sn train`
 
 Plan, validate, and execute model training from an experiment definition.
-See the [CLI overview](_index.md) for shared help, configuration, output, and error conventions.
 
 ## Overview
 

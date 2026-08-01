@@ -1,15 +1,16 @@
 ---
 title: Configuration identities and provenance
 authority: normative
-status: specified
-interface_stability: provisional
-serialized_schema_stability: proposed
-semantic_resolution_stability: proposed
+document_status: specified
+capability_status: planned
+api_stability: provisional
 ---
 
 # Configuration identities and provenance
 
-This page defines configuration-level semantic inputs to identity and separates semantic provenance from diagnostic provenance.
+This page defines how configuration contributes to scientific and operational identity, and how semantic provenance is separated from diagnostic provenance.
+
+General identity categories and equality invariants are defined by [Framework identity](../../framework/identity.md). General provenance separation is defined by [Framework provenance](../../framework/provenance.md). The rules below are configuration-specific specializations of those framework contracts.
 
 ## Equality invariant
 
@@ -95,9 +96,11 @@ Unused and shadowed values:
 
 ## Related interfaces
 
-- [Workspace](workspace.md)
+- [Configuration model](model.md)
 - [Resolution](resolution.md)
-- [Operation schemas](operation-schemas.md)
+- [Files and overrides](files-and-overrides.md)
+- [Framework identity](../../framework/identity.md)
+- [Framework provenance](../../framework/provenance.md)
 - [Python artifacts](../python/artifacts.md)
 - [Python conventions](../python/conventions.md)
 

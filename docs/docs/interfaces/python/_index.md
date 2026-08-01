@@ -1,7 +1,8 @@
 ---
 title: Python interface
 authority: normative
-status: specified
+document_status: specified
+capability_status: planned
 api_stability: provisional
 ---
 
@@ -219,6 +220,10 @@ The public workflow API is synchronous. Study orchestration remains reducible to
 - [Artifacts](artifacts.md)
 - [Shared conventions](conventions.md)
 - [Analysis](analysis.md)
+
+## Python and CLI equivalence
+
+Equivalent Python and CLI invocations produce scientifically and operationally equivalent resolved requests and plans, excluding documented frontend metadata. Backend or frontend differences must not alter experiment, data, checkpoint, seed, regime, validation, or artifact-policy semantics.
 
 ## Non-goals
 

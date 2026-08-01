@@ -1,8 +1,8 @@
 ---
 authority: normative
-status: specified
+document_status: specified
+capability_status: planned
 api_stability: provisional
-canonical_package: ehp_sn
 ---
 
 # `ehp-sn` CLI
@@ -67,6 +67,40 @@ Not every command group implements every operation. `build` is used for material
 
 `inspect` is always read-only and bounded by default, but its selectors depend on the artifact kind. Likewise, validation levels are domain-specific. Higher levels include the checks of lower levels unless the command module states otherwise.
 
+## Subcommand conventions
+
+### Shared lifecycle
+
+Artifact-producing subcommands (`build`, `run`) follow a common lifecycle:
+
+1. resolve the request;
+2. validate prerequisites;
+3. stage output in a temporary location;
+4. validate the staged artifact;
+5. atomically publish the committed artifact.
+
+A failed build or run must not leave a destination that appears to be a completed artifact. `--replace-incomplete` applies only to failed staging state; it cannot replace a committed valid artifact.
+
+### Plan
+
+`plan` resolves configuration and intended actions without executing them. It reports the resolved identity, expected destination, resource references, and conflict status. Resource payload availability is not required at plan time — `validate` performs the required checks.
+
+### Validate
+
+`validate` checks configuration, compatibility, resource availability, and destination constraints at the requested level (`config`, `resources`, or `build`). It does not execute the operation. Validation failure exits with code `5`.
+
+### Build vs run
+
+`build` materializes an immutable data-like artifact (substrate, corpus). `run` executes a computational protocol (training, evaluation, analysis). Both share the staging lifecycle.
+
+### Inspect
+
+`inspect` reads an existing artifact without modifying it. It reports metadata, provenance, and bounded content samples. It never dumps full datasets by default.
+
+### Reuse
+
+An equivalent verified artifact may be reused when its manifest and identity fingerprint match. Reuse reports `action = "reused"`, does not modify provenance, and returns the existing logical reference. A different valid artifact at the requested destination exits with code `8`.
+
 ## Public configuration boundary
 
 EHP-SN owns the public CLI and configuration semantics. Hydra is the default composition backend, not the public command language.
@@ -94,39 +128,22 @@ A dedicated invocation option such as `--device` overrides the corresponding exe
 
 ### `--set` grammar
 
-`--set` applies one repeatable dot-path override:
+`--set` applies one repeatable dot-path override. The authoritative value grammar and supported types are defined in [Files and overrides](../configuration/files-and-overrides.md).
 
 ```console
 --set protocol.training.max_steps=50000
---set optimizer.lr=0.0001
 --set execution.deterministic=true
---set analysis.case_ids='["case-01", "case-02"]'
 ```
 
 Rules:
 
-- the key is a dot-separated path into the selected typed configuration;
-- the key must already exist unless the command explicitly supports extension fields;
-- values use TOML value syntax for strings, booleans, integers, floats, arrays, inline tables, and date/time values;
-- clearing an optional configuration field is not supported by the initial CLI; users clear inherited optional values by supplying another configuration file;
-- structured values should be shell-quoted, and complex nested changes should use `--config` instead of repeated `--set` options;
+- the key is a canonical schema field path;
+- values must conform to the supported subset defined by the configuration specification;
 - the parsed value must validate against the target field type;
 - unknown keys, ambiguous paths, and type-invalid values are rejected;
 - every accepted override and its source are recorded in the resolved request and artifact provenance.
 
-Shell-quoting examples:
-
-```console
-# Bash and Zsh
-ehp-sn analyze plan analysis:memory-diagnostics/v1 \
-    --set 'analysis.case_ids=["case-01", "case-02"]'
-
-# PowerShell
-ehp-sn analyze plan analysis:memory-diagnostics/v1 `
-    --set 'analysis.case_ids=["case-01", "case-02"]'
-```
-
-Scientific parameters belong in version-controlled configuration or explicit recorded overrides. Hydra-specific syntax such as `++key=value`, Defaults List mutation, sweeps, and deletion operators is not part of the stable CLI contract.
+Hydra-specific syntax such as `++key=value`, Defaults List mutation, sweeps, and deletion operators is not part of the stable CLI contract.
 
 ## Shared option conventions
 

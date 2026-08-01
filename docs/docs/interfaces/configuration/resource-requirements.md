@@ -1,10 +1,9 @@
 ---
 title: Resource requirements
 authority: normative
-status: specified
-interface_stability: provisional
-serialized_schema_stability: proposed
-semantic_resolution_stability: proposed
+document_status: specified
+capability_status: planned
+api_stability: provisional
 ---
 
 # Resource requirements
@@ -171,9 +170,8 @@ The operation or artifact identity specification determines whether the logical 
 
 ## Related interfaces
 
-- [Workspace](workspace.md)
+- [Configuration model](model.md)
 - [Resolution](resolution.md)
-- [Validation](validation.md)
 - [Python artifacts](../python/artifacts.md)
 - [Python training](../python/training.md)
 - [Python evaluation](../python/evaluation.md)

@@ -1,7 +1,8 @@
 ---
 title: Training interface
 authority: normative
-status: specified
+document_status: specified
+capability_status: planned
 api_stability: provisional
 ---
 
@@ -128,7 +129,7 @@ A validation report is bound to the exact plan identity. Execution rechecks vola
 
 `train(plan, validation=report)` executes the exact plan or fails. It never silently resolves another corpus, substitutes another checkpoint, changes seeds, or allocates a materially different request.
 
-If an identity-affecting fingerprint or validated volatile prerequisite changed, execution raises `StalePlanError` before the first training step. The caller must create and validate a new plan.
+If an identity-bearing plan dependency changed, execution raises `StalePlanError` before the first training step and the caller must create and validate a new plan. If a validation observation is no longer current (volatile resource, checkpoint, destination, or runtime condition changed), re-validation may restore executability without changing plan identity.
 
 When `train(request)` or the convenience form is used, the implementation internally creates and records the exact plan used for execution.
 
@@ -209,22 +210,12 @@ On `KeyboardInterrupt`:
 - `CompatibilityError` for incompatible experiment, corpus, checkpoint, runtime, or resume state;
 - `ResourceError` for unavailable or invalid corpus, checkpoint, device, or destination resources;
 - `ValidationError` for unmet validation postconditions;
-- `StalePlanError` when an exact validated plan is no longer executable;
+- `StalePlanError` when an identity-bearing plan dependency changed since validation;
 - `OutputConflictError` for unsafe destination conflicts;
 - `ExecutionError` for failures after scientific execution begins;
 - `PublicationError` when authoritative commitment fails.
 
 All expose the structured fields defined by the shared exception contract.
-
-## Side effects
-
-Training may read corpus and checkpoint resources, initialize runtime devices, create staging state, write telemetry and checkpoints, and commit one immutable run artifact. Repeated non-resume calls create distinct execution and artifact identities even when scientific inputs and seeds match.
-
-## Python and CLI equivalence
-
-Equivalent Python and CLI invocations resolve equivalent requests and plans. Shell presentation and frontend provenance may differ; experiment, corpus, seed, runtime, resume, validation, and artifact semantics may not.
-
-See [CLI training](../cli/train.md).
 
 ## Related interfaces
 
@@ -233,7 +224,3 @@ See [CLI training](../cli/train.md).
 - [Evaluation](evaluation.md)
 - [Shared conventions](conventions.md)
 - [Framework semantics](../../framework/_index.md)
-
-## Non-goals
-
-Training does not build substrate data or task corpora, perform evaluation, derive post-hoc analyses, define remote job handles, or package reports.

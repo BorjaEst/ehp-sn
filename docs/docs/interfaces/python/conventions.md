@@ -1,7 +1,8 @@
 ---
 title: Python interface conventions
 authority: normative
-status: specified
+document_status: specified
+capability_status: planned
 api_stability: provisional
 ---
 
@@ -274,10 +275,6 @@ For `train()`, `evaluate()`, and `analyze()`:
 ## Synchronous execution
 
 The initial public API is synchronous. A call returns only after success, failure, or interruption. Internal distributed execution does not change this caller contract.
-
-## Python and CLI equivalence
-
-Equivalent Python and CLI invocations produce scientifically and operationally equivalent resolved requests and plans, excluding documented frontend metadata. Backend or frontend differences must not alter experiment, data, checkpoint, seed, regime, validation, or artifact-policy semantics.
 
 ## Non-goals
 

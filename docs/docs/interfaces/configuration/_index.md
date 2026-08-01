@@ -1,10 +1,9 @@
 ---
 title: Configuration interface
 authority: normative
-status: specified
-interface_stability: provisional
-serialized_schema_stability: proposed
-semantic_resolution_stability: proposed
+document_status: specified
+capability_status: planned
+api_stability: provisional
 ---
 
 # Configuration interface
@@ -149,53 +148,68 @@ When CLI and Python inputs represent the same canonical target and the same valu
 
 Equivalent inputs need not have identical frontend serialization or diagnostic provenance.
 
-## Repository readiness
+## Backend boundary
 
-The configuration specification is internally coherent and ready to guide implementation design, but configuration implementation is blocked until its upstream framework contracts exist.
-
-Required upstream specifications:
+The public configuration boundary separates EHP-SN-owned semantics from implementation tools.
 
 ```text
-docs/framework/artifacts.md
-    artifact manifest contract
-    logical artifact references
-    content-digest semantics
-    verification evidence
-    commitment authority
-
-docs/framework/identity.md
-    canonical reference grammar
-    version semantics
-    identity categories
-    compatibility declarations
-
-one complete training configuration schema
-    exhaustive field catalogue
-    exact types and defaults
-    namespace ownership
-    CLI mappings
-    identity and compatibility classes
+public TOML or typed Python input
+    ↓
+ParsedOperationConfiguration
+    ↓
+EHP-SN resolver
+    ↓
+optional backend translation
+    ↓
+typed resolved request and BOUND resources
+    ↓
+ExecutionPlan
 ```
 
-Configuration documents must reference these authorities once they exist. They must not reproduce or invent their semantics.
+### Backend restrictions
 
-The intended documentation order is:
+Backends must not own:
 
-```text
-architecture and framework foundations
-    ↓
-artifact and identity specifications
-    ↓
-complete training operation schema
-    ↓
-configuration implementation
-    ↓
-evaluation and analysis schemas
-    ↓
-stability review
-```
+- public field-path grammar;
+- public `--set` value subset;
+- source classification;
+- explicit-input conflict rules;
+- namespace ownership;
+- resource precedence;
+- semantic resolution version;
+- identity inputs;
+- semantic provenance.
 
-## Consolidated implementation gate
+### Option registry
+
+The dedicated-option registry must be generated from, or conformance-checked against:
+
+- authoritative operation field schemas;
+- authoritative CLI option definitions.
+
+It must not become a second authority.
+
+### Missing-contract rule
+
+A backend must not compensate for absent framework specifications by inventing artifact identity, digest, manifest, reference, or compatibility semantics.
+
+When an upstream contract is missing, the implementation must fail explicitly or remain limited to parsing and non-identity resolution.
+
+## Upstream dependencies
+
+Configuration identity and resolution depends on framework reference documents:
+
+- [References](../../framework/references.md) — canonical reference grammar, version semantics
+- [Identity](../../framework/identity.md) — identity categories, equality invariants
+- [Digests](../../framework/digests.md) — content digest semantics, integrity verification
+- [Artifacts](../../framework/artifacts.md) — artifact schema, commitment, immutability
+- [Manifests](../../framework/manifests.md) — manifest structure, declared resources
+- [Checkpoints](../../framework/checkpoints.md) — checkpoint identity, capability levels
+- [Provenance](../../framework/provenance.md) — portable vs diagnostic provenance
+
+Configuration must reference these authorities. It must not reproduce or invent their semantics.
+
+## Implementation gate
 
 ### Specification prerequisites
 
@@ -256,14 +270,9 @@ Rejected. The initial interface accepts only statically declared schema fields a
 
 - [Configuration model](model.md)
 - [Files and overrides](files-and-overrides.md)
-- [Operation schemas](operation-schemas.md)
-- [Sources and precedence](sources-and-precedence.md)
-- [Workspace](workspace.md)
 - [Resource requirements](resource-requirements.md)
 - [Resolution](resolution.md)
 - [Identities and provenance](identities-and-provenance.md)
-- [Validation](validation.md)
-- [Backend integration](backend-integration.md)
 
 ## Related interfaces
 

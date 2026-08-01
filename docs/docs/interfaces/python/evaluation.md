@@ -1,7 +1,8 @@
 ---
 title: Evaluation interface
 authority: normative
-status: specified
+document_status: specified
+capability_status: planned
 api_stability: provisional
 ---
 
@@ -205,16 +206,6 @@ On `KeyboardInterrupt`:
 - `PublicationError`;
 - `CapabilityUnavailableError` when optional accessors are used on unsupported outputs.
 
-## Side effects
-
-Evaluation may load committed checkpoint and corpus resources, initialize runtime components, execute inference, write declared outputs to staging, and commit one immutable evaluation artifact.
-
-## Python and CLI equivalence
-
-Equivalent Python and CLI invocations resolve equivalent requests and plans. Frontend presentation may differ; experiment, checkpoint, corpus, regime, seed, diagnostic, validation, and artifact semantics may not.
-
-See [CLI evaluation](../cli/evaluate.md).
-
 ## Related interfaces
 
 - [Experiments](experiments.md)
@@ -223,7 +214,3 @@ See [CLI evaluation](../cli/evaluate.md).
 - [Analysis](analysis.md)
 - [Shared conventions](conventions.md)
 - [Framework semantics](../../framework/_index.md)
-
-## Non-goals
-
-Evaluation does not train checkpoints, perform cross-run analysis, create publication reports, or define batch or asynchronous orchestration.

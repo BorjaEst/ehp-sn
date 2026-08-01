@@ -1,13 +1,13 @@
 ---
 authority: normative
-status: specified
+document_status: specified
+capability_status: planned
 api_stability: provisional
 ---
 
 # `ehp-sn data`
 
 Generate, validate, and inspect immutable interim substrates.
-See the [CLI overview](_index.md) for shared help, configuration, output, and error conventions.
 
 ## Overview
 

@@ -1,13 +1,13 @@
 ---
 authority: normative
-status: specified
+document_status: specified
+capability_status: planned
 api_stability: provisional
 ---
 
 # `ehp-sn evaluate`
 
 Plan, validate, and execute model evaluation for an experiment and checkpoint.
-See the [CLI overview](_index.md) for shared help, configuration, output, and error conventions.
 
 ## Overview
 

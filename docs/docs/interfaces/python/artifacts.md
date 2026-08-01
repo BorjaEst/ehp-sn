@@ -1,7 +1,8 @@
 ---
 title: Artifact interface
 authority: normative
-status: specified
+document_status: specified
+capability_status: planned
 api_stability: provisional
 ---
 
@@ -187,7 +188,3 @@ Reuse policy is operation-specific. `ArtifactRef` and content digests provide th
 - [Analysis](analysis.md)
 - [Shared conventions](conventions.md)
 - [Framework semantics](../../framework/_index.md)
-
-## Non-goals
-
-This page does not define manifest JSON layout, directory trees, publication transactions, locking, checksum algorithms, storage adapters, content-addressable storage, or schema migration mechanics.

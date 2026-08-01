@@ -364,26 +364,27 @@ experiment = arena_tem_v1(
 
 ### Configured composition
 
-The same experiment may be composed through Hydra:
+The same experiment may be composed through the CLI:
 
-```bash id="8908xs"
-ehp-sn train \
-    experiment=arena-tem/v1 \
-    protocol.training.max_steps=50000 \
-    seeds.master=42 \
-    runtime=cuda
+```bash
+ehp-sn train run experiment:arena-tem/v1 \
+    --set protocol.training.max_steps=50000 \
+    --seed 42 \
+    --device cuda
 ```
+
+See the [CLI reference](../../docs/docs/interfaces/cli/_index.md) for the full command grammar.
 
 Both paths use the same resolution chain:
 
-```text id="f5wb2y"
+```text
 component resolvers
 → package-owned constructors
 → compatibility checks
 → experiment validation
 ```
 
-Hydra provides configuration, not an alternative semantics.
+Hydra is an internal configuration frontend, not the public command language.
 
 ### Configuration ownership
 

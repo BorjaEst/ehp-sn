@@ -1,13 +1,13 @@
 ---
 authority: normative
-status: specified
+document_status: specified
+capability_status: planned
 api_stability: provisional
 ---
 
 # `ehp-sn tasks`
 
 Build, validate, and inspect immutable processed task corpora.
-See the [CLI overview](_index.md) for shared help, configuration, output, and error conventions.
 
 ## Overview
 

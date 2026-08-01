@@ -1,10 +1,9 @@
 ---
 title: Configuration files and overrides
 authority: normative
-status: specified
-interface_stability: provisional
-serialized_schema_stability: proposed
-semantic_resolution_stability: proposed
+document_status: specified
+capability_status: planned
+api_stability: provisional
 ---
 
 # Configuration files and overrides
@@ -174,10 +173,55 @@ A derivation rule version identifies a specific derived-value algorithm such as 
 
 A breaking change to semantic resolution requires a new semantic resolution version even when the serialized field syntax is unchanged.
 
+### Version dependency rules
+
+| Change                           | Requires new serialized schema version? | Requires new semantic resolution version?                        |
+| -------------------------------- | --------------------------------------- | ---------------------------------------------------------------- |
+| Adding or removing a field       | Yes                                     | Yes                                                              |
+| Changing a field type            | Yes                                     | Yes                                                              |
+| Changing requiredness or default | Yes                                     | No, unless it changes identity classification                    |
+| Changing a derivation rule       | No                                      | Yes, when the identity contribution of the derived value changes |
+| Changing namespace ownership     | No                                      | Yes                                                              |
+| Changing identity classification | No                                      | Yes                                                              |
+
+Serialized schema version and semantic resolution version are independently versioned. A semantic resolution version change may occur without a schema change. A derivation rule version change requires a semantic resolution version change only when identity contribution changes.
+
+## Schema catalogue
+
+Each operation interface owns or generates its exhaustive field catalogue before the corresponding serialized schema is stable.
+
+Every field must declare:
+
+| Property                    | Meaning                                 |
+| --------------------------- | --------------------------------------- |
+| Path                        | Canonical field path                    |
+| Type                        | Exact public type                       |
+| Required                    | Authored requiredness                   |
+| Default                     | Default-bearing source, if any          |
+| Owner                       | Definition or request owner             |
+| Namespace rationale         | Why the field belongs under that prefix |
+| File                        | Accepted in operation file              |
+| `--set`                     | Accepted as typed override              |
+| Dedicated option            | CLI mapping, if any                     |
+| Identity class              | Identity participation                  |
+| Semantic resolution version | Interpretation contract                 |
+| Derivation rule             | Versioned derivation, if applicable     |
+| Resume/reuse class          | Compatibility effect                    |
+| Provenance class            | Portable source behavior                |
+
+### Namespace criteria
+
+A field belongs under `experiment.*` or `analysis.*` only when changing it produces a different resolved scientific definition.
+
+A field belongs under `request.*` when it selects invocation inputs, runtime policy, placement, diagnostics, or other operational intent without redefining the scientific target.
+
+### Stability rule
+
+A candidate schema is not stable until its exhaustive catalogue exists, canonical paths satisfy the grammar, source classes are defined, option mappings are conformance-tested, identity classifications are fixed, semantic resolution version is fixed, and parser and resolver tests pass.
+
 ## Related interfaces
 
-- [Operation schemas](operation-schemas.md)
-- [Sources and precedence](sources-and-precedence.md)
+- [Resolution](resolution.md)
 - [CLI overview](../cli/_index.md)
 - [Python conventions](../python/conventions.md)
 

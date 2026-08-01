@@ -77,15 +77,16 @@ print(evaluation.metrics)
 
 The factory supplies the standard Arena–TEM components, evaluation regimes, metrics, traces, and observables.
 
-The equivalent configured workflow is intended to be:
+The equivalent configured workflow:
 
-```bash id="h5u7x3"
-ehp-sn train \
-    experiment=arena-tem/v1 \
-    protocol.training.max_steps=50000 \
-    seeds.master=42 \
-    runtime=cuda
+```bash
+ehp-sn train run experiment:arena-tem/v1 \
+    --set protocol.training.max_steps=50000 \
+    --seed 42 \
+    --device cuda
 ```
+
+See the [CLI reference](../../docs/docs/interfaces/cli/_index.md) for the full command grammar.
 
 Both workflows resolve through the framework’s standard construction and validation path.
 

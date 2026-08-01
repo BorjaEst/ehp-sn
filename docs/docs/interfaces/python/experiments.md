@@ -1,7 +1,8 @@
 ---
 title: Experiments
 authority: normative
-status: specified
+document_status: specified
+capability_status: planned
 api_stability: provisional
 ---
 
@@ -180,7 +181,3 @@ Equal experiments do not imply equal results because seeds, data, checkpoints, r
 - [Evaluation](evaluation.md)
 - [Shared conventions](conventions.md)
 - [Framework semantics](../../framework/_index.md)
-
-## Non-goals
-
-This page does not define runtime configuration, request serialization formats beyond portable records, operation execution, artifact schemas, or public extension inheritance.
