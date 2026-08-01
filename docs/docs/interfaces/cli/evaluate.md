@@ -1,6 +1,10 @@
-# `ehp-sn evaluate`
+---
+authority: normative
+status: specified
+api_stability: provisional
+---
 
-<!-- authority: canonical  status: specified -->
+# `ehp-sn evaluate`
 
 Plan, validate, and execute model evaluation for an experiment and checkpoint.
 See the [CLI overview](_index.md) for shared help, configuration, output, and error conventions.

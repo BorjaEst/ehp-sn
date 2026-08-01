@@ -1,6 +1,10 @@
-# `ehp-sn tasks`
+---
+authority: normative
+status: specified
+api_stability: provisional
+---
 
-<!-- authority: canonical  status: specified -->
+# `ehp-sn tasks`
 
 Build, validate, and inspect immutable processed task corpora.
 See the [CLI overview](_index.md) for shared help, configuration, output, and error conventions.

@@ -1,6 +1,10 @@
-# `ehp-sn train`
+---
+authority: normative
+status: specified
+api_stability: provisional
+---
 
-<!-- authority: canonical  status: specified -->
+# `ehp-sn train`
 
 Plan, validate, and execute model training from an experiment definition.
 See the [CLI overview](_index.md) for shared help, configuration, output, and error conventions.

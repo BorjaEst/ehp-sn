@@ -137,6 +137,7 @@ Distinguish architectural requirements from implementation choices.
 
 ## Writing rules
 
+- Open page with a YAML frontmatter block declaring `authority`, `status`, and `api_stability`.
 - Explain what the subject is before design rationale.
 - Keep one authoritative home for each concept.
 - Link to the owning document instead of repeating its explanation.

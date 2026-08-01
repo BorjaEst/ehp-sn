@@ -1,6 +1,10 @@
-# `ehp-sn analyze`
+---
+authority: normative
+status: specified
+api_stability: provisional
+---
 
-<!-- authority: canonical  status: specified -->
+# `ehp-sn analyze`
 
 Execute an available scientific analysis over committed artifacts.
 See the [CLI overview](_index.md) for shared help, configuration, output, and error conventions.

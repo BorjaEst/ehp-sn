@@ -1,6 +1,11 @@
-# `ehp-sn` CLI
+---
+authority: normative
+status: specified
+api_stability: provisional
+canonical_package: ehp_sn
+---
 
-<!-- canonical_package: ehp_sn  authority: canonical  status: draft -->
+# `ehp-sn` CLI
 
 The `ehp-sn` command-line interface exposes the EHP-SN research lifecycle through a small set of top-level commands.
 
