@@ -1,198 +1,65 @@
 ---
-name: EHP research
-description: Scientific-first rules for research code, research specifications, experiments, configuration, scripts, and research tests
-applyTo: "packages/ehp-research/**,docs/research/**,experiments/**,config/**,scripts/**,tests/research/**"
+applyTo: "packages/ehp-research/src/**/*.py,packages/ehp-research/tests/**/*.py,docs/docs/research/**/*.md"
 ---
 
-# Research development
+# Research instructions
 
-Read, in order:
+These paths contain concrete scientific definitions owned by `ehp_research`.
 
-1. `README.md`;
-2. `packages/ehp-research/README.md`;
-3. the scientific specification for the affected component;
-4. directly related research specifications.
+`ehp_research` may depend on framework contracts from `ehp_sn`.
 
-These are the primary design inputs.
+It must not redefine generic framework semantics locally.
 
-Do not inspect the complete framework implementation first and then reshape the scientific component to fit it.
+## Research-owned concerns
 
-## Documentation routing
+Research-owned concerns include:
 
-Use the relevant research documents:
+- concrete substrates;
+- shared research substrate schemas;
+- tasks;
+- models;
+- bindings;
+- objectives;
+- research metrics;
+- analyses;
+- experiment families;
+- research-specific study definitions.
 
-```text
-substrate work
-    docs/research/substrates/<substrate>.md
+Put semantics at the narrowest reusable research owner.
 
-task work
-    docs/research/tasks/<task>.md
+Examples:
 
-model work
-    docs/research/models/<family>/overview.md
-    docs/research/models/<family>/<version>.md
+- common task-facing topology semantics shared by DungeonGen and Maze-ND belong in a shared research topology contract;
+- Arena semantics belong to Arena;
+- Arena-to-TEM representation belongs to the Arena–TEM binding;
+- experiment-specific scientific protocol choices belong to the experiment.
 
-binding work
-    task specification
-    model specification
-    docs/research/bindings/<binding>.md
+## Registration and discovery
 
-metric work
-    docs/research/metrics/<metric-family>.md
+Research definitions are exposed through the framework-owned registration/discovery interface.
 
-analysis work
-    docs/research/analyses/<analysis>.md
+Research registration may depend on `ehp_sn`.
 
-configured experiment
-    experiments/<study>/README.md
-    participating task, model, binding, metric, and protocol documents
-```
+`ehp_sn` must not hard-code imports of `ehp_research`.
 
-For operational scripts without a scientific component, read the framework service, configuration, CLI, or artifact contract that the script invokes.
+Registration must:
 
-After deriving the scientific requirement, inspect the smallest relevant framework surface under `docs/framework/`. Expand framework context only when the requirement crosses additional contracts or services.
+- use canonical references;
+- be deterministic;
+- avoid import-order-dependent semantics;
+- reject conflicting duplicate canonical registrations;
+- avoid expensive scientific execution during registration.
 
-## Design direction
+Import-time convenience registration may exist only if the authoritative discovery contract explicitly permits it; automatic CLI discovery must not rely on a framework import of `ehp_research` by name.
 
-Reason from the scientific use case:
+## Framework relationship
 
-```text
-scientific question
--> task or model semantics
--> required data and behavior
--> relevant framework contract
--> implementation
-```
-
-Use an existing framework contract when it expresses the scientific requirement without changing its meaning.
-
-## Framework gaps
-
-When the framework cannot express a justified requirement:
-
-1. identify the missing capability;
-2. explain the scientific requirement;
-3. determine the owning responsibility;
-4. assess whether the capability is reusable or inherently framework-level;
-5. propose the minimal framework change;
-6. do not implement parallel generic infrastructure in `ehp_research`.
-
-Correct:
+Prefer:
 
 ```text
-scientific requirement
--> identify contract gap
--> change the owning framework contract
--> implement the research integration
+research definition
+    implements or specializes
+framework contract
 ```
 
-Prohibited outcomes:
-
-```text
-framework limitation
--> weaken scientific semantics
-```
-
-```text
-framework limitation
--> duplicate generic infrastructure in ehp_research
-```
-
-## Responsibility
-
-`ehp_research` owns:
-
-- concrete substrate generators and scientific assumptions;
-- task semantics, targets, oracles, and invariants;
-- model architectures, memory, and model-specific regularization;
-- versioned task-model bindings;
-- domain-specific controllers, objectives, metrics, and analyses;
-- reusable experiment definitions.
-
-Generic contracts, lifecycle services, artifact machinery, configuration infrastructure, and CLI execution belong to `ehp_sn`.
-
-## Scientific boundaries
-
-- Keep task semantics independent of model representation.
-- Keep models independent of concrete tasks.
-- Use a binding for each supported task-model integration.
-- Preserve public, target, and privileged information exactly as specified.
-- Keep task instances immutable and runtime state separate.
-- Do not weaken validity rules or information boundaries for implementation convenience.
-- Do not infer scientific compatibility from matching shapes.
-- Preserve unresolved scientific choices as unresolved.
-- Do not turn an implementation preference into a scientific requirement.
-
-## Component procedure
-
-1. establish the scientific objective and terminology;
-2. identify inputs, outputs, hidden information, phases, and invariants;
-3. expose ambiguity and unresolved decisions;
-4. define acceptance criteria and semantic microcases;
-5. derive the required framework contracts;
-6. implement the narrowest scientific responsibility;
-7. add deterministic tests and provenance;
-8. update the component catalogue and detailed documentation.
-
-## Experiments
-
-- `ehp_research.experiments` contains reusable Python composition.
-- `experiments/` contains configured studies and reproduction assets.
-- Generated runs are artifacts and do not belong in source directories.
-- Use configuration for parameter changes.
-- Add a new Python experiment definition only when scientific composition or execution semantics change.
-- If an experiment conflicts with a component specification, identify the conflict rather than silently reconciling it.
-
-A configured study should identify:
-
-```text
-Scientific objective:
-Task and version:
-Model and version:
-Binding and version:
-Controller:
-Objective terms and weights:
-Training protocol:
-Evaluation protocol:
-Metrics and traces:
-Inputs:
-Expected outputs:
-Acceptance criteria:
-Reproducibility metadata:
-Known limitations:
-```
-
-## Configuration
-
-Configuration selects and parameterizes defined behavior.
-
-- Use it for versions, parameters, paths, seeds, resources, and execution options.
-- Do not hide scientific composition or introduce new semantics in configuration.
-- Use explicit names and units.
-- Validate ranges and cross-field constraints.
-- Preserve resolved configuration in artifacts.
-- Do not add fallbacks that silently change a study.
-
-## Scripts
-
-Scripts are thin operational entry points.
-
-They may parse arguments, load explicit configuration or `module:object` references, construct requests, invoke services, format results, and map exit codes.
-
-They must not own scientific logic, binding transformations, objectives, metric semantics, training algorithms, evaluation algorithms, or artifact lifecycle behavior.
-
-## Research tests
-
-Research tests verify:
-
-- substrate invariants;
-- task instances, targets, and oracles;
-- model behavior and state;
-- binding encoding and decoding;
-- scientific objectives and metrics;
-- semantic microcases;
-- reference behavior.
-
-Each test should identify the requirement, invariant, or acceptance criterion it verifies.
-
-Use deterministic seeds and independently known expected results. Do not weaken scientific assertions to fit the implementation.
+Do not copy a generic framework contract into research code or documentation and modify it locally.

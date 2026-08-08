@@ -4,27 +4,32 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
-[![Status](https://img.shields.io/badge/status-specification--first-lightgrey)](./README.md#current-status)
+[![Status](https://img.shields.io/badge/status-specification--first-lightgrey)](#current-status)
 [![Docs](https://img.shields.io/badge/docs-readthedocs-green)](https://ehp-sn.readthedocs.io)
 
 </div>
 
-EHP-SN is a Python framework for developing and studying models of spatial navigation, relational memory, and structural reasoning. The name stands for Entorhinal–Hippocampal–Prefrontal Spatial Navigation, after the brain circuits that inspire its design.
+EHP-SN — Entorhinal–Hippocampal–Prefrontal Spatial Navigation — is a Python research framework for studying spatial navigation, relational memory, and structural reasoning.
 
-It supports researchers working with TEM, HRM, and integrated EHP models — providing the substrates, tasks, training protocols, metrics, traces, and analyses needed to train and evaluate them.
+The repository separates reusable framework contracts from concrete scientific components:
 
-EHP-SN is developed specification-first: the READMEs describe the intended workflow and architecture. Features documented here may not yet be implemented — see the status table for what is ready.
+```text
+ehp_research → ehp_sn
+```
 
----
+- [`ehp_sn`](packages/ehp-sn/README.md) provides the reusable framework.
+- [`ehp_research`](packages/ehp-research/README.md) provides the concrete research programme.
+
+EHP-SN is developed specification-first. READMEs provide orientation and examples; normative semantics live in the detailed specifications referenced from [`docs/authority.md`](docs/authority.md).
 
 ## Contents
 
 - [Packages](#packages)
-- [Quick Start](#quick-start)
-- [Core Workflow](#core-workflow)
-- [Current Status](#current-status)
+- [Core workflow](#core-workflow)
+- [Quick start](#quick-start)
 - [Architecture](#architecture)
-- [Repository Structure](#repository-structure)
+- [Repository structure](#repository-structure)
+- [Current status](#current-status)
 - [Technology](#technology)
 - [Installation](#installation)
 - [Testing](#testing)
@@ -32,248 +37,252 @@ EHP-SN is developed specification-first: the READMEs describe the intended workf
 - [Citation](#citation)
 - [License](#license)
 
----
-
 ## Packages
-
-The repository contains two installable Python packages.
 
 ### `ehp_sn`
 
-The reusable framework package.
+`packages/ehp-sn/` contains the reusable framework.
 
-It defines the contracts and services for:
+Its responsibilities include:
 
-- scientific components and experiment composition;
-- task–model compatibility;
-- training and evaluation;
-- reproducibility and artifact manifests;
-- configuration and runtime integration;
-- artifact inspection and analysis execution.
+- generic Task, Model, Binding, Experiment, and request contracts;
+- resource requirements and configuration resolution;
+- training, evaluation, analysis, and reporting orchestration;
+- generated-data and task-corpus contracts;
+- artifact identity, provenance, validation, and inspection;
+- public Python and CLI interfaces;
+- component registration and discovery contracts.
 
 See [`packages/ehp-sn/README.md`](packages/ehp-sn/README.md).
 
 ### `ehp_research`
 
-The concrete research package.
+`packages/ehp-research/` contains concrete scientific definitions.
 
-It contains:
+It includes:
 
-- substrates such as OpenField and DagFlow;
-- tasks such as Arena, Goaltrace, Prospect, Routebind, and Maze-Hard;
-- TEM, HRM, and EHP model families;
-- supported task–model bindings;
-- experiment definitions;
-- metrics and scientific analyses.
+- task-neutral substrates;
+- navigation and structural-reasoning tasks;
+- TEM, HRM, and integrated EHP model families;
+- task–model bindings;
+- objectives, metrics, and analyses;
+- reusable experiment definitions;
+- research-specific study definitions.
 
 See [`packages/ehp-research/README.md`](packages/ehp-research/README.md).
 
-The dependency direction is:
+## Core workflow
 
-```text id="rotfve"
-ehp_research → ehp_sn
+EHP-SN distinguishes reusable task-neutral data from task-specific scientific corpora.
+
+```text
+external / procedural sources
+        ↓
+substrates
+        ↓
+TaskCorpus generation
+        ↓
+training / evaluation
+        ↓
+analysis
+        ↓
+reporting
 ```
 
-`ehp_sn` must not depend on `ehp_research`.
+The public CLI exposes the same lifecycle as:
+
+```text
+data → tasks → train → evaluate → analyze → report
+```
+
+### Data and task corpora
+
+Substrates represent reusable domain structure and are stored under:
+
+```text
+data/interim/
+```
+
+Task builders compose compatible upstream resources and materialize self-contained task corpora under:
+
+```text
+data/processed/
+```
+
+Exact scientific resource selection is resolved through configuration so that plans and resulting artifacts remain reproducible.
+
+Detailed substrate, corpus, identity, and configuration semantics are defined in the framework and research specifications rather than in this README.
 
 ## Quick start
 
-The planned API for an Arena–TEM experiment:
+The public CLI follows:
 
-```python id="ssxwh3"
-from ehp_sn import evaluate, train
-from ehp_sn.protocols import TrainingProtocol
-from ehp_sn.reproducibility import SeedConfiguration
-from ehp_research.experiments.arena_tem import arena_tem_v1
-
-experiment = arena_tem_v1(
-    training=TrainingProtocol(
-        max_steps=50_000,
-    ),
-)
-
-training = train(
-    experiment,
-    seeds=SeedConfiguration.from_master(42),
-    runtime="cuda",
-    tracking="local",
-    output="runs/arena-tem-v1",
-)
-
-evaluation = evaluate(
-    experiment,
-    checkpoint=training.best_checkpoint,
-    regime="test",
-    seeds=SeedConfiguration.from_master(43),
-)
-
-print(evaluation.metrics)
+```text
+ehp-sn COMMAND OPERATION [TARGET] [OPTIONS]
 ```
 
-The experiment factory supplies the standard Arena–TEM components, evaluation regimes, metrics, and traces.
+Common operations include:
 
-The same workflow, expressed through the CLI:
+```text
+list
+show
+plan
+validate
+build
+run
+inspect
+```
+
+Examples:
 
 ```bash
-ehp-sn train run experiment:arena-tem/v1 \
-    --set protocol.training.max_steps=50000 \
-    --seed 42 \
-    --device cuda
+ehp-sn data list
+ehp-sn tasks list
+ehp-sn train show experiment:arena-tem/v1
+ehp-sn train plan experiment:arena-tem/v1
 ```
 
-See the [CLI reference](docs/docs/interfaces/cli/_index.md) for the full command grammar.
+Operation-specific configuration may be supplied with the public configuration interface, for example:
 
-Both paths use the same constructors and validation. These examples show the target interface; they become runnable as each component is implemented.
-
-## Core workflow
-
-```text id="hgeas5"
-compose an experiment
-    ↓
-train or evaluate it
-    ↓
-commit an authoritative artifact
-    ↓
-inspect or analyse recorded results
+```bash
+ehp-sn train plan experiment:arena-tem/v1 --config PATH
 ```
 
-An experiment defines the scientific composition. Training and evaluation requests layer on runtime settings — hardware, seeds, tracking, checkpoints, and artifact destinations. Each execution produces a run record backed by an authoritative artifact manifest.
+The Python and CLI interfaces are intended to resolve through the same framework semantics rather than implementing separate execution models.
 
-The [framework README](packages/ehp-sn/README.md) defines these concepts in detail.
-
-## Current status
-
-EHP-SN is currently in specification-first development.
-
-| Area                                                 | Status                 |
-| ---------------------------------------------------- | ---------------------- |
-| Framework concepts and public workflow               | Specified              |
-| Component identity and compatibility                 | Specified              |
-| Training and evaluation interfaces                   | Specified              |
-| Artifact and reproducibility boundaries              | Specified              |
-| Lightning Fabric and Hydra integrations              | Specified              |
-| Arena–TEM vertical integration                       | Specified              |
-| Goaltrace–HRM vertical integration                   | Specified              |
-| Generalized studies, reporting, and registry support | Provisional or planned |
-
-**Specified**: the semantics and responsibilities are documented. Implementation and validation are separate, later stages.
-
-The initial implementation sequence is:
-
-```text id="2a4l14"
-OpenField
-→ Arena
-→ TEM
-→ Arena–TEM
-```
-
-followed by:
-
-```text id="ov6g9f"
-DagFlow
-→ Goaltrace
-→ HRM
-→ Goaltrace–HRM
-```
+Concrete executable examples should be taken from the corresponding interface and experiment documentation because EHP-SN is still under specification-first development.
 
 ## Architecture
 
 ```mermaid
 flowchart TB
     subgraph Framework["ehp_sn"]
-        contracts["Contracts"] ~~~ execution["Execution"] ~~~ artifacts["Artifacts"] ~~~ config["Configuration"]
+        contracts["Contracts"] ~~~
+        execution["Execution"] ~~~
+        artifacts["Artifacts"] ~~~
+        config["Configuration"]~~~
+        discovery["Discovery"]
     end
+
     subgraph Research["ehp_research"]
-        substrates["Substrates"] ~~~ tasks["Tasks"] ~~~ models["Models"] ~~~ bindings["Bindings"] ~~~ experiments["Experiments"] ~~~ analyses["Analyses"]
+        substrates["Substrates"] ~~~
+        tasks["Tasks"] ~~~
+        models["Models"] ~~~
+        bindings["Bindings"] ~~~
+        experiments["Experiments"] ~~~
+        analyses["Analyses"]
     end
+
     Research -->|depends on| Framework
 ```
 
+The framework defines reusable contracts and lifecycle mechanics while the research package implements concrete scientific definitions against those contracts.
+
+Semantic ownership and conflict-resolution rules are documented in [`docs/authority.md`](docs/authority.md).
+
+Cross-cutting architectural conditions are documented in [`docs/invariants.md`](docs/invariants.md).
+
 ## Repository structure
 
-```text id="c9qplu"
+```text
 repository/
+├── .github/
+├── artifacts/
+├── config/
+├── data/
+│   ├── external/
+│   ├── interim/
+│   ├── processed/
+│   └── raw/
+├── docs/
+│   ├── authority.md
+│   ├── invariants.md
+│   ├── mkdocs.yml
+│   └── docs/
+├── logs/
+├── models/
 ├── packages/
 │   ├── ehp-sn/
 │   └── ehp-research/
-├── config/
-├── experiments/
-├── studies/
-├── scripts/
 ├── tests/
-└── docs/
+│   ├── architecture/
+│   └── integration/
+└── pyproject.toml
 ```
 
-| Path                     | Purpose                                                    |
-| ------------------------ | ---------------------------------------------------------- |
-| `packages/ehp-sn/`       | Framework: contracts, execution, configuration, artifacts  |
-| `packages/ehp-research/` | Research: substrates, tasks, models, bindings, experiments |
-| `config/`                | Workspace, reproduction, and study configuration           |
-| `experiments/`           | Fixed reproduction assets                                  |
-| `studies/`               | Optimisation-study assets                                  |
-| `scripts/`               | Maintenance and operational scripts                        |
-| `tests/`                 | Cross-package and workflow tests                           |
-| `docs/`                  | Detailed scientific and framework documentation            |
+| Path                     | Purpose                                         |
+| ------------------------ | ----------------------------------------------- |
+| `packages/ehp-sn/`       | Reusable framework package                      |
+| `packages/ehp-research/` | Concrete scientific package                     |
+| `data/interim/`          | Committed reusable substrate artifacts          |
+| `data/processed/`        | Committed task corpora                          |
+| `config/`                | Workspace and operation configuration           |
+| `artifacts/`             | Framework-produced execution/analysis artifacts |
+| `tests/architecture/`    | Cross-package architecture invariants           |
+| `tests/integration/`     | End-to-end workflow tests                       |
+| `docs/`                  | Documentation project and governance            |
+| `.github/`               | Repository automation and Copilot instructions  |
+
+## Current status
+
+EHP-SN is in specification-first development.
+
+`Specified` means that intended semantics and responsibilities are documented. It does not by itself mean that a capability is implemented, validated, or supported as a stable user interface.
+
+Component and capability status should be taken from the corresponding authoritative specifications rather than duplicated in this README.
 
 ## Technology
 
-EHP-SN builds on:
+The project uses or plans to use infrastructure such as:
 
-- **PyTorch** for tensor computation and model definition;
-- **Lightning Fabric** as the runtime backend (device placement, precision, distribution);
-- **Hydra** as the configuration frontend;
-- **Pydantic** at external and serialized boundaries;
-- **MLflow Tracking** and **TorchMetrics** as optional adapters;
-- **Typer** for the planned CLI.
+- PyTorch for tensor and model computation;
+- Lightning Fabric for runtime execution;
+- Hydra as an internal configuration/composition backend where appropriate;
+- Pydantic for serialized and external-boundary validation;
+- Typer for the CLI frontend;
+- optional MLflow, TorchMetrics, and Optuna integrations.
 
-These tools provide infrastructure behind EHP-SN-owned scientific contracts and artifact semantics.
+These libraries support EHP-SN-owned contracts; they do not define the project’s scientific semantics.
 
 ## Installation
 
 Requirements:
 
-- Python 3.12 or later
+- Python 3.12 or later.
 
-Create and activate a virtual environment:
+For editable development installation:
 
-```bash id="j6hzvv"
-python -m venv .venv
-```
-
-Install both packages in editable mode:
-
-```bash id="6575e5"
+```bash
 python -m pip install -e packages/ehp-sn
 python -m pip install -e packages/ehp-research
 ```
 
-Development dependencies and optional integrations are defined in the repository and package configuration.
-
 ## Testing
 
-Run the available tests from the repository root:
+Run tests from the repository root:
 
-```bash id="757q5c"
+```bash
 python -m pytest
 ```
 
-Tests are added alongside implemented components and workflows.
-
-Documented quick starts become executable documentation or integration tests when the corresponding capabilities are implemented.
+Architecture tests should enforce cross-package invariants such as the dependency direction and other deterministic repository contracts.
 
 ## Documentation
 
-- [Framework concepts and public workflow](packages/ehp-sn/README.md)
-- [Research components and experiment families](packages/ehp-research/README.md)
-- [Project documentation](docs/)
-- [Reproduction assets](experiments/)
-- [Optimisation studies](studies/)
+Start with:
+
+- [`docs/docs/_index.md`](docs/docs/_index.md) — published documentation entry point;
+- [`docs/authority.md`](docs/authority.md) — semantic ownership and normative authority;
+- [`docs/invariants.md`](docs/invariants.md) — repository-wide invariants;
+- [`docs/README.md`](docs/README.md) — documentation contributor guide;
+- [`packages/ehp-sn/README.md`](packages/ehp-sn/README.md) — framework orientation;
+- [`packages/ehp-research/README.md`](packages/ehp-research/README.md) — research-package orientation.
 
 ## Citation
 
 A canonical software citation will be provided with the first reference release.
 
-Until then, cite the scientific task, model, and experiment publications identified in the corresponding documentation.
+Until then, cite the scientific task, model, and experiment publications identified in the corresponding research documentation.
 
 ## License
 

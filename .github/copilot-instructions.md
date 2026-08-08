@@ -1,78 +1,87 @@
 # EHP-SN repository instructions
 
-EHP-SN is developed from specification to code. Normative READMEs and documents define the intended system; the current implementation does not override them.
+EHP-SN is a specification-first multipackage monorepo.
 
-## Repository architecture
+## Repository model
 
-- The repository contains two Python packages: `ehp_sn` and `ehp_research`.
-- The dependency direction is `ehp_research -> ehp_sn`.
-- `ehp_sn` must never import `ehp_research`.
-- `ehp_sn` owns reusable framework contracts and execution infrastructure.
-- `ehp_research` owns concrete scientific implementations.
-- Place each responsibility in the narrowest package and module that owns its semantics.
-- Use explicit Python composition.
-- Do not introduce plugin discovery, global registries, or additional infrastructure without a demonstrated requirement.
-
-## Design direction
-
-Reason from usage toward infrastructure:
+The repository contains two installable packages:
 
 ```text
-use case
--> scientific requirement
--> public contract
--> service
--> backend
+ehp_research → ehp_sn
 ```
 
-- Do not change an agreed scientific requirement to fit the current implementation.
-- When a justified requirement is unsupported, identify the contract gap.
-- Do not duplicate framework infrastructure in `ehp_research`.
-- Prefer the simplest design that satisfies the actual requirements.
-- Generalize when a responsibility is inherently framework-level or when repeated workflows demonstrate stable commonality.
+- `ehp_sn` owns reusable framework contracts and services.
+- `ehp_research` owns concrete scientific components and research-owned domain contracts.
+- `ehp_sn` must not depend on `ehp_research`.
 
-## Responsibility isolation
+Do not introduce a reverse dependency.
 
-- Scientific task semantics belong to research tasks.
-- Model semantics belong to research models.
-- Task-model integration belongs to bindings.
-- Final study composition belongs to experiments.
-- Generic contracts, validation, execution, configuration, artifacts, and CLI infrastructure belong to `ehp_sn`.
-- Repository-level experiment assets configure reproducible studies; generated runs are artifacts.
+## Authority first
 
-## Context use
+Before changing architecture, public interfaces, scientific semantics, or documentation:
 
-Read context from broad to specific:
+1. Identify the concept being changed.
+2. Find its semantic owner and normative specification using `docs/authority.md`.
+3. Identify upstream specifications the change must obey.
+4. Identify downstream code, tests, interfaces, READMEs, and documentation that may become stale.
+5. Apply all matching path-specific instructions under `.github/instructions/`.
+6. Check the relevant repository invariants in `docs/invariants.md`.
 
-1. `README.md`;
-2. the owning package README;
-3. the detailed normative specification for the affected responsibility;
-4. directly related specifications;
-5. the current implementation.
+Do not resolve conflicting authoritative specifications by guessing.
 
-For cross-package architecture, also consult the relevant documents under `docs/architecture/`.
+If two authoritative specifications conflict, report the conflict and the decision required.
 
-When sources conflict, the more specific normative specification governs the affected behavior unless it violates a repository-level or package-level responsibility boundary.
+## Specification-first rule
 
-## Ambiguity
+Normative specifications define intended public semantics.
 
-When normative sources conflict, terminology is unresolved, or a required decision is missing:
+Implementation is evidence of implemented behavior, but implementation must not silently redefine the specification.
 
-1. identify the conflicting or missing information;
-2. state the implementation consequence;
-3. preserve the unresolved decision instead of silently choosing;
-4. record the decision required to proceed.
+When implementation exposes a missing or contradictory contract:
 
-Do not present an implementation preference as a scientific or architectural requirement.
+- identify the missing or conflicting authority;
+- keep the local implementation from inventing an incompatible semantic contract;
+- update the authoritative specification as part of the same coherent change when the design decision is clear.
 
-## Changes
+## Change discipline
 
-Before editing, establish:
+Prefer the smallest coherent change that satisfies the requirement.
 
-- the objective;
-- the owning package and module;
-- the normative sources;
-- the affected public contracts;
-- the acceptance criteria.
+Do not introduce:
 
-Update tests and documentation when changing normative behavior, scientific semantics, compatibility, versions, or artifact schemas.
+- framework abstractions without a demonstrated framework-level requirement;
+- task semantics into substrates;
+- model-native representation into task semantics;
+- research-specific semantics into generic framework contracts;
+- backend-native semantics into public interfaces;
+- hidden resource selection that affects reproducibility.
+
+Do not use generic statements such as "follow best practices", "think carefully", or "reason step by step" as verification.
+
+Use observable checks.
+
+## Synchronization rule
+
+When an authoritative semantic contract changes:
+
+1. update the authority first;
+2. update implementations and tests that implement that contract;
+3. update interface documentation;
+4. update summaries and READMEs last.
+
+README files, examples, tutorials, comments, and catalogues must not become independent semantic authorities.
+
+## Generated and duplicated information
+
+Prefer deriving or mechanically validating information that appears in several places, including:
+
+- component reference;
+- title;
+- kind;
+- status;
+- maturity;
+- owner;
+- specification path;
+- catalogue membership.
+
+Do not manually duplicate authoritative metadata when it can be generated or checked.

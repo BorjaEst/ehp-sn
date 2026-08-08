@@ -4,113 +4,187 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
-[![Status](https://img.shields.io/badge/status-specified-lightgrey)](./README.md#current-status)
+[![Status](https://img.shields.io/badge/status-specification--first-lightgrey)](#specification-status)
 [![Docs](https://img.shields.io/badge/docs-readthedocs-green)](https://ehp-sn.readthedocs.io)
 
 </div>
 
 `ehp_research` contains the concrete scientific components and experiment families developed by the EHP research programme.
 
-It includes:
+It implements research definitions against the reusable `ehp_sn` framework:
 
-- spatial and relational substrates;
+```text
+ehp_research → ehp_sn
+```
+
+The package owns scientific/domain semantics. Generic artifact, configuration, resource, request, execution, identity, and lifecycle mechanics remain framework responsibilities.
+
+This README provides package orientation and a catalogue overview. Exact scientific semantics and component status live in the corresponding research specifications.
+
+## Contents
+
+- [Research areas](#research-areas)
+- [Data architecture](#data-architecture)
+- [Component catalogue](#component-catalogue)
+- [Models and bindings](#models-and-bindings)
+- [Experiments](#experiments)
+- [Registration and discovery](#registration-and-discovery)
+- [Package structure](#package-structure)
+- [Specification status](#specification-status)
+- [Installation](#installation)
+- [Testing](#testing)
+- [Documentation](#documentation)
+- [License](#license)
+
+## Research areas
+
+`ehp_research` contains:
+
+- reusable spatial and relational substrates;
 - navigation and structural-reasoning tasks;
-- TEM, HRM, and integrated EHP models;
-- supported task–model bindings;
-- domain objectives and metrics;
+- TEM, HRM, and integrated EHP model families;
+- task–model bindings;
+- objectives and research metrics;
 - scientific analyses;
 - reusable experiment definitions;
 - research-specific study definitions.
 
-`ehp_sn` defines the authoritative semantics for component references, compatibility, experiments, protocols, requests, runs, seeds, metrics, and artifacts.
+Semantics are placed at the narrowest reusable scientific owner:
 
----
+```text
+substrate
+    reusable task-neutral domain structure
 
-## Contents
+task
+    scientific problem and truth semantics
 
-- [Quick Start](#quick-start)
-- [Relationship to ehp_sn](#relationship-to-ehp_sn)
-- [Package Structure](#package-structure)
-- [Component Catalogue](#component-catalogue)
-- [Compatibility Matrix](#compatibility-matrix)
-- [Controllers & Objectives](#controllers-and-objectives)
-- [Experiment Families](#experiment-families)
-- [Metrics & Analyses](#metrics-and-analyses)
-- [Current Status](#current-status)
-- [Installation](#installation)
-- [Testing](#testing)
-- [License](#license)
+model
+    model-native computation
 
----
+binding
+    task ↔ model representation and integration
 
-## Quick start
-
-```python id="84s8qx"
-from ehp_sn import evaluate, train
-from ehp_sn.protocols import TrainingProtocol
-from ehp_sn.reproducibility import SeedConfiguration
-from ehp_research.experiments.arena_tem import arena_tem_v1
-
-experiment = arena_tem_v1(
-    training=TrainingProtocol(
-        max_steps=50_000,
-    ),
-)
-
-training = train(
-    experiment,
-    seeds=SeedConfiguration.from_master(42),
-    runtime="cuda",
-    tracking="local",
-    output="runs/arena-tem-v1",
-)
-
-evaluation = evaluate(
-    experiment,
-    checkpoint=training.best_checkpoint,
-    regime="test",
-    seeds=SeedConfiguration.from_master(43),
-)
-
-print(evaluation.metrics)
+experiment
+    reusable scientific composition
 ```
 
-The factory supplies the standard Arena–TEM components, evaluation regimes, metrics, traces, and observables.
+## Data architecture
 
-The equivalent configured workflow:
+Research data separates task-neutral substrates from task-specific corpora.
 
-```bash
-ehp-sn train run experiment:arena-tem/v1 \
-    --set protocol.training.max_steps=50000 \
-    --seed 42 \
-    --device cuda
+```text
+task-neutral substrates
+        ↓
+task-owned composition and case generation
+        ↓
+self-contained TaskCorpus
 ```
 
-See the [CLI reference](../../docs/docs/interfaces/cli/_index.md) for the full command grammar.
+Substrates are committed under:
 
-Both workflows resolve through the framework’s standard construction and validation path.
-
-These examples become executable contracts when the Arena–TEM integration is implemented and validated.
-
-## Relationship to `ehp_sn`
-
-| `ehp_research` provides                  | `ehp_sn` provides                             |
-| ---------------------------------------- | --------------------------------------------- |
-| Substrates, tasks, models, bindings      | Their public contracts                        |
-| Domain objectives, metrics, and analyses | Composition and execution infrastructure      |
-| Experiment and study definitions         | Runtime, configuration, and artifact services |
-
-The dependency direction is:
-
-```text id="7q6lpw"
-ehp_research → ehp_sn
+```text
+data/interim/
 ```
 
-Research implementations must not be added to the framework package.
+Task corpora are committed under:
+
+```text
+data/processed/
+```
+
+Exact upstream artifacts and other reproducibility-relevant build choices are resolved through the framework configuration/resource-binding mechanism.
+
+### Substrates
+
+Current substrate specifications include:
+
+| Reference       | Purpose                                                          |
+| --------------- | ---------------------------------------------------------------- |
+| `dungeongen/v1` | Procedurally generated raster topology                           |
+| `maze-nd/v1`    | Normalized reusable raster topology from an external maze source |
+| `obsfield/v1`   | Independent persistent categorical observation fields            |
+| `dagflow/v1`    | Reusable directed graph structure                                |
+
+Some producers may share a research-owned task-facing schema where several research components require the same domain representation.
+
+For exact record schemas, invariants, lineage rules, and current status, see [`../../docs/docs/research/substrates/`](../../docs/docs/research/substrates/).
+
+### Tasks
+
+Current task specifications include:
+
+| Reference      | Problem                                                                       |
+| -------------- | ----------------------------------------------------------------------------- |
+| `arena/v1`     | Sequential spatial experience, memory acquisition, and observation prediction |
+| `maze-hard/v1` | Fully observed shortest-route reasoning                                       |
+| `routebind/v1` | Spatial routing constrained by a semantic transition structure                |
+| `prospect/v1`  | Memory-conditioned semantic-spatial prospective reasoning                     |
+
+For exact parent roles, information regimes, oracle semantics, targets, metrics, and current status, see [`../../docs/docs/research/tasks/`](../../docs/docs/research/tasks/).
+
+Catalogue status should be derived or mechanically validated from the authoritative specifications rather than maintained independently here.
+
+## Models and bindings
+
+Models define model-native architecture, state, memory, and inference semantics.
+
+Bindings connect task families to model families and own integration-specific representation logic.
+
+Typical research families include:
+
+- TEM;
+- HRM;
+- integrated EHP models.
+
+Bindings may cover combinations such as Arena–TEM or Routebind–EHP as those specifications are defined.
+
+Exact model, binding, compatibility, and maturity information belongs in the corresponding research specifications rather than this README.
+
+## Experiments
+
+Reusable experiment families compose scientific definitions such as:
+
+```text
+task
++ model
++ binding
++ training protocol
++ evaluation protocol
++ objectives
++ metrics
++ traces
++ resource requirements
+```
+
+An experiment family defines reusable scientific composition.
+
+Exact replaceable resources such as corpus artifacts are resolved through framework configuration rather than hidden in deployment-specific repository state.
+
+Repository-local reproduction assets, when present, are separate from the installed package’s reusable experiment definitions.
+
+## Registration and discovery
+
+Installed research definitions are exposed through the framework-owned registration/discovery boundary.
+
+Conceptually:
+
+```text
+ehp_sn
+    owns catalogue / registry contracts
+
+ehp_research
+    provides concrete definitions
+```
+
+This preserves the dependency direction and allows the framework to remain independent of concrete research packages.
+
+The exact automatic discovery mechanism belongs to the corresponding framework specification once finalized.
 
 ## Package structure
 
-```text id="j5xprn"
+The intended research responsibilities can be organized conceptually as:
+
+```text
 ehp_research/
 ├── substrates/
 ├── tasks/
@@ -125,234 +199,55 @@ ehp_research/
 └── configuration/
 ```
 
-The structure is descriptive rather than a fixed implementation contract.
+This is a responsibility map rather than a guarantee that every directory already exists or that the physical package layout is fixed.
 
-## Component catalogue
+## Specification status
 
-EHP-SN separates environments (substrates), problems (tasks), and solutions (models). Bindings connect compatible pairs. The catalogue below lists the components planned for the initial research programme.
+EHP-SN is under specification-first development.
 
-### Substrates
+This README does not assign authoritative implementation or maturity status to individual research components.
 
-| Reference       | Purpose                                                          | Status    |
-| --------------- | ---------------------------------------------------------------- | --------- |
-| `openfield/v1`  | Spatial environments with positions, movements, and observations | Specified |
-| `dagflow/v1`    | Directed relational structures and observation mappings          | Specified |
-| `dungeongen/v1` | Generated maze-like spatial environments                         | Planned   |
-| `maze-nd/v1`    | Maze structures used by reasoning tasks                          | Planned   |
+For current status and exact semantics, use:
 
-### Tasks
+- [`../../docs/docs/research/substrates/`](../../docs/docs/research/substrates/);
+- [`../../docs/docs/research/tasks/`](../../docs/docs/research/tasks/);
+- the corresponding model, binding, experiment, metric, and analysis specifications as they are added.
 
-| Reference      | Purpose                                       | Status    |
-| -------------- | --------------------------------------------- | --------- |
-| `arena/v1`     | Spatial exploration, memory, and prediction   | Specified |
-| `goaltrace/v1` | Structural reasoning over relational graphs   | Specified |
-| `prospect/v1`  | Prospective prediction from acquired memory   | Specified |
-| `routebind/v1` | Joint spatial and semantic route reasoning    | Specified |
-| `maze-hard/v1` | Iterative reasoning over maze representations | Specified |
-
-### Models
-
-| Reference | Purpose                                             | Status    |
-| --------- | --------------------------------------------------- | --------- |
-| `tem/v1`  | Structural and episodic memory                      | Specified |
-| `hrm/v1`  | Hierarchical iterative reasoning                    | Specified |
-| `hrm/v2`  | Revised hierarchical reasoning system               | Specified |
-| `ehp/v1`  | Integrated entorhinal–hippocampal–prefrontal system | Specified |
-
-### Bindings
-
-| Reference          | Purpose                | Status    |
-| ------------------ | ---------------------- | --------- |
-| `arena-tem/v1`     | Apply TEM to Arena     | Specified |
-| `goaltrace-hrm/v1` | Apply HRM to Goaltrace | Specified |
-| `prospect-tem/v1`  | Apply TEM to Prospect  | Specified |
-| `routebind-hrm/v1` | Apply HRM to Routebind | Specified |
-| `routebind-ehp/v1` | Apply EHP to Routebind | Specified |
-
-Bindings contain only task–model integration logic. Task semantics remain with tasks, and model architecture remains with models.
-
-## Compatibility matrix
-
-Only explicitly supported task–model pairs are available for experiment composition. The matrix below lists the declared combinations.
-
-| Binding            | Task           | Model    | Support   | Maturity |
-| ------------------ | -------------- | -------- | --------- | -------- |
-| `arena-tem/v1`     | `arena/v1`     | `tem/v1` | Supported | Declared |
-| `goaltrace-hrm/v1` | `goaltrace/v1` | `hrm/v2` | Supported | Declared |
-| `prospect-tem/v1`  | `prospect/v1`  | `tem/v1` | Supported | Declared |
-| `routebind-hrm/v1` | `routebind/v1` | `hrm/v2` | Supported | Declared |
-| `routebind-ehp/v1` | `routebind/v1` | `ehp/v1` | Supported | Declared |
-
-The framework README defines the support and maturity vocabulary.
-
-These combinations remain declared until implementation, conformance testing, and scientific validation justify higher maturity.
-
-## Controllers and objectives
-
-Controllers and objective terms follow the same ownership rule as other components — each belongs to its narrowest semantic owner:
-
-- model-intrinsic behaviour → model;
-- task-level semantics → task;
-- joint task–model behaviour → binding;
-- final selection and weighting → experiment.
-
-## Experiment families
-
-Reusable experiment factories belong under:
-
-```text id="lslv4a"
-ehp_research/experiments/
-├── arena_tem/
-├── goaltrace_hrm/
-├── prospect_tem/
-└── routebind_ehp/
-```
-
-Current specified experiment families include:
-
-| Reference          | Composition                                | Status    |
-| ------------------ | ------------------------------------------ | --------- |
-| `arena-tem/v1`     | OpenField, Arena, TEM, and Arena–TEM       | Specified |
-| `goaltrace-hrm/v1` | DagFlow, Goaltrace, HRM, and Goaltrace–HRM | Specified |
-| `prospect-tem/v1`  | Prospect, TEM, and Prospect–TEM            | Specified |
-| `routebind-ehp/v1` | Routebind, EHP, and Routebind–EHP          | Specified |
-
-An experiment factory supplies the package-owned component specifications, protocols, metrics, traces, and observables for that experiment family.
-
-Repository-level reproduction assets belong under [`../../experiments/`](../../experiments/).
-
-## Metrics and analyses
-
-Research metrics include:
-
-- prediction error;
-- task success;
-- route and trajectory validity;
-- anchor validity;
-- pathway-specific performance;
-- representation quality.
-
-An experiment makes metric specifications available to its evaluation regimes. Each regime selects the metrics it computes and identifies its primary outcomes.
-
-Scientific analyses include:
-
-- memory diagnostics;
-- latent-state dynamics;
-- pathway comparisons;
-- prediction visualisations;
-- case-level inspection;
-- experiment comparisons;
-- domain-specific tables and figures.
-
-Analyses consume committed artifacts and do not silently rerun inference.
-
-## Study definitions
-
-Research-specific study definitions live under:
-
-```text id="vn9uwu"
-ehp_research/studies/
-├── arena_tem_search/
-└── goaltrace_hrm_search/
-```
-
-Each trial resolves an ordinary experiment and executes an ordinary framework request.
-
-Optuna is the initial backend.
-
-Study abstractions remain provisional until validated by concrete research workflows.
-
-## Reference integrations
-
-The first intended vertical integration is:
-
-```text id="198vf6"
-openfield/v1
-    ↓
-arena/v1
-    ↓
-tem/v1
-    ↓
-arena-tem/v1
-```
-
-The second is:
-
-```text id="tcq64m"
-dagflow/v1
-    ↓
-goaltrace/v1
-    ↓
-hrm/v2
-    ↓
-goaltrace-hrm/v1
-```
-
-Their current component status is `Specified`.
-
-Their current compatibility maturity is `Declared`.
-
-A component or compatibility combination becomes `Reference` only after implementation, validation, and reproducible evidence exist.
-
-## Configuration
-
-`ehp_research` ships the defaults, resolvers, constructors, and compatibility declarations required to construct its public components.
-
-Repository-level configuration supplies workspace-specific overrides, exact reproductions, study search spaces, and runtime settings.
-
-An installed `ehp_research` package must not require the monorepo root to construct its public experiment definitions.
-
-## Current status
-
-| Area                                 | Status               |
-| ------------------------------------ | -------------------- |
-| OpenField and Arena specifications   | Specified            |
-| TEM specification                    | Specified            |
-| Arena–TEM binding and experiment     | Specified            |
-| DagFlow and Goaltrace specifications | Specified            |
-| HRM specifications                   | Specified            |
-| Goaltrace–HRM binding and experiment | Specified            |
-| Remaining catalogue components       | Specified or planned |
-| Validated reference integrations     | Not yet available    |
-
-## Scientific context
-
-EHP-SN builds on research in:
-
-- entorhinal–hippocampal cognitive maps;
-- structural and relational representations;
-- episodic and spatial memory;
-- hierarchical and iterative reasoning;
-- prospective prediction and planning.
-
-Canonical references belong in the corresponding task, model, binding, and experiment documentation.
+The repository authority model is defined in [`../../docs/authority.md`](../../docs/authority.md).
 
 ## Installation
 
 Requirements:
 
-- Python 3.12 or later
-- `ehp_sn`
+- Python 3.12 or later;
+- `ehp_sn`.
 
-Install both local packages for development:
+For editable development installation from the repository root:
 
-```bash id="vu6o2c"
+```bash
 python -m pip install -e packages/ehp-sn
 python -m pip install -e packages/ehp-research
 ```
 
 ## Testing
 
-Run the available research-package tests from the repository root:
+Run research-package and cross-package tests from the repository root:
 
-```bash id="jha1fe"
-python -m pytest packages/ehp-research
+```bash
+python -m pytest packages/ehp-research/tests tests/architecture tests/integration
 ```
 
-Tests are added alongside implemented scientific components and experiment workflows.
+## Documentation
+
+See:
+
+- [repository README](../../README.md);
+- [framework README](../ehp-sn/README.md);
+- [research substrate specifications](../../docs/docs/research/substrates/);
+- [research task specifications](../../docs/docs/research/tasks/);
+- [documentation authority](../../docs/authority.md);
+- [repository invariants](../../docs/invariants.md).
 
 ## License
 
-`ehp_research` is distributed under the GNU General Public License v3.0. See the repository [`LICENSE`](../../LICENSE).
-
-See the repository-level [README](../../README.md) for repository orientation and the [framework README](../ehp-sn/README.md) for authoritative framework semantics.
+`ehp_research` is distributed under the GNU General Public License v3.0. See [`LICENSE`](../../LICENSE).

@@ -1,150 +1,69 @@
 ---
-name: EHP-SN documentation
-description: Responsibility and specification rules for Markdown documentation
-applyTo: "**/*.md"
+applyTo: "docs/**/*.md,README.md,packages/*/README.md,config/README.md"
 ---
 
-# Documentation
+# Documentation instructions
 
-Documentation is part of the normative specification.
+Documentation changes must preserve the authority model in `docs/authority.md`.
 
-Apply only the sections relevant to the document being edited. Do not force scientific or architecture templates onto unrelated Markdown.
+## Before changing a claim
 
-When the document belongs to framework or research responsibilities, apply these documentation rules together with the corresponding path-specific instructions.
+For every normative or architectural claim being changed:
 
-## Context routing
+1. identify the concept;
+2. identify its semantic owner;
+3. identify its normative specification;
+4. identify documents that summarize or depend on it;
+5. distinguish a semantic change from a synchronization change.
 
-```text
-README.md
-    repository architecture and package relationship
+Do not create a second normative definition of an existing concept.
 
-packages/ehp-sn/README.md
-    root README
-    relevant docs/architecture documents
+Reference authoritative contracts rather than reproducing them when a local summary is sufficient.
 
-packages/ehp-research/README.md
-    root README
-    concrete docs/research catalogues
+## Conflict classification
 
-docs/framework/**
-    framework README
-    relevant docs/architecture documents
+When reviewing documentation consistency, classify findings as:
 
-docs/research/**
-    research README
-    related scientific specifications
-    relevant framework contract on demand
+- `consistent`;
+- `stale`;
+- `contradictory`;
+- `underspecified`;
+- `missing authority`.
 
-docs/architecture/**
-    root README
-    docs/architecture/responsibilities.md
-    owning package README when package-specific
-    both package READMEs when cross-package
+For every non-consistent finding state:
 
-experiments/*/README.md
-    experiment assets
-    participating scientific component specifications
-    relevant framework contracts
-```
+- the claim;
+- the authority;
+- the evidence of mismatch;
+- why it matters;
+- which file should change.
 
-## README hierarchy
+If two authoritative specifications disagree, do not silently merge them.
 
-### Root `README.md`
+## Specification metadata
 
-Owns:
+Normative documentation should use consistent frontmatter for fields that exist in the project, such as:
 
-- repository identity and scope;
-- repository structure;
-- relationship between `ehp_sn` and `ehp_research`;
-- complete-workspace installation and testing;
-- repository navigation and status.
+- `title`;
+- `authority`;
+- `document_status` or the accepted canonical status field;
+- `capability_status` when applicable;
+- `api_stability` when applicable.
 
-It does not define framework contracts or catalogue scientific components in detail.
+Do not invent a second metadata vocabulary.
 
-### `packages/ehp-sn/README.md`
+When catalogue/status metadata can be generated or checked from specification frontmatter, prefer generation or deterministic validation over manual duplication.
 
-Owns:
+## Examples
 
-- framework vocabulary and public contracts;
-- framework module responsibilities;
-- component composition;
-- protocols, services, validation, and artifacts;
-- framework-only installation and testing.
+Examples must conform to the current normative interfaces.
 
-It does not catalogue concrete research systems.
+In particular, verify:
 
-### `packages/ehp-research/README.md`
+- current CLI command form;
+- current configuration paths;
+- current component references;
+- current artifact/resource terminology;
+- current package ownership.
 
-Owns:
-
-- scientific scope;
-- concrete substrate, task, model, and binding catalogues;
-- supported integrations and component status;
-- research metrics, analyses, and experiments;
-- research-package installation and testing.
-
-It links to the framework README for framework definitions rather than redefining them.
-
-## Detailed document ownership
-
-- `docs/architecture/` owns cross-cutting structure, responsibility boundaries, decisions, and rationale.
-- `docs/framework/` owns normative reusable framework contracts.
-- `docs/research/substrates/` owns concrete substrate semantics and invariants.
-- `docs/research/tasks/` owns task semantics, mathematics, information boundaries, validity, and evaluation.
-- `docs/research/models/` owns model architecture, state, memory, objectives, capabilities, and traces.
-- `docs/research/bindings/` owns concrete task-model integrations.
-- `docs/research/metrics/` owns metric definitions, required information, interpretation, and limitations.
-- `docs/research/analyses/` owns derived analyses over existing artifacts.
-- `experiments/*/README.md` owns one configured study or reproduction procedure.
-- `docs/development/` owns contributor workflows and conventions.
-
-## Scientific document review dimensions
-
-Use these as review dimensions. Include them as visible headings only when they suit the document type.
-
-```text
-Objective:
-Terms and definitions:
-Inputs and outputs:
-Public and privileged information:
-Assumptions:
-Invariants:
-Acceptance criteria:
-Evidence or derivation:
-Unresolved decisions:
-```
-
-Do not silently reconcile contradictions or fill scientific gaps with implementation choices.
-
-## Architecture document review dimensions
-
-Use these as review dimensions. Include them as visible headings only when they suit the document type.
-
-```text
-Context:
-Objective:
-Constraints:
-Decision:
-Responsibility allocation:
-Alternatives:
-Trade-offs:
-Consequences:
-Verification criteria:
-Open questions:
-```
-
-Distinguish architectural requirements from implementation choices.
-
-## Writing rules
-
-- Open page with a YAML frontmatter block declaring `authority`, `status`, and `api_stability`.
-- Explain what the subject is before design rationale.
-- Keep one authoritative home for each concept.
-- Link to the owning document instead of repeating its explanation.
-- Preserve agreed terminology, identifiers, versions, and dependency direction.
-- Distinguish normative requirements from examples and future possibilities.
-- Define scientific semantics before code or CLI details.
-- Include a detail only when omitting it would make the document incomplete or unusable; otherwise link to the owning document.
-- Use equations, tables, or pseudocode when they make behavior more precise.
-- State ambiguity, limitations, contradictions, and unresolved decisions explicitly.
-- Update documentation with every normative contract or scientific-semantic change.
+Examples are not allowed to define behavior that is absent from the authoritative interface specification.
