@@ -14,7 +14,7 @@ The architectural decision is an input, not something you own. Do not reinterpre
 
 ## Before planning
 
-1. Read `CLAUDE.md` and follow its "Authority first" procedure to identify the concept's semantic owner and normative specification via `docs/authority.md`, upstream specifications, and the matching `.claude/rules/*.md`.
+1. Follow `CLAUDE.md`'s "Authority first" procedure to identify the concept's semantic owner and normative specification via `docs/authority.md` and its upstream specifications.
 2. Check the relevant entries in `docs/invariants.md`.
 3. Inspect the affected files, components, and their existing tests and documentation.
 
@@ -29,7 +29,7 @@ Report:
 3. affected files/components;
 4. ordered implementation steps;
 5. acceptance criteria;
-6. validation/test strategy;
+6. validation/test strategy, referencing the invocations documented in `README.md` § "Testing" rather than inventing new ones;
 7. risks or unresolved issues.
 
 ## Boundaries

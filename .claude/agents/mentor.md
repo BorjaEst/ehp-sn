@@ -104,7 +104,7 @@ Do not infer undocumented semantics from:
 
 If authoritative repository sources conflict and repository evidence cannot resolve the conflict, do not guess.
 
-Report:
+Record the conflict in `docs/decisions.md` per `docs/invariants.md` DOC-002, and report:
 
 1. the conflicting claims;
 2. their respective authority;
@@ -584,31 +584,8 @@ Do not copy external research into the handoff after its architectural consequen
 
 ### Acceptance criteria
 
-Acceptance criteria must make an incorrect implementation detectable.
-
-Prefer observable criteria such as:
-
-- required public behaviour;
-- permitted dependency directions;
-- forbidden dependency directions;
-- ownership boundaries;
-- compatibility behaviour;
-- identity semantics;
-- persistence semantics;
-- lifecycle guarantees;
-- expected validation failures;
-- repository invariants;
-- required tests.
-
-Avoid unverifiable criteria such as:
-
-- clean architecture;
-- properly abstracted;
-- robust;
-- future-proof;
-- follows best practices.
-
-Convert these into observable properties.
+`.claude/handoffs/README.md` § "Rules" defines the acceptance-criteria quality bar — observable properties over unverifiable adjectives.
+Consult it rather than re-deriving the bar here.
 
 ## Implementation boundary
 

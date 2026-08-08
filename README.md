@@ -178,9 +178,11 @@ flowchart TB
 
 The framework defines reusable contracts and lifecycle mechanics while the research package implements concrete scientific definitions against those contracts.
 
-Semantic ownership and conflict-resolution rules are documented in [`docs/authority.md`](docs/authority.md).
+Semantic ownership is documented in [`docs/authority.md`](docs/authority.md).
 
 Cross-cutting architectural conditions are documented in [`docs/invariants.md`](docs/invariants.md).
+
+Questions that are recorded but not yet decided are listed in [`docs/decisions.md`](docs/decisions.md).
 
 ## Repository structure
 
@@ -197,6 +199,7 @@ repository/
 ├── docs/
 │   ├── authority.md
 │   ├── invariants.md
+│   ├── decisions.md
 │   ├── mkdocs.yml
 │   └── docs/
 ├── logs/
@@ -267,13 +270,27 @@ python -m pytest
 
 Architecture tests should enforce cross-package invariants such as the dependency direction and other deterministic repository contracts.
 
+Run static checks (configured in [`pyproject.toml`](pyproject.toml) `[tool.ruff]`) from the repository root:
+
+```bash
+python -m ruff check packages
+```
+
+Run type checks (configured in [`pyproject.toml`](pyproject.toml) `[tool.mypy]`) from the repository root, one package at a time to avoid a duplicate top-level `src` module name across packages:
+
+```bash
+python -m mypy packages/ehp-sn/src
+python -m mypy packages/ehp-research/src
+```
+
 ## Documentation
 
 Start with:
 
 - [`docs/docs/_index.md`](docs/docs/_index.md) — published documentation entry point;
 - [`docs/authority.md`](docs/authority.md) — semantic ownership and normative authority;
-- [`docs/invariants.md`](docs/invariants.md) — repository-wide invariants;
+- [`docs/invariants.md`](docs/invariants.md) — repository-wide invariants and their checks;
+- [`docs/decisions.md`](docs/decisions.md) — open architectural decisions;
 - [`docs/README.md`](docs/README.md) — documentation contributor guide;
 - [`packages/ehp-sn/README.md`](packages/ehp-sn/README.md) — framework orientation;
 - [`packages/ehp-research/README.md`](packages/ehp-research/README.md) — research-package orientation.

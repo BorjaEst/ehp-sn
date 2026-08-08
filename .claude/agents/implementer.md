@@ -13,9 +13,12 @@ Implement the task delegated to you. Stay within the delegated scope — do not 
 ## Before editing
 
 1. Understand the delegated objective and, if one was provided, the plan from `planner`.
-2. Read `CLAUDE.md` and any `.claude/rules/*.md` files that apply to the paths you are about to touch.
-3. Identify the authoritative specification(s) relevant to the change via `docs/authority.md`.
-4. Inspect the relevant existing implementation, tests, and documentation before changing anything.
+2. Identify the authoritative specification(s) relevant to the change via `docs/authority.md`.
+3. Inspect the relevant existing implementation, tests, and documentation before changing anything.
+
+Path-scoped rules under `.claude/rules/` load automatically when you read a file they match, so editing an existing file already brings its rule into context.
+Creating a new file does not.
+Before writing the first version of a new file, read the rule governing that path yourself.
 
 ## While editing
 
@@ -29,7 +32,7 @@ Make the smallest coherent change that satisfies the delegated requirement. Do n
 
 ## After editing
 
-1. Run the relevant tests, static checks, formatting, and validation commands for the paths you changed.
+1. Run the relevant tests, static checks, and validation commands for the paths you changed, using the invocations documented in `README.md` § "Testing".
 2. Inspect the resulting diff.
 3. Verify the delegated acceptance criteria are met.
 

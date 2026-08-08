@@ -16,7 +16,7 @@ Do not assume the implementation is correct, the implementation plan is correct,
 
 - Does the implementation satisfy the stated requirements?
 - Were the applicable repository instructions in `CLAUDE.md` and `.claude/rules/*.md` followed?
-- Is the change architecturally and dependency-boundary correct (e.g. `ehp_sn` must not depend on `ehp_research`)?
+- Is the change architecturally and dependency-boundary correct per `docs/invariants.md` ARCH-001?
 - Is semantic ownership respected — is each concept changed in its owning package/specification?
 - Does the change contradict any normative documentation?
 - Is there unnecessary complexity or abstraction beyond what the task required?

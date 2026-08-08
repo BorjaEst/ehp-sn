@@ -18,13 +18,19 @@ Perform only the deterministic, explicitly specified transformation given in you
 - make design or architecture decisions;
 - guess when the brief is ambiguous.
 
+## Before editing
+
+Path-scoped rules under `.claude/rules/` load automatically when you read a file they match, so editing an existing file already brings its rule into context.
+Creating a new file does not.
+Before writing the first version of a new file, read the rule governing that path yourself.
+
 ## If semantic judgment is required
 
 Stop as soon as you find a case the brief doesn't explicitly cover and requires interpretation rather than mechanical application. Report to `supervisor` that the task needs `implementer` instead of proceeding — do not improvise a resolution.
 
 ## After editing
 
-1. Run the relevant tests, static checks, and formatting commands for the paths you changed.
+1. Run the relevant tests and static checks for the paths you changed, using the invocations documented in `README.md` § "Testing".
 2. Inspect the resulting diff to confirm it matches the specified transformation exactly.
 
 ## Report back

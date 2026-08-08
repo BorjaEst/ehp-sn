@@ -7,17 +7,18 @@ docs/
 ├── README.md
 ├── authority.md
 ├── invariants.md
+├── decisions.md
 ├── mkdocs.yml
 ├── docs/
 │   ├── _index.md
-│   ├── api/
-│   ├── data/
-│   ├── design/
+│   ├── architecture/
+│   ├── concepts/
+│   ├── decisions/
 │   ├── development/
 │   ├── framework/
+│   ├── getting-started/
+│   ├── guides/
 │   ├── interfaces/
-│   ├── models/
-│   ├── regimes/
 │   └── research/
 └── site/
 ```
@@ -32,15 +33,23 @@ It explains how the documentation tree is organized and how semantic authority i
 
 It is not the public documentation homepage.
 
-### `authority.md`
+### Governance files
 
-[`authority.md`](authority.md) defines which package/specification owns each class of semantics and how conflicts are resolved.
+Each governance file answers exactly one question. None of them restates another's content.
 
-Agents and contributors should consult it before changing architectural or normative claims.
+| Question                                      | File                              |
+| --------------------------------------------- | --------------------------------- |
+| Where is a concept owned and specified?       | [`authority.md`](authority.md)    |
+| What must always hold, and how is it checked? | [`invariants.md`](invariants.md)  |
+| What is not yet decided?                      | [`decisions.md`](decisions.md)    |
 
-### `invariants.md`
+[`authority.md`](authority.md) assigns ownership by specification root rather than per component, so a document's owner follows from its location. It also defines the specification frontmatter contract.
 
-[`invariants.md`](invariants.md) defines cross-cutting repository conditions that specifications, implementations, interfaces, and documentation must preserve.
+[`invariants.md`](invariants.md) defines numbered cross-cutting conditions and, in § "Enforcement", the observable check for each one.
+
+[`decisions.md`](decisions.md) records conflicting or missing authority as required by DOC-002. Its entries are transient and are deleted once the decision is captured in the owning document.
+
+Agents and contributors should consult all three before changing architectural or normative claims.
 
 ### `mkdocs.yml`
 
@@ -64,16 +73,18 @@ Published documentation is organized by responsibility:
 
 ```text
 docs/docs/
-├── framework/       reusable ehp_sn contracts
-├── interfaces/      public CLI, Python, and configuration interfaces
-├── research/        ehp_research scientific specifications
-├── design/          architectural/design decomposition
-├── development/     repository/development contracts
-├── api/             API reference entry points
-├── data/            data-oriented documentation entry points
-├── models/          model documentation entry points
-└── regimes/         evaluation-regime documentation entry points
+├── architecture/     architectural decomposition (ownership unresolved)
+├── concepts/         cross-cutting concept documentation (ownership unresolved)
+├── decisions/        recorded design decisions (ownership unresolved)
+├── development/      repository/development contracts
+├── framework/        reusable ehp_sn contracts
+├── getting-started/  onboarding documentation (ownership unresolved)
+├── guides/           task-oriented guides (ownership unresolved)
+├── interfaces/       public CLI, Python, and configuration interfaces
+└── research/         ehp_research scientific specifications
 ```
+
+See [`decisions.md`](decisions.md) DEC-001 for the directories whose semantic owner is not yet decided.
 
 The semantic owner of a concept is authoritative, not the directory depth.
 
@@ -113,20 +124,24 @@ Before finishing a documentation change:
 
 Information such as component references, status, and catalogue membership should be generated or mechanically validated where practical.
 
-## GitHub Copilot
+## Claude Code
 
 Repository instructions live under:
 
 ```text
-.github/
-├── copilot-instructions.md
-├── instructions/
-└── prompts/
+CLAUDE.md
+.claude/
+├── rules/
+├── skills/
+├── agents/
+└── handoffs/
 ```
 
-Path-specific instructions follow architectural responsibility across documentation, source code, and tests.
+`.claude/handoffs/` holds the untracked design → implementation contracts described by `.claude/handoffs/README.md`.
 
-For example, task instructions apply to both task specifications and task implementations rather than only to Markdown files.
+Path-specific rules follow architectural responsibility across documentation, source code, and tests.
+
+For example, task rules apply to both task specifications and task implementations rather than only to Markdown files.
 
 ## Building the documentation
 

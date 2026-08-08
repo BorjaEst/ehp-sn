@@ -6,7 +6,9 @@ A handoff is the design → implementation contract between the two agent phases
 mentor (design, opus)  →  .claude/handoffs/<name>.md  →  supervisor (implementation, sonnet)
 ```
 
-`supervisor` has no access to the `mentor` conversation. The handoff and the authoritative documentation it references are the only channel between the phases. A constraint that appears in neither does not reach implementation.
+`supervisor` has no access to the `mentor` conversation.
+The handoff and the authoritative documentation it references are the only channel between the phases.
+A constraint that appears in neither does not reach implementation.
 
 ## Flow
 
@@ -20,9 +22,11 @@ claude --agent supervisor
 
 `supervisor` must always be launched as the main thread via `claude --agent supervisor`, never spawned as a subagent — its delegation allowlist is enforced only when it runs as the main thread.
 
-`mentor` writes a handoff only when a design discussion has converged on an explicit decision *and* the necessary information is not already fully represented by authoritative repository documentation. `supervisor` reads it first, before anything else — followed by the authoritative documentation it references, `CLAUDE.md`, and applicable `.claude/rules/*.md`.
+`mentor` writes a handoff only when a design discussion has converged on an explicit decision _and_ the necessary information is not already fully represented by authoritative repository documentation.
+`supervisor` reads it first, before anything else — followed by the authoritative documentation it references, `CLAUDE.md`, and applicable `.claude/rules/*.md`.
 
-`/design-handoff` never implements. `/implement-handoff` never redesigns.
+`/design-handoff` never implements.
+`/implement-handoff` never redesigns.
 
 ## When a handoff may be written
 
@@ -46,7 +50,8 @@ One file per design concern:
 .claude/handoffs/artifact-manifest-ownership.md
 ```
 
-The identifier is lowercase kebab-case matching `[a-z0-9][a-z0-9-]*`, and names the design concern rather than a date, ticket, or branch. Because the identifier becomes a path, both skills reject an identifier containing `/`, `..`, whitespace, or uppercase instead of normalizing it.
+The identifier is lowercase kebab-case matching `[a-z0-9][a-z0-9-]*`, and names the design concern rather than a date, ticket, or branch.
+Because the identifier becomes a path, both skills reject an identifier containing `/`, `..`, whitespace, or uppercase instead of normalizing it.
 
 ## Not tracked
 
@@ -54,8 +59,14 @@ Handoff files are untracked local scratch; `.gitignore` in this directory exclud
 
 Two consequences:
 
-- **Durable decisions must be captured in authoritative documentation before the handoff is written.** A handoff cannot be recovered from git history. Anything that must survive the design phase belongs in `docs/authority.md`, `docs/invariants.md`, or the owning specification — the handoff carries only the implementation-facing residue.
-- **A missing handoff is a normal case.** On a machine without the named file, `/implement-handoff` reports what is available and stops. It does not reconstruct the design.
+- **Durable decisions must be captured in authoritative documentation before the handoff is written.**
+  A handoff cannot be recovered from git history. Anything that must survive the design phase belongs in `docs/authority.md`, `docs/invariants.md`, or the owning specification — the handoff carries only the implementation-facing residue.
+- **A missing handoff is a normal case.** On a machine without the named file, `/implement-handoff` reports what is available and stops.
+  It does not reconstruct the design.
+
+Captured means committed.
+An uncommitted authority edit and the handoff that depends on it can drift apart between sessions, and the implementation phase cannot tell a superseded staged version from a current working-tree one.
+Commit the authority change and the handoff together, before the implementation phase begins.
 
 ## Structure
 
@@ -86,14 +97,19 @@ status: agreed
 `status` is the only metadata field:
 
 - `agreed` — design accepted, implementation not complete. Written by `mentor` when the handoff is created.
-- `implemented` — implementation landed and its acceptance criteria were met. Set at the end of a successful `/implement-handoff` run. The file is then historical local scratch, is not authority for anything, and may be deleted at any time.
+- `implemented` — implementation landed and its acceptance criteria were met.
+  Set at the end of a successful `/implement-handoff` run.
+  The file is then historical local scratch, is not authority for anything, and may be deleted at any time.
 
 Do not add a name or identifier field; the identifier is derivable from the filename.
 
 ## Rules
 
-* Distinguish clearly between agreed decisions, requirements, assumptions, and unresolved questions — do not blur them together.
-* Prefer referencing normative repository documentation (`docs/authority.md`, `docs/invariants.md`, an updated specification) over duplicating it here. If the decision is already captured there, point to it instead of restating it.
-* Acceptance criteria must make an incorrect implementation detectable. Prefer observable properties — required behavior, permitted and forbidden dependency directions, ownership boundaries, expected validation failures, required tests — over unverifiable adjectives.
-* This is the implementation-relevant result of the design discussion, not a transcript of it.
-* The repository remains the source of truth. Neither this file nor agent conversation history may become the authoritative source for project semantics — durable decisions belong in authoritative documentation as part of the same coherent change.
+- Distinguish clearly between agreed decisions, requirements, assumptions, and unresolved questions — do not blur them together.
+- Prefer referencing normative repository documentation (`docs/authority.md`, `docs/invariants.md`, an updated specification) over duplicating it here.
+  If the decision is already captured there, point to it instead of restating it.
+- Acceptance criteria must make an incorrect implementation detectable.
+  Prefer observable properties — required behavior, permitted and forbidden dependency directions, ownership boundaries, expected validation failures, required tests — over unverifiable adjectives.
+- This is the implementation-relevant result of the design discussion, not a transcript of it.
+- The repository remains the source of truth.
+  Neither this file nor agent conversation history may become the authoritative source for project semantics — durable decisions belong in authoritative documentation as part of the same coherent change.

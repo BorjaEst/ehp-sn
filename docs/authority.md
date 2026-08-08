@@ -1,12 +1,14 @@
 ---
 title: Documentation and semantic authority
 authority: normative
-document_status: specified
+status: specified
 ---
 
 # Documentation and semantic authority
 
-This document defines where EHP-SN concepts are semantically owned and where their normative specifications live.
+This document answers one question: **where is a concept owned, and where does its normative specification live?**
+
+It does not state rules. Cross-cutting rules are numbered invariants in `docs/invariants.md`. Undecided ownership is recorded in `docs/decisions.md`.
 
 EHP-SN is specification-first:
 
@@ -24,7 +26,7 @@ interfaces and READMEs
     expose or summarize those semantics
 ```
 
-Implementation must not silently become a competing semantic authority.
+Implementation must not silently become a competing semantic authority (`docs/invariants.md` ARCH-002).
 
 ## Package ownership
 
@@ -36,51 +38,7 @@ ehp_research → ehp_sn
 
 `ehp_research` owns concrete scientific definitions and research-owned shared domain contracts.
 
-`ehp_sn` must not depend on `ehp_research`.
-
-## Authority matrix
-
-| Concern | Semantic owner | Normative specification | Implementation / operational surface |
-|---|---|---|---|
-| Package dependency direction | repository architecture | this document + framework architecture specifications | package metadata, imports, architecture tests |
-| Generic Task / Model / Binding contracts | `ehp_sn` | `docs/docs/framework/` and applicable design specifications | `packages/ehp-sn/src/` |
-| Generic artifact semantics | `ehp_sn` | `docs/docs/framework/` | `packages/ehp-sn/src/` |
-| `DataArtifact` / `SubstrateArtifact` | `ehp_sn` | `docs/docs/framework/data-artifacts.md` | framework artifact implementation |
-| `TaskCorpus` | `ehp_sn` | `docs/docs/framework/corpora.md` | framework corpus implementation |
-| References, identity, digests, manifests, provenance | `ehp_sn` | applicable framework specifications | framework implementation |
-| Resource requirements | `ehp_sn` | `docs/docs/interfaces/configuration/resource-requirements.md` | configuration/resolution implementation |
-| Configuration model and resolution | `ehp_sn` | `docs/docs/interfaces/configuration/` | framework configuration implementation |
-| Public CLI behavior | `ehp_sn` | `docs/docs/interfaces/cli/` | framework CLI implementation |
-| Public Python behavior | `ehp_sn` | `docs/docs/interfaces/python/` | framework public Python implementation |
-| Shared research substrate schemas | `ehp_research` | corresponding specification under `docs/docs/research/substrates/` | research implementation |
-| Raster topology semantics | `ehp_research` | `raster-topology/v1` specification when added | research substrate/task implementations |
-| Observation-field semantics | `ehp_research` | ObsField/shared observation-field specifications | research substrate/task implementations |
-| DungeonGen semantics | `ehp_research` | `docs/docs/research/substrates/dungeongen-v1.md` | research substrate implementation |
-| Maze-ND semantics | `ehp_research` | `docs/docs/research/substrates/maze-nd-v1.md` | research substrate implementation |
-| ObsField semantics | `ehp_research` | `docs/docs/research/substrates/obsfield-v1.md` | research substrate implementation |
-| Dagflow semantics | `ehp_research` | `docs/docs/research/substrates/dagflow-v1.md` | research substrate implementation |
-| Arena semantics | `ehp_research` | `docs/docs/research/tasks/arena.md` | research task implementation |
-| MazeHard semantics | `ehp_research` | `docs/docs/research/tasks/mazehard.md` | research task implementation |
-| Routebind semantics | `ehp_research` | `docs/docs/research/tasks/routebind.md` | research task implementation |
-| Prospect semantics | `ehp_research` | `docs/docs/research/tasks/prospect.md` | research task implementation |
-| Model semantics | `ehp_research` | corresponding research model specification | research model implementation |
-| Binding semantics | `ehp_research` | corresponding research binding specification | research binding implementation |
-| Experiment-family semantics | `ehp_research` | corresponding research experiment specification | research experiment implementation |
-| Package overview | descriptive | package README | N/A |
-| Repository overview | descriptive | root README | N/A |
-
-## Conflict resolution
-
-When two statements disagree:
-
-1. identify the concept;
-2. identify the semantic owner;
-3. identify the normative specification;
-4. update lower-authority implementations, interfaces, summaries, or examples to conform.
-
-If two normative specifications both claim authority over the same concept and disagree, do not resolve the conflict implicitly.
-
-Record it as an architectural decision that must be resolved explicitly.
+The dependency direction is normative and enforced by `docs/invariants.md` ARCH-001.
 
 ## Ownership versus orchestration
 
@@ -103,33 +61,74 @@ ehp_sn TaskCorpus contract
 
 Do not use CLI presence as evidence of semantic ownership.
 
-## Duplication rule
+## Authority map
 
-Normative semantics should have one authoritative home.
+Ownership is assigned by specification root, not per component. A specification's location determines its semantic owner.
 
-Other documents should:
+| Concept category                                         | Semantic owner          | Specification root                        | Implementation surface                        |
+| -------------------------------------------------------- | ----------------------- | ----------------------------------------- | --------------------------------------------- |
+| Package dependency direction, authority model            | repository architecture | `docs/authority.md`, `docs/invariants.md` | package metadata, imports, architecture tests |
+| Generic framework contracts and services                 | `ehp_sn`                | `docs/docs/framework/`                    | `packages/ehp-sn/src/`                        |
+| Public configuration model, resolution, and requirements | `ehp_sn`                | `docs/docs/interfaces/configuration/`     | `packages/ehp-sn/src/`                        |
+| Public CLI behavior                                      | `ehp_sn`                | `docs/docs/interfaces/cli/`               | `packages/ehp-sn/src/`                        |
+| Public Python behavior                                   | `ehp_sn`                | `docs/docs/interfaces/python/`            | `packages/ehp-sn/src/`                        |
+| Research substrate semantics and shared schemas          | `ehp_research`          | `docs/docs/research/substrates/`          | `packages/ehp-research/src/`                  |
+| Research task semantics                                  | `ehp_research`          | `docs/docs/research/tasks/`               | `packages/ehp-research/src/`                  |
+| Research model, binding, and experiment-family semantics | `ehp_research`          | `docs/docs/research/`, `experiments/`     | `packages/ehp-research/src/`, `experiments/`  |
+| Repository and package overview                          | descriptive             | root and package READMEs                  | not applicable                                |
+| Agent roles, procedures, and path scoping                | procedural              | `.claude/`                                | not applicable                                |
 
-- reference the authority;
-- summarize only what is needed locally;
-- avoid reproducing complete contracts.
+Generic `Task`, `Model`, and `Binding` *contracts* are framework-owned; their concrete scientific *definitions* are research-owned. The distinction is the one drawn in "Ownership versus orchestration" above.
 
-## README rule
+### Closure rule
 
-READMEs are descriptive projections of the current specification set.
+A normative path not covered by a specification root above has **no recorded owner**.
 
-They must not override normative specifications.
+For such a path:
 
-## Generated information
+- do not treat it as normative for any concept owned elsewhere;
+- do not assert ownership of it from a lower-authority location, including `.claude/rules/` path scoping, a README, or an `_index.md`;
+- record the gap in `docs/decisions.md`.
 
-Information that can be derived mechanically should not be manually maintained in multiple authoritative-looking locations.
+## Component index
 
-Prefer generated or mechanically validated:
+Per-component ownership is **derived, not listed here**. Listing every component beside its owner and specification path would manually duplicate metadata that `docs/invariants.md` DOC-003 requires to be generated or mechanically validated, and that duplication is the observed cause of the divergences recorded in `docs/decisions.md`.
 
-- component reference;
-- title;
-- kind;
-- status;
-- maturity;
-- semantic owner;
-- specification path;
-- catalogue membership.
+A component's authority is established by:
+
+1. its specification's location under a root in the authority map, which determines the semantic owner;
+2. its specification frontmatter, which declares its identity and maturity;
+3. the catalogue or `_index.md` for that root, which should be generated from or validated against that frontmatter.
+
+### Specification frontmatter
+
+Every normative specification declares:
+
+| Field               | Meaning                                                            | Values                                    |
+| ------------------- | ------------------------------------------------------------------ | ----------------------------------------- |
+| `title`             | human-readable specification title                                 | free text                                 |
+| `authority`         | whether the document defines or only summarizes semantics          | `normative`, `descriptive`                |
+| `status`            | maturity of the specification itself                               | `draft`, `specified`                      |
+| `capability_status` | maturity of the described capability, when the distinction applies | `planned`, `partial`, `available`         |
+| `api_stability`     | stability of the described public interface, when applicable       | `provisional`, `stable`, `not-applicable` |
+
+`status` is the canonical field name for specification maturity. Do not introduce a second status vocabulary.
+
+Presence and validity of this frontmatter is required by `docs/invariants.md` DOC-006.
+
+## Related authority
+
+| Question                                      | Document             |
+| --------------------------------------------- | -------------------- |
+| Where is a concept owned and specified?       | this document        |
+| What must always hold, and how is it checked? | `docs/invariants.md` |
+| What is not yet decided?                      | `docs/decisions.md`  |
+| How should an agent act on a given path?      | `.claude/rules/*.md` |
+
+Rules previously restated here are owned as invariants:
+
+- one normative home per semantic contract — ARCH-002;
+- READMEs are projections, not authorities — DOC-001;
+- conflicting specifications are reported, not silently reconciled — DOC-002;
+- derivable metadata is generated or validated, not duplicated — DOC-003;
+- agent configuration under `.claude/` is procedural and never semantic authority — DOC-007.

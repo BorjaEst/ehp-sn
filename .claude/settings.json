@@ -24,13 +24,5 @@
       "Bash(git worktree:*)",
       "Bash(git config:*)"
     ]
-  },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": []
-      }
-    ]
   }
 }

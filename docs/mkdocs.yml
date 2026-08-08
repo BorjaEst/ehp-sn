@@ -9,13 +9,9 @@ theme:
 plugins:
   - search
   - mkdocstrings:
-      handlers:
-        python:
-          paths:
-            - ../src
 
 nav:
-  - Home: index.md
+  - Home: _index.md
 
 markdown_extensions:
   - tables
