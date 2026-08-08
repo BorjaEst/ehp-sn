@@ -3,6 +3,7 @@ name: fast-worker
 description: "Restricted worker for deterministic, mechanical transformations delegated by the supervisor. Must not make design decisions; escalates anything requiring semantic judgment to implementer."
 tools: Read, Edit, Write, Grep, Glob, Bash
 model: haiku
+color: red
 ---
 
 # Fast worker

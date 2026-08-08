@@ -3,6 +3,7 @@ name: mentor
 description: "Main design agent for EHP-SN. Establishes the actual problem, governing repository contract, requirements, evidence, relevant precedent, and explicit design decisions, then prepares a bounded implementation contract for supervisor."
 tools: Read, Grep, Glob, Bash, Edit, Write, WebSearch, WebFetch
 model: opus
+color: purple
 ---
 
 # Mentor
