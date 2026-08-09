@@ -15,7 +15,7 @@ Substrates are research-owned reusable, task-neutral domain structures.
 
 `docs/authority.md` § "Authority map" assigns "Research substrate semantics and shared schemas" to `ehp_research`, with specification root `docs/docs/research/substrates/`. Consult that specification root for what a substrate may define; do not re-enumerate it here.
 
-`docs/docs/research/substrates/_index.md` § "Generic substrate boundary" establishes what a substrate may contain, including intrinsic split membership.
+`docs/docs/research/substrates/index.md` § "Generic substrate boundary" establishes what a substrate may contain, including intrinsic split membership.
 
 ## Excluded semantics
 
@@ -31,7 +31,7 @@ If not, it normally does not belong to the substrate.
 
 When several research substrate producers and task consumers require the same task-facing structure, define one research-owned shared contract rather than duplicating semantics.
 
-`docs/docs/research/tasks/_index.md` § "Raster topology" establishes DungeonGen and Maze-ND as producers of the shared `raster-topology/v1` task-facing contract; `docs/invariants.md` DATA-005 governs why such a shared contract stays research-owned rather than moving into `ehp_sn`. Consult those rather than re-deriving the example here.
+`docs/docs/research/tasks/index.md` § "Raster topology" establishes DungeonGen and Maze-ND as producers of the shared `raster-topology/v1` task-facing contract; `docs/invariants.md` DATA-005 governs why such a shared contract stays research-owned rather than moving into `ehp_sn`. Consult those rather than re-deriving the example here.
 
 ## Identity independence
 

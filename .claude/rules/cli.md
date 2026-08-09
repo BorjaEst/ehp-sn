@@ -51,7 +51,7 @@ ehp_sn
 CLI-002 governs the operation vocabulary.
 Use the established lifecycle vocabulary unless a demonstrated requirement requires another operation.
 
-`docs/docs/interfaces/cli/_index.md` § "Command form" defines the general command form; § "Build vs run" defines the `build`/`run` distinction.
+`docs/docs/interfaces/cli/index.md` § "Command form" defines the general command form; § "Build vs run" defines the `build`/`run` distinction.
 Consult those rather than re-deriving them here.
 
 ## Configuration boundary

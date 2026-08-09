@@ -17,7 +17,7 @@ CLI-001 governs orchestration versus semantic ownership. The same boundary appli
 
 ## CLI/Python equivalence
 
-CONFIG-004 governs CLI/Python semantic equivalence. Consult it, and `docs/docs/interfaces/python/_index.md` § "Python and CLI equivalence", rather than re-deriving the convergence requirements here.
+CONFIG-004 governs CLI/Python semantic equivalence. Consult it, and `docs/docs/interfaces/python/index.md` § "Python and CLI equivalence", rather than re-deriving the convergence requirements here.
 
 ## Configuration boundary
 

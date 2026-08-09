@@ -66,7 +66,7 @@ docs/
 └── docs/          # published MkDocs source
 ```
 
-It must distinguish `docs/README.md` from `docs/docs/_index.md`.
+It must distinguish `docs/README.md` from `docs/docs/index.md`.
 
 ## GitHub README
 
