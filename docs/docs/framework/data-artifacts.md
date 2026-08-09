@@ -1,6 +1,8 @@
 ---
+title: Data artifacts
 authority: normative
-status: specified
+document_status: specified
+capability_status: planned
 api_stability: provisional
 ---
 
@@ -142,18 +144,16 @@ Accidental mutation or corruption of a committed release does not create a new v
 
 The release number is declared in configuration and becomes part of the resolved effective configuration.
 
-The CLI may provide an explicit `--version` override.
-
 Precedence is:
 
 ```text
 package default
 < configuration file
 < --set override
-< dedicated --version option
 ```
 
-Supplying both `--version` and a generic override for the same version field is ambiguous and must be rejected.
+`--version` is a root-level CLI interface that reports the installed tool version; it is not a release-number override.
+The release number is set through configuration or `--set`.
 
 The framework must not auto-assign the next release number.
 
@@ -191,7 +191,8 @@ index.jsonl
 
 Those filenames are conventional, not semantic. The manifest identifies the authoritative resource roles and their relative locations.
 
-A physical `splits/` directory is permitted and is the default local organization, but it is not required by the framework contract. Split membership and split-owned payloads are declared by the manifest and index.
+A physical `splits/` directory is permitted and is the default local organization, but it is not required by the framework contract.
+Split membership and split-owned payloads are declared by the manifest and index.
 
 ## Manifest, configuration, and provenance authority
 
@@ -217,7 +218,7 @@ The provenance resource is integrity-protected but excluded from the artifact id
 
 ## Resource descriptors and digests
 
-Every payload resource must have an individual content digest.
+Every payload resource must have an individual resource digest.
 
 A resource descriptor must identify at least:
 
@@ -226,7 +227,7 @@ A resource descriptor must identify at least:
 - media or storage type;
 - byte size;
 - schema reference;
-- content digest;
+- resource digest;
 - identity-bearing status;
 - split association, where applicable.
 
@@ -234,7 +235,7 @@ Payload resources and the resolved configuration are identity-bearing by default
 
 Audit resources, including provenance, are integrity-protected but not identity-bearing by default.
 
-The digest algorithm and canonical representation are defined by [Digests](digests.md) and [Identity](identity.md).
+The digest algorithm and canonical representation are defined by [Digests](digests.md).
 
 ## Build-input identity
 
@@ -261,7 +262,8 @@ It is used to compare a planned build with an existing committed release.
 
 The **artifact fingerprint** verifies the committed artifact after payload generation.
 
-It is derived from the canonical identity projection defined by the framework identity and digest contracts. For data artifacts, that projection includes the build-input identity fields and all identity-bearing resource descriptors and digests.
+It is derived from the canonical identity projection defined by the framework identity and digest contracts.
+For data artifacts, that projection includes the build-input identity fields and all identity-bearing resource descriptors and digests.
 
 It excludes:
 

@@ -1,7 +1,7 @@
 ---
 title: ObsField v1
 authority: normative
-status: draft
+document_status: draft
 ---
 
 # ObsField v1
@@ -854,7 +854,7 @@ Framework contracts:
 
 Research contracts:
 
-- [`Substrates`](./_index.md);
+- [`Substrates`](./index.md);
 - canonical ambient-domain specification — pending;
 - canonical raster-topology schema — pending;
 - vocabulary identity specification — pending;

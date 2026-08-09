@@ -41,7 +41,7 @@ ref = ExperimentRef.parse("experiment:arena-tem/v1")
 experiment = resolve_experiment(ref)
 ```
 
-| Capability                               | Canonical or candidate expression | Status                                                 |
+| Capability                               | Canonical or candidate expression | Descriptive label                                      |
 | ---------------------------------------- | --------------------------------- | ------------------------------------------------------ |
 | Parse a canonical experiment reference   | `ExperimentRef.parse(text)`       | Required capability; exact parser location provisional |
 | Resolve a canonical experiment reference | `resolve_experiment(ref)`         | Proposed helper symbol                                 |
@@ -145,7 +145,7 @@ Request resolution converts that requirement into one exact committed `ArtifactR
 
 The resolver never selects automatically among arbitrary compatible local artifacts.
 
-The resolved request records the corpus reference, content digest, resolution source, schema compatibility, and any permitted override. Execution never searches for a different corpus implicitly.
+The resolved request records the corpus reference, artifact fingerprint, resolution source, schema compatibility, and any permitted override. Execution never searches for a different corpus implicitly.
 
 ## Construction behavior
 
@@ -176,8 +176,8 @@ Equal experiments do not imply equal results because seeds, data, checkpoints, r
 
 ## Related interfaces
 
-- [Python interface overview](_index.md)
+- [Python interface overview](index.md)
 - [Training](training.md)
 - [Evaluation](evaluation.md)
 - [Shared conventions](conventions.md)
-- [Framework semantics](../../framework/_index.md)
+- [Framework semantics](../../framework/index.md)

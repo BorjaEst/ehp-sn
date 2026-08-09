@@ -1,7 +1,7 @@
 ---
 title: Dagflow v1
 authority: normative
-status: specified
+document_status: specified
 ---
 
 # Dagflow v1
@@ -791,7 +791,7 @@ goal interpretation, and targets.
 
 ## Related specifications
 
-- [`Substrates`](./_index.md)
+- [`Substrates`](./index.md)
 - [`Data artifacts`](../../framework/data-artifacts.md)
 - [`Manifests`](../../framework/manifests.md)
 - [`Identity`](../../framework/identity.md)

@@ -82,7 +82,7 @@ The immutable `ExecutionPlan` contains:
 
 - plan and request identities;
 - canonical `AnalysisRef`;
-- ordered input `ArtifactRef` values and content digests;
+- ordered input `ArtifactRef` values and artifact fingerprints;
 - required `ResourceRef` values;
 - semantic and rendering parameters kept as distinct fields;
 - output root and artifact policy;
@@ -99,7 +99,7 @@ Planning performs no derived computation or rendering and never infers missing i
 | `RESOURCES` | All input manifests and required recorded resources resolve with required integrity and schemas; destination constraints are valid.                                                    |
 | `BUILD`     | Analysis implementation, resource readers, derived-output writers, and renderer components can be constructed and connected without computing scientific results or rendering figures. |
 
-Execution rechecks input identities, content digests, resource integrity metadata, destination state, and renderer availability. A changed identity-affecting input raises `StalePlanError`; analysis never silently substitutes another artifact or resource.
+Execution rechecks input identities, artifact fingerprints, resource integrity metadata, destination state, and renderer availability. A changed identity-affecting input raises `StalePlanError`; analysis never silently substitutes another artifact or resource.
 
 ## Execution boundary
 
@@ -184,9 +184,9 @@ Analysis and rendering remain one operation initially, but semantic and renderin
 
 ## Related interfaces
 
-- [Python interface overview](_index.md)
+- [Python interface overview](index.md)
 - [Evaluation](evaluation.md)
 - [Artifacts](artifacts.md)
 - [Shared conventions](conventions.md)
-- [CLI analysis](../cli/analyze.md)
-- [Framework semantics](../../framework/_index.md)
+- [CLI analyze](../cli/analyze.md)
+- [Framework semantics](../../framework/index.md)

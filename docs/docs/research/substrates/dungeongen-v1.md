@@ -1,7 +1,7 @@
 ---
 title: DungeonGen v1
 authority: normative
-status: draft
+document_status: draft
 ---
 
 # DungeonGen v1
@@ -57,13 +57,13 @@ DungeonGen does not define:
 
 ## Canonical identity and conformance
 
-| Property | Required value |
-| --- | --- |
-| Artifact kind | `substrate` |
-| Family | `dungeongen` |
-| Specification reference | `dungeongen/v1` |
-| Initial variant | `general` |
-| Shared logical schema | `raster-topology/v1` |
+| Property                | Required value       |
+| ----------------------- | -------------------- |
+| Artifact kind           | `substrate`          |
+| Family                  | `dungeongen`         |
+| Specification reference | `dungeongen/v1`      |
+| Initial variant         | `general`            |
+| Shared logical schema   | `raster-topology/v1` |
 
 A conforming release satisfies:
 
@@ -164,8 +164,8 @@ assignment, or completion order.
 
 DungeonGen v1 initially defines one variant:
 
-| Variant | Meaning |
-| --- | --- |
+| Variant   | Meaning                                                                                                             |
+| --------- | ------------------------------------------------------------------------------------------------------------------- |
 | `general` | Irregular raster topologies produced under explicitly declared generation, conversion, and acceptance configuration |
 
 Size limits, density settings, room preferences, and downstream adapter bounds
@@ -339,9 +339,9 @@ DungeonGen v1 does not impose universal topology uniqueness.
 
 Each release declares one duplicate policy:
 
-| Policy | Meaning |
-| --- | --- |
-| `allow` | Independent generation outcomes remain separate records even when canonical topology content repeats |
+| Policy         | Meaning                                                                                                         |
+| -------------- | --------------------------------------------------------------------------------------------------------------- |
+| `allow`        | Independent generation outcomes remain separate records even when canonical topology content repeats            |
 | `reject-exact` | A candidate duplicating an earlier canonical topology is rejected under the declared deterministic retry policy |
 
 Duplicate detection and reporting are required under both policies.
@@ -353,20 +353,20 @@ collection and, for `reject-exact`, retry behavior.
 
 ### Semantic configuration
 
-| Key | Type | Requiredness | Meaning | Family-specific build input |
-| --- | --- | --- | --- | ---: |
-| `substrate.variant` | enum | required | `general` | Yes |
-| `generator.dependency` | immutable reference | required | Exact generator dependency and revision | Yes |
-| `generator.protocol` | specification reference | required | Record-addressable generation protocol | Yes |
-| `generator.profile` | profile reference | required | Generator parameter profile | Yes |
-| `conversion.policy` | policy reference | required | Raw-to-normalized topology semantics | Yes |
-| `acceptance.policy` | policy reference or resolved object | required | Candidate acceptance conditions | Yes |
-| `generation.attempt_budget` | positive integer | required | Maximum attempts per logical topology | Yes |
-| `generation.seed` | integer | required | Base deterministic seed | Yes |
-| `generation.record_count` | non-negative integer | required | Number of topology records | Yes |
-| `topology.size_policy` | schema-defined object | required | Allowed extent and state-count policy | Yes |
-| `topology.duplicate_policy` | enum | required | `allow` or `reject-exact` | Yes |
-| `region.policy` | policy reference | optional | Optional reusable region derivation | Yes when present |
+| Key                         | Type                                | Requiredness | Meaning                                 | Family-specific build input |
+| --------------------------- | ----------------------------------- | ------------ | --------------------------------------- | --------------------------: |
+| `substrate.variant`         | enum                                | required     | `general`                               |                         Yes |
+| `generator.dependency`      | immutable reference                 | required     | Exact generator dependency and revision |                         Yes |
+| `generator.protocol`        | specification reference             | required     | Record-addressable generation protocol  |                         Yes |
+| `generator.profile`         | profile reference                   | required     | Generator parameter profile             |                         Yes |
+| `conversion.policy`         | policy reference                    | required     | Raw-to-normalized topology semantics    |                         Yes |
+| `acceptance.policy`         | policy reference or resolved object | required     | Candidate acceptance conditions         |                         Yes |
+| `generation.attempt_budget` | positive integer                    | required     | Maximum attempts per logical topology   |                         Yes |
+| `generation.seed`           | integer                             | required     | Base deterministic seed                 |                         Yes |
+| `generation.record_count`   | non-negative integer                | required     | Number of topology records              |                         Yes |
+| `topology.size_policy`      | schema-defined object               | required     | Allowed extent and state-count policy   |                         Yes |
+| `topology.duplicate_policy` | enum                                | required     | `allow` or `reject-exact`               |                         Yes |
+| `region.policy`             | policy reference                    | optional     | Optional reusable region derivation     |            Yes when present |
 
 DungeonGen does not impose intrinsic `train`, `validation`, or `test` splits by
 default. Task corpora own experimental split composition.
@@ -400,17 +400,17 @@ fingerprints, release reuse, conflicts, staging, and publication.
 
 ## Framework contract instantiation
 
-| Framework property | DungeonGen requirement |
-| --- | --- |
-| Specification reference | Exactly `dungeongen/v1` |
-| Family | Exactly `dungeongen` |
-| Variant | `general` |
-| Shared schema | `raster-topology/v1` |
-| Required topology capabilities | Raster, row-column, grid4, undirected, unit-cost, connected |
-| Required family descriptors | Generator dependency, protocol, profile, conversion policy, acceptance policy, duplicate policy |
-| Required lineage | Logical topology index and accepted retry attempt |
-| Optional extension | Declared `region_id` schema |
-| Intrinsic experimental splits | None by default |
+| Framework property             | DungeonGen requirement                                                                          |
+| ------------------------------ | ----------------------------------------------------------------------------------------------- |
+| Specification reference        | Exactly `dungeongen/v1`                                                                         |
+| Family                         | Exactly `dungeongen`                                                                            |
+| Variant                        | `general`                                                                                       |
+| Shared schema                  | `raster-topology/v1`                                                                            |
+| Required topology capabilities | Raster, row-column, grid4, undirected, unit-cost, connected                                     |
+| Required family descriptors    | Generator dependency, protocol, profile, conversion policy, acceptance policy, duplicate policy |
+| Required lineage               | Logical topology index and accepted retry attempt                                               |
+| Optional extension             | Declared `region_id` schema                                                                     |
+| Intrinsic experimental splits  | None by default                                                                                 |
 
 Generator profile and conversion policy should be artifact-level descriptors
 when homogeneous across the release. Per-record materialization is required
@@ -533,8 +533,9 @@ or generator-internal labels as model inputs or topology features.
 
 ## Open issues
 
-- The shared `raster-topology/v1` specification must be finalized before
-  DungeonGen can move from `draft` to `specified`.
+- [`raster-topology/v1`](raster-topology-v1.md) now exists but remains
+  `draft`; DungeonGen cannot move from `draft` to `specified` until that
+  shared schema does.
 - Stable reusable room, corridor, and door region semantics remain unverified;
   `region_id` therefore remains optional.
 - Exact generator dependency and reference protocol must be fixed against the
@@ -542,8 +543,8 @@ or generator-internal labels as model inputs or topology features.
 
 ## Related specifications
 
-- [`Substrates`](./_index.md)
-- `raster-topology/v1`
+- [`Substrates`](./index.md)
+- [`raster-topology/v1`](raster-topology-v1.md)
 - [`Data artifacts`](../../framework/data-artifacts.md)
 - [`Manifests`](../../framework/manifests.md)
 - [`Identity`](../../framework/identity.md)

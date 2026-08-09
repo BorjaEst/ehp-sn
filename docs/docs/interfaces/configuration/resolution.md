@@ -269,11 +269,9 @@ Serialized frontend representation and diagnostic provenance may differ.
 
 ## Foundational dependencies
 
-Resolution may bind resources before the payload is verified, but identity-sensitive behavior depends on framework artifact and identity specifications:
+Resolution may bind resources before the payload is verified. Identity-sensitive behavior is defined by the framework artifact and identity specifications, which resolution applies rather than redefines:
 
 - [References](../../framework/references.md) — canonical reference grammar
 - [Identity](../../framework/identity.md) — identity categories and equality invariants
-- [Digests](../../framework/digests.md) — content digest semantics
+- [Digests](../../framework/digests.md) — resource digest and artifact fingerprint semantics
 - [Artifacts](../../framework/artifacts.md) — artifact commitment and immutability
-
-When those specifications are absent, configuration may still parse and classify inputs, but it must not invent resource identity or digest semantics.

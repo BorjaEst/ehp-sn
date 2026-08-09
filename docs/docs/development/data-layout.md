@@ -1,6 +1,7 @@
 ---
+title: Data layout
 authority: descriptive
-status: specified
+document_status: specified
 api_stability: not-applicable
 ---
 
@@ -62,7 +63,7 @@ data/interim/<family>/<variant>/v<N>/
 Examples:
 
 ```text
-data/interim/openfield/default/v1/
+data/interim/obsfield/default/v1/
 data/interim/dagflow/default/v1/
 data/interim/dungeongen/default/v1/
 data/interim/maze-nd/default/v1/
@@ -86,10 +87,8 @@ Examples:
 
 ```text
 data/processed/arena/default/v1/
-data/processed/goaltrace/default/v1/
 data/processed/mazehard/default/v1/
 data/processed/routebind/default/v1/
-data/processed/seqmaze/default/v1/
 ```
 
 A processed corpus is self-contained and transportable. Normal consumers do not require the parent substrate artifact.
@@ -132,11 +131,11 @@ ehp-sn train / ehp-sn evaluate
 Example:
 
 ```console
-ehp-sn data plan openfield \
-    --config config/data/openfield/default.toml
+ehp-sn data plan obsfield \
+    --config config/data/obsfield/default.toml
 
-ehp-sn data build openfield \
-    --config config/data/openfield/default.toml
+ehp-sn data build obsfield \
+    --config config/data/obsfield/default.toml
 
 ehp-sn tasks plan arena \
     --config config/tasks/arena/default.toml
@@ -154,8 +153,8 @@ Each `(family, variant)` or `(task, corpus)` pair has an independent release seq
 Examples:
 
 ```text
-openfield/default/v1
-openfield/default/v2
+obsfield/default/v1
+obsfield/default/v2
 
 arena/default/v1
 arena/default/v2
@@ -250,7 +249,7 @@ The monorepo owns:
 
 - [Data artifacts](../framework/data-artifacts.md)
 - [Corpora](../framework/corpora.md)
-- [OpenField v1](../research/substrates/openfield-v1.md)
-- [Arena v1](../research/tasks/arena-v1.md)
+- [ObsField v1](../research/substrates/obsfield-v1.md)
+- [Arena v1](../research/tasks/arena.md)
 - [`ehp-sn data`](../interfaces/cli/data.md)
 - [`ehp-sn tasks`](../interfaces/cli/tasks.md)

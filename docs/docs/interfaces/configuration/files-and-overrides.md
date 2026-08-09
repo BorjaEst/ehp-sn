@@ -222,7 +222,7 @@ A candidate schema is not stable until its exhaustive catalogue exists, canonica
 ## Related interfaces
 
 - [Resolution](resolution.md)
-- [CLI overview](../cli/_index.md)
+- [CLI overview](../cli/index.md)
 - [Python conventions](../python/conventions.md)
 
 ## Non-goals

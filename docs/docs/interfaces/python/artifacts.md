@@ -36,7 +36,7 @@ Filesystem locations use separate documented location parameters or constructors
 
 ### `ArtifactManifest`
 
-The authoritative portable record of artifact identity, content digest, scientific inputs, resolved request and plan identities, execution provenance, declared resources, schema version, and commitment status.
+The authoritative portable record of artifact identity, artifact fingerprint, scientific inputs, resolved request and plan identities, execution provenance, declared resources, schema version, and commitment status.
 
 ### `Artifact`
 
@@ -48,7 +48,7 @@ A nominal reference to one manifest-declared resource owned by an artifact. Its 
 
 ## Public capabilities
 
-| Capability                         | Public contract                  | Status                                     |
+| Capability                         | Public contract                  | Descriptive label                          |
 | ---------------------------------- | -------------------------------- | ------------------------------------------ |
 | Load a committed artifact          | `load_artifact(ref) -> Artifact` | Proposed helper symbol; behavior normative |
 | Read manifest metadata             | `artifact.manifest`              | Stable public attribute                    |
@@ -75,7 +75,7 @@ Pickle compatibility for loaded handles is not guaranteed.
 ```python
 manifest = artifact.manifest
 print(manifest.identity)
-print(manifest.content_digest)
+print(manifest.artifact_fingerprint)
 print(manifest.kind)
 print(manifest.status)
 print(manifest.provenance)
@@ -90,7 +90,7 @@ metrics = artifact.resources.open("<metrics-resource-ref>")
 traces = artifact.resources.open("<trace-resource-ref>")
 ```
 
-The placeholders deliberately do not define reference grammar. See [Framework semantics](../../framework/_index.md) for the owning specification area.
+The placeholders deliberately do not define reference grammar. See [Framework semantics](../../framework/index.md) for the owning specification area.
 
 Required behavior:
 
@@ -116,14 +116,14 @@ The policy is:
 
 ## Logical identity, content identity, and placement
 
-| Concept                 | Public representation           | Meaning                                                                             |
-| ----------------------- | ------------------------------- | ----------------------------------------------------------------------------------- |
-| Artifact identity       | `ArtifactRef`                   | Durable identity used for selection and downstream inputs.                          |
-| Artifact content digest | `manifest.content_digest`       | Integrity/content identity of the committed manifest and declared payload contract. |
-| Resource identity       | `ResourceRef`                   | Identity of one artifact-owned resource.                                            |
-| Physical placement      | explicit location/path metadata | One storage location; not portable identity.                                        |
+| Concept              | Public representation           | Meaning                                                                             |
+| -------------------- | ------------------------------- | ----------------------------------------------------------------------------------- |
+| Artifact identity    | `ArtifactRef`                   | Durable identity used for selection and downstream inputs.                          |
+| Artifact fingerprint | `manifest.artifact_fingerprint` | Integrity/content identity of the committed manifest and declared payload contract. |
+| Resource identity    | `ResourceRef`                   | Identity of one artifact-owned resource.                                            |
+| Physical placement   | explicit location/path metadata | One storage location; not portable identity.                                        |
 
-Changing only placement does not change artifact identity unless the owning artifact specification explicitly says otherwise. Scientific equivalence does not imply byte-identical content digests.
+Changing only placement does not change artifact identity unless the owning artifact specification explicitly says otherwise. Scientific equivalence does not imply byte-identical artifact fingerprints.
 
 ## Checkpoint references
 
@@ -178,13 +178,13 @@ Artifact operations may raise:
 
 ## Reuse
 
-Reuse policy is operation-specific. `ArtifactRef` and content digests provide the identities used by those policies; loading an artifact does not itself authorize scientific reuse.
+Reuse policy is operation-specific. `ArtifactRef` and artifact fingerprints provide the identities used by those policies; loading an artifact does not itself authorize scientific reuse.
 
 ## Related interfaces
 
-- [Python interface overview](_index.md)
+- [Python interface overview](index.md)
 - [Training](training.md)
 - [Evaluation](evaluation.md)
 - [Analysis](analysis.md)
 - [Shared conventions](conventions.md)
-- [Framework semantics](../../framework/_index.md)
+- [Framework semantics](../../framework/index.md)

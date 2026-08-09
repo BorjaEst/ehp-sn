@@ -180,6 +180,4 @@ This page does not define resource states, digest algorithms, storage validation
 
 ## Foundational dependencies
 
-This model assumes authoritative artifact and identity specifications exist.
-
-Until those specifications define resource references, manifest identity, digest semantics, and compatibility declarations, the configuration interface may define parsing, source resolution, and binding intent but must not finalize identity-sensitive behavior.
+This model depends on the authoritative artifact and identity specifications: [References](../../framework/references.md), [Identity](../../framework/identity.md), [Digests](../../framework/digests.md), and [Data artifacts](../../framework/data-artifacts.md). Resource references, manifest identity, digest semantics, and compatibility declarations are defined there; this page applies them rather than redefining them.

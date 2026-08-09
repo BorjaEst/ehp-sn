@@ -50,7 +50,7 @@ The convenience form constructs one canonical `EvaluationRequest`. A request or 
 
 ## Public types and capabilities
 
-| Capability                   | Public contract                                                                        | Status                                           |
+| Capability                   | Public contract                                                                        | Descriptive label                                |
 | ---------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------ |
 | Execute evaluation           | `evaluate(experiment_or_request_or_plan, *, validation=None, ...) -> EvaluationResult` | Established target; overload details provisional |
 | Represent one invocation     | `EvaluationRequest`                                                                    | Established public concept                       |
@@ -147,11 +147,11 @@ A bounded call is a distinct diagnostic evaluation unless the regime explicitly 
 `MetricResult` is portable metadata with stable attributes:
 
 | Attribute  | Type                                             | Meaning                                          |
-| ---------- | ------------------------------------------------ | ------------------------------------------------ | --------------------------------------------- |
+| ---------- | ------------------------------------------------ | ------------------------------------------------ |
 | `name`     | `str`                                            | Canonical metric identifier.                     |
 | `value`    | JSON-compatible scalar or small structured value | Aggregate result suitable for direct inspection. |
-| `count`    | `int                                             | None`                                            | Number of contributing cases when meaningful. |
-| `unit`     | `str                                             | None`                                            | Declared unit when applicable.                |
+| `count`    | `int \| None`                                    | Number of contributing cases when meaningful.    |
+| `unit`     | `str \| None`                                    | Declared unit when applicable.                   |
 | `metadata` | immutable mapping                                | Small declared contextual fields.                |
 
 Per-case metric values, confidence samples, predictions, traces, and large arrays remain artifact resources and are not embedded in the mapping.
@@ -213,4 +213,4 @@ On `KeyboardInterrupt`:
 - [Artifacts](artifacts.md)
 - [Analysis](analysis.md)
 - [Shared conventions](conventions.md)
-- [Framework semantics](../../framework/_index.md)
+- [Framework semantics](../../framework/index.md)

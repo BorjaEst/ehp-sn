@@ -1,7 +1,7 @@
 ---
 title: Repository invariants
 authority: normative
-status: specified
+document_status: specified
 ---
 
 # Repository invariants
@@ -136,13 +136,15 @@ Identity-affecting configuration and resource selection must be represented in r
 
 ### CONFIG-004 — CLI/Python semantic equivalence
 
-Equivalent CLI and Python inputs must converge on equivalent:
+For every operation exposed through both the CLI and Python interfaces, equivalent canonical inputs must converge on equivalent:
 
 - finalized scientific definitions;
 - effective request values;
 - resource bindings;
 - derived values;
 - identity-relevant plan fields.
+
+The CLI and Python are not required to expose identical operation surfaces or identical convenience syntax. An interface-specific convenience (such as a CLI-only flag) is permitted only when it resolves into the same framework-owned canonical request/configuration fields the other interface would use; it must not introduce semantics that exist on only one interface.
 
 ## CLI
 
@@ -202,15 +204,15 @@ Quick starts and examples must use the currently specified CLI, Python, configur
 
 `docs/README.md` documents the documentation project and contributor workflow.
 
-`docs/docs/_index.md` is the published MkDocs documentation landing page.
+`docs/docs/index.md` is the published MkDocs documentation landing page.
 
 They must not be treated as interchangeable authorities.
 
 ### DOC-006 — Specification frontmatter is present and valid
 
-Every normative specification carries the frontmatter contract defined in `docs/authority.md` § "Specification frontmatter", using `status` as the canonical maturity field.
+Every normative specification carries the frontmatter contract defined in `docs/authority.md` § "Specification frontmatter".
 
-A second status vocabulary must not be introduced.
+Each maturity/stability dimension listed there has exactly one canonical vocabulary and one canonical home. A dimension must not reuse or conflate another dimension's field name or values, and a new dimension must not be introduced outside that section.
 
 ### DOC-007 — Agent configuration is not semantic authority
 
@@ -270,7 +272,7 @@ The following are not sufficient verification:
 | DOC-002    | unresolved conflicts appear in `docs/decisions.md`                                                                 | manual |
 | DOC-003    | catalogue and status metadata match specification frontmatter                                                      | none   |
 | DOC-004    | documented examples use current CLI, configuration, and reference syntax                                           | none   |
-| DOC-005    | `docs/README.md` and `docs/docs/_index.md` are not cross-referenced as equivalents                                 | manual |
+| DOC-005    | `docs/README.md` and `docs/docs/index.md` are not cross-referenced as equivalents                                  | manual |
 | DOC-006    | every `authority: normative` document under a specification root carries valid frontmatter                         | none   |
 | DOC-007    | no file under `.claude/` declares `authority: normative` or enumerates owned or excluded domain semantics          | manual |
 | DOC-008    | `mkdocs build --strict` in `.github/workflows/build-docs.yml` fails on an unresolved link under `docs/docs/`       | test   |

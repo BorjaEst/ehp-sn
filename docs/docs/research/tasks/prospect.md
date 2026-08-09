@@ -1,7 +1,7 @@
 ---
 title: Prospect v1
 authority: normative
-status: draft
+document_status: draft
 api_stability: provisional
 ---
 

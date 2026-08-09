@@ -1,4 +1,5 @@
 ---
+title: "`ehp-sn analyze`"
 authority: normative
 document_status: specified
 capability_status: planned
@@ -309,6 +310,6 @@ The result lists the analysis inputs and available tables and figures.
 
 ## See also
 
-- [Configuration interface](../configuration/_index.md)
-- [Framework semantics](../../framework/_index.md)
-- [Architecture overview](../../architecture/_index.md)
+- [Configuration interface](../configuration/index.md)
+- [Framework semantics](../../framework/index.md)
+- [Architecture overview](../../architecture/index.md)

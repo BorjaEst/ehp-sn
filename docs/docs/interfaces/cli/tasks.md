@@ -1,4 +1,5 @@
 ---
+title: "`ehp-sn tasks`"
 authority: normative
 document_status: specified
 capability_status: planned
@@ -58,7 +59,7 @@ The command reports each task name, protocol version, maturity, required substra
 ehp-sn tasks list
 ```
 
-The result includes task families such as `arena` and `goaltrace` when their definitions are installed.
+The result includes task families such as `arena` and `mazehard` when their definitions are installed.
 
 ### Errors
 
@@ -155,7 +156,7 @@ ehp-sn tasks plan arena \
     --config config/tasks/arena/default.toml
 ```
 
-The command reports the resolved OpenField input, Arena split sizes, expected episode counts, and target corpus path.
+The command reports the resolved ObsField input, Arena split sizes, expected episode counts, and target corpus path.
 
 ### Errors
 
@@ -332,6 +333,6 @@ The result displays the selected Arena episode and its declared inputs and targe
 
 ## See also
 
-- [Configuration interface](../configuration/_index.md)
-- [Framework semantics](../../framework/_index.md)
-- [Architecture overview](../../architecture/_index.md)
+- [Configuration interface](../configuration/index.md)
+- [Framework semantics](../../framework/index.md)
+- [Architecture overview](../../architecture/index.md)

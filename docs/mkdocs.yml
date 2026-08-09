@@ -11,7 +11,7 @@ plugins:
   - mkdocstrings:
 
 nav:
-  - Home: _index.md
+  - Home: index.md
 
 markdown_extensions:
   - tables

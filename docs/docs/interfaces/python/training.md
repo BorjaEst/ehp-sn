@@ -52,7 +52,7 @@ The convenience form is exactly request construction followed by the same planni
 
 ## Public types and capabilities
 
-| Capability                   | Public contract                                                                   | Status                                           |
+| Capability                   | Public contract                                                                   | Descriptive label                                |
 | ---------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------ |
 | Execute training             | `train(experiment_or_request_or_plan, *, validation=None, ...) -> TrainingResult` | Established target; overload details provisional |
 | Represent one invocation     | `TrainingRequest`                                                                 | Established public concept                       |
@@ -86,7 +86,7 @@ Resolution uses this order:
 3. configured workspace binding;
 4. otherwise fail.
 
-The plan records the exact corpus `ArtifactRef`, content digest, schema compatibility, and resolution source. Automatic selection among arbitrary compatible artifacts is prohibited.
+The plan records the exact corpus `ArtifactRef`, artifact fingerprint, schema compatibility, and resolution source. Automatic selection among arbitrary compatible artifacts is prohibited.
 
 ## Seed roles
 
@@ -161,16 +161,16 @@ Only checkpoints committed before an interruption are resumable.
 
 Stable public attributes:
 
-| Attribute         | Type                        | Behavior                                                                               |
-| ----------------- | --------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `status`          | `OperationStatus`           | Always the successful terminal status for a returned result.                           |
-| `artifact`        | `ArtifactRef`               | Authoritative committed training-run artifact.                                         |
-| `plan`            | `ExecutionPlan`             | Exact executed plan or portable equivalent.                                            |
-| `validation`      | `ValidationReport`          | Report used to authorize execution.                                                    |
-| `checkpoints`     | `tuple[CheckpointRef, ...]` | Immutable collection of committed checkpoint references; empty if none were committed. |
-| `best_checkpoint` | `CheckpointRef              | None`                                                                                  | Selected best checkpoint, or `None` when the protocol defines no best-selection result. |
-| `last_checkpoint` | `CheckpointRef              | None`                                                                                  | Latest committed resumable checkpoint, or `None`.                                       |
-| `run`             | `RunRecord`                 | Portable run identity and terminal metadata; not a backend-native run object.          |
+| Attribute         | Type                        | Behavior                                                                                |
+| ----------------- | --------------------------- | --------------------------------------------------------------------------------------- |
+| `status`          | `OperationStatus`           | Always the successful terminal status for a returned result.                            |
+| `artifact`        | `ArtifactRef`               | Authoritative committed training-run artifact.                                          |
+| `plan`            | `ExecutionPlan`             | Exact executed plan or portable equivalent.                                             |
+| `validation`      | `ValidationReport`          | Report used to authorize execution.                                                     |
+| `checkpoints`     | `tuple[CheckpointRef, ...]` | Immutable collection of committed checkpoint references; empty if none were committed.  |
+| `best_checkpoint` | `CheckpointRef \| None`     | Selected best checkpoint, or `None` when the protocol defines no best-selection result. |
+| `last_checkpoint` | `CheckpointRef \| None`     | Latest committed resumable checkpoint, or `None`.                                       |
+| `run`             | `RunRecord`                 | Portable run identity and terminal metadata; not a backend-native run object.           |
 
 `to_record()` returns JSON-compatible portable metadata. It does not embed checkpoint payloads, telemetry streams, or large arrays. Rich resources are reopened through `artifact` in another process.
 
@@ -223,4 +223,4 @@ All expose the structured fields defined by the shared exception contract.
 - [Artifacts](artifacts.md)
 - [Evaluation](evaluation.md)
 - [Shared conventions](conventions.md)
-- [Framework semantics](../../framework/_index.md)
+- [Framework semantics](../../framework/index.md)

@@ -1,7 +1,7 @@
 ---
 title: Maze-ND v1
 authority: normative
-status: draft
+document_status: draft
 ---
 
 # Maze-ND v1
@@ -58,13 +58,13 @@ The appearance of a field in the source dataset does not make it Maze-ND-owned.
 
 ## Canonical identity and conformance
 
-| Property | Required value |
-| --- | --- |
-| Artifact kind | `substrate` |
-| Family | `maze-nd` |
-| Specification reference | `maze-nd/v1` |
-| Initial variant | `source-topology` |
-| Shared logical schema | `raster-topology/v1` |
+| Property                | Required value       |
+| ----------------------- | -------------------- |
+| Artifact kind           | `substrate`          |
+| Family                  | `maze-nd`            |
+| Specification reference | `maze-nd/v1`         |
+| Initial variant         | `source-topology`    |
+| Shared logical schema   | `raster-topology/v1` |
 
 A conforming release satisfies:
 
@@ -168,8 +168,8 @@ source enumeration accidents, or physical storage order.
 
 Maze-ND v1 initially defines one variant:
 
-| Variant | Meaning |
-| --- | --- |
+| Variant           | Meaning                                                                              |
+| ----------------- | ------------------------------------------------------------------------------------ |
 | `source-topology` | Unique normalized raster topologies extracted from the declared authoritative source |
 
 Source revision, source subset, and normalization policy are identity-bearing
@@ -328,10 +328,10 @@ cells.
 
 The source import policy must declare one of:
 
-| Policy | Meaning |
-| --- | --- |
-| `preserve` | Preserve disconnected normalized topology and expose its component capabilities |
-| `reject` | Reject source rows whose normalized topology violates a declared connectedness requirement |
+| Policy     | Meaning                                                                                    |
+| ---------- | ------------------------------------------------------------------------------------------ |
+| `preserve` | Preserve disconnected normalized topology and expose its component capabilities            |
+| `reject`   | Reject source rows whose normalized topology violates a declared connectedness requirement |
 
 The correct initial policy depends on the verified source revision.
 
@@ -390,16 +390,16 @@ without turning those splits into Maze-ND topology semantics.
 
 ### Semantic configuration
 
-| Key | Type | Requiredness | Meaning | Family-specific build input |
-| --- | --- | --- | --- | ---: |
-| `substrate.variant` | enum | required | `source-topology` | Yes |
-| `source.reference` | immutable reference | required | Exact upstream dataset revision | Yes |
-| `source.fingerprint` | digest | required | Verified source content identity | Yes |
-| `source.schema` | schema/profile reference | required | Source field interpretation | Yes |
-| `source.selection_policy` | policy reference | required | Source-row or unique-topology selection semantics | Yes |
-| `normalization.policy` | policy reference | required | Extraction, overlay, padding, extent, and orientation semantics | Yes |
-| `topology.connectivity_policy` | enum | required | `preserve` or `reject` | Yes |
-| `topology.deduplication_policy` | fixed policy reference | required | Exact normalized raster equality in preserved orientation | Yes |
+| Key                             | Type                     | Requiredness | Meaning                                                         | Family-specific build input |
+| ------------------------------- | ------------------------ | ------------ | --------------------------------------------------------------- | --------------------------: |
+| `substrate.variant`             | enum                     | required     | `source-topology`                                               |                         Yes |
+| `source.reference`              | immutable reference      | required     | Exact upstream dataset revision                                 |                         Yes |
+| `source.fingerprint`            | digest                   | required     | Verified source content identity                                |                         Yes |
+| `source.schema`                 | schema/profile reference | required     | Source field interpretation                                     |                         Yes |
+| `source.selection_policy`       | policy reference         | required     | Source-row or unique-topology selection semantics               |                         Yes |
+| `normalization.policy`          | policy reference         | required     | Extraction, overlay, padding, extent, and orientation semantics |                         Yes |
+| `topology.connectivity_policy`  | enum                     | required     | `preserve` or `reject`                                          |                         Yes |
+| `topology.deduplication_policy` | fixed policy reference   | required     | Exact normalized raster equality in preserved orientation       |                         Yes |
 
 A deterministic source subset may additionally require a selection count and
 seed. Those values are identity-bearing.
@@ -431,17 +431,17 @@ fingerprints, release reuse, conflicts, staging, and publication.
 
 ## Framework contract instantiation
 
-| Framework property | Maze-ND requirement |
-| --- | --- |
-| Specification reference | Exactly `maze-nd/v1` |
-| Family | Exactly `maze-nd` |
-| Variant | `source-topology` |
-| Shared schema | `raster-topology/v1` |
-| Required topology capabilities | Raster, row-column, grid4, undirected, unit-cost |
-| Required family descriptors | Source identity, extraction schema, selection policy, normalization policy, connectivity policy, deduplication policy |
-| Required lineage | Complete source-occurrence-to-topology mapping resource |
-| Bounded record summary | Source occurrence count and source split membership set |
-| Intrinsic experimental splits | None |
+| Framework property             | Maze-ND requirement                                                                                                   |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| Specification reference        | Exactly `maze-nd/v1`                                                                                                  |
+| Family                         | Exactly `maze-nd`                                                                                                     |
+| Variant                        | `source-topology`                                                                                                     |
+| Shared schema                  | `raster-topology/v1`                                                                                                  |
+| Required topology capabilities | Raster, row-column, grid4, undirected, unit-cost                                                                      |
+| Required family descriptors    | Source identity, extraction schema, selection policy, normalization policy, connectivity policy, deduplication policy |
+| Required lineage               | Complete source-occurrence-to-topology mapping resource                                                               |
+| Bounded record summary         | Source occurrence count and source split membership set                                                               |
+| Intrinsic experimental splits  | None                                                                                                                  |
 
 The common topology record must remain bounded and independently usable. Full
 source occurrence mappings belong in a separate logical lineage resource.
@@ -583,8 +583,9 @@ problem occurrence through lineage.
 
 ## Open issues
 
-- The shared `raster-topology/v1` specification must be finalized before
-  Maze-ND can move from `draft` to `specified`.
+- [`raster-topology/v1`](raster-topology-v1.md) now exists but remains
+  `draft`; Maze-ND cannot move from `draft` to `specified` until that shared
+  schema does.
 - The authoritative source revision, fingerprint, and extraction profile must
   be verified and fixed for the initial release.
 - The selected source revision must be inspected to choose the initial
@@ -594,8 +595,8 @@ problem occurrence through lineage.
 
 ## Related specifications
 
-- [`Substrates`](./_index.md)
-- `raster-topology/v1`
+- [`Substrates`](./index.md)
+- [`raster-topology/v1`](raster-topology-v1.md)
 - [`Data artifacts`](../../framework/data-artifacts.md)
 - [`Manifests`](../../framework/manifests.md)
 - [`Identity`](../../framework/identity.md)

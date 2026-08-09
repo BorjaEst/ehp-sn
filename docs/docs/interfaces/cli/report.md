@@ -1,4 +1,5 @@
 ---
+title: "`ehp-sn report`"
 authority: normative
 document_status: specified
 capability_status: planned
@@ -272,6 +273,6 @@ The command creates an HTML projection of the existing report package without ch
 
 ## See also
 
-- [Configuration interface](../configuration/_index.md)
-- [Framework semantics](../../framework/_index.md)
-- [Architecture overview](../../architecture/_index.md)
+- [Configuration interface](../configuration/index.md)
+- [Framework semantics](../../framework/index.md)
+- [Architecture overview](../../architecture/index.md)

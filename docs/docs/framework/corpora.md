@@ -1,6 +1,8 @@
 ---
+title: Corpora
 authority: normative
-status: specified
+document_status: specified
+capability_status: planned
 api_stability: provisional
 ---
 
@@ -102,7 +104,8 @@ When the record is derived from parent data, the entry must also contain:
 
 A task specification may define additional fields.
 
-The index may point to one record per payload, multiple records within a shard, or another declared storage organization. The task specification defines the record unit; the index must make that unit addressable without scanning storage implicitly.
+The index may point to one record per payload, multiple records within a shard, or another declared storage organization.
+The task specification defines the record unit; the index must make that unit addressable without scanning storage implicitly.
 
 ## Parent artifacts
 
@@ -134,7 +137,7 @@ The lineage descriptor must identify:
 - parent resource name and digest;
 - corpus resource name and digest.
 
-For a valid copied relation, the parent and corpus content digests must match.
+For a valid copied relation, the parent and corpus resource digests must match.
 
 ### Derived
 
@@ -206,7 +209,8 @@ Cross-split derivation is a validation failure.
 
 The corpus index must contain enough parent information to check this invariant.
 
-A task requiring deliberate split transformation must define a separate explicit normative contract. It must not weaken this rule implicitly.
+A task requiring deliberate split transformation must define a separate explicit normative contract.
+It must not weaken this rule implicitly.
 
 ## Channel schema
 
@@ -376,5 +380,5 @@ Consumers must not:
 - [Identity](identity.md)
 - [Digests](digests.md)
 - [Provenance](provenance.md)
-- [Arena v1](../research/tasks/arena-v1.md)
+- [Arena v1](../research/tasks/arena.md)
 - [`ehp-sn tasks`](../interfaces/cli/tasks.md)

@@ -287,7 +287,7 @@ python -m mypy packages/ehp-research/src
 
 Start with:
 
-- [`docs/docs/_index.md`](docs/docs/_index.md) — published documentation entry point;
+- [`docs/docs/index.md`](docs/docs/index.md) — published documentation entry point;
 - [`docs/authority.md`](docs/authority.md) — semantic ownership and normative authority;
 - [`docs/invariants.md`](docs/invariants.md) — repository-wide invariants and their checks;
 - [`docs/decisions.md`](docs/decisions.md) — open architectural decisions;

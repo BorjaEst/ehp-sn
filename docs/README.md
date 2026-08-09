@@ -10,7 +10,7 @@ docs/
 ├── decisions.md
 ├── mkdocs.yml
 ├── docs/
-│   ├── _index.md
+│   ├── index.md
 │   ├── architecture/
 │   ├── concepts/
 │   ├── decisions/
@@ -37,11 +37,11 @@ It is not the public documentation homepage.
 
 Each governance file answers exactly one question. None of them restates another's content.
 
-| Question                                      | File                              |
-| --------------------------------------------- | --------------------------------- |
-| Where is a concept owned and specified?       | [`authority.md`](authority.md)    |
-| What must always hold, and how is it checked? | [`invariants.md`](invariants.md)  |
-| What is not yet decided?                      | [`decisions.md`](decisions.md)    |
+| Question                                      | File                             |
+| --------------------------------------------- | -------------------------------- |
+| Where is a concept owned and specified?       | [`authority.md`](authority.md)   |
+| What must always hold, and how is it checked? | [`invariants.md`](invariants.md) |
+| What is not yet decided?                      | [`decisions.md`](decisions.md)   |
 
 [`authority.md`](authority.md) assigns ownership by specification root rather than per component, so a document's owner follows from its location. It also defines the specification frontmatter contract.
 
@@ -57,9 +57,9 @@ Agents and contributors should consult all three before changing architectural o
 
 The published documentation source is the nested `docs/docs/` directory.
 
-### `docs/_index.md`
+### `docs/index.md`
 
-`docs/docs/_index.md` is the public documentation landing page rendered by MkDocs.
+`docs/docs/index.md` is the public documentation landing page rendered by MkDocs.
 
 It should orient readers to framework, research, interface, and development documentation. It should not duplicate the contributor guidance in this file.
 
@@ -123,25 +123,6 @@ Before finishing a documentation change:
 - identify downstream summaries that became stale.
 
 Information such as component references, status, and catalogue membership should be generated or mechanically validated where practical.
-
-## Claude Code
-
-Repository instructions live under:
-
-```text
-CLAUDE.md
-.claude/
-├── rules/
-├── skills/
-├── agents/
-└── handoffs/
-```
-
-`.claude/handoffs/` holds the untracked design → implementation contracts described by `.claude/handoffs/README.md`.
-
-Path-specific rules follow architectural responsibility across documentation, source code, and tests.
-
-For example, task rules apply to both task specifications and task implementations rather than only to Markdown files.
 
 ## Building the documentation
 

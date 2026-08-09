@@ -203,7 +203,7 @@ Capability queries must be available through the result or artifact metadata so 
 | Plan identity           | `ExecutionPlan.id`                              | Validation binding and stale-plan detection                     |
 | Execution provenance    | Result and manifest provenance                  | Reproducibility, runtime record, and audit                      |
 | Artifact identity       | `ArtifactRef`                                   | Durable selection, downstream inputs, and destination conflicts |
-| Artifact content digest | Manifest content digest                         | Integrity and byte/content-level verification                   |
+| Artifact fingerprint    | Manifest artifact fingerprint                   | Integrity and byte/content-level verification                   |
 
 Equal experiments do not imply equal results. Scientific equivalence does not imply byte-identical artifacts. Runtime configuration is not part of experiment identity, but runtime and environment provenance remain part of reproducibility records.
 

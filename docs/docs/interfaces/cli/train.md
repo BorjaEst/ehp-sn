@@ -1,4 +1,5 @@
 ---
+title: "`ehp-sn train`"
 authority: normative
 document_status: specified
 capability_status: planned
@@ -142,9 +143,9 @@ ehp-sn train plan EXPERIMENT [OPTIONS]
 
 `--seed INT` sets the master run seed and overrides the corresponding configured master-seed field. Supplying both `--seed` and a `--set` override for that same field is rejected as ambiguous.
 
-A hardware profile supplies execution defaults only. Explicit options such as `--device` and `--precision` override corresponding profile values and do not modify the scientific experiment.
+A hardware profile is a CLI-only convenience: it must expand into the same canonical runtime request fields (such as `device` and `precision`) that `--device` and `--precision` set directly, per [Interfaces](../index.md). Explicit options such as `--device` and `--precision` override corresponding profile values and do not modify the scientific experiment.
 
-`--hardware-profile` is training-only in the initial CLI because training may require distributed launch, process topology, and environment-specific resource coordination. Evaluation and analysis use direct runtime options until a concrete workflow demonstrates the need for shared profiles.
+`--hardware-profile` is training-only in the initial CLI because training may require distributed launch, process topology, and environment-specific resource coordination. Evaluation and analysis use direct runtime options until a concrete workflow demonstrates the need for shared profiles. The distributed-launch and process-topology aspects of a profile are not yet backed by a canonical request/configuration field; until a canonical field exists for them, a hardware profile must not be relied on for any effect beyond the `device`/`precision`-equivalent fields it shares with the direct runtime options.
 
 ### Behavior
 
@@ -316,6 +317,6 @@ The command validates the original run identity and continues the same training 
 
 ## See also
 
-- [Configuration interface](../configuration/_index.md)
-- [Framework semantics](../../framework/_index.md)
-- [Architecture overview](../../architecture/_index.md)
+- [Configuration interface](../configuration/index.md)
+- [Framework semantics](../../framework/index.md)
+- [Architecture overview](../../architecture/index.md)

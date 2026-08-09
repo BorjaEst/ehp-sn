@@ -1,4 +1,5 @@
 ---
+title: "`ehp-sn data`"
 authority: normative
 document_status: specified
 capability_status: planned
@@ -58,7 +59,7 @@ The command prints each target name, substrate kind, maturity, default configura
 ehp-sn data list
 ```
 
-The result includes first-party targets such as `openfield` and `dagflow` when their definitions are installed.
+The result includes first-party targets such as `obsfield` and `dagflow` when their definitions are installed.
 
 ### Errors
 
@@ -75,9 +76,9 @@ ehp-sn data show TARGET [--format text|json]
 
 ### Arguments
 
-| Argument | Required | Description                                   |
-| -------- | -------- | --------------------------------------------- |
-| `TARGET` | Yes      | Substrate generator name, such as `openfield` |
+| Argument | Required | Description                                  |
+| -------- | -------- | -------------------------------------------- |
+| `TARGET` | Yes      | Substrate generator name, such as `obsfield` |
 
 ### Outputs
 
@@ -86,10 +87,10 @@ The command reports the target reference, purpose, maturity, supported source ki
 ### Example
 
 ```console
-ehp-sn data show openfield
+ehp-sn data show obsfield
 ```
 
-The result explains what OpenField generation consumes and the kind of interim substrate it produces.
+The result explains what ObsField generation consumes and the kind of interim substrate it produces.
 
 ### Errors
 
@@ -143,11 +144,11 @@ The command loads and validates configuration, resolves source dependencies and 
 ### Example
 
 ```console
-ehp-sn data plan openfield \
-    --config config/data/openfield/default.toml
+ehp-sn data plan obsfield \
+    --config config/data/obsfield/default.toml
 ```
 
-The command prints the resolved OpenField variant, split sizes, destination, and whether an artifact with the same identity already exists.
+The command prints the resolved ObsField variant, split sizes, destination, and whether an artifact with the same identity already exists.
 
 ### Errors
 
@@ -220,11 +221,11 @@ The exact substrate payload is defined by the substrate specification.
 ### Example
 
 ```console
-ehp-sn data build openfield \
-    --config config/data/openfield/default.toml
+ehp-sn data build obsfield \
+    --config config/data/obsfield/default.toml
 ```
 
-On success, the command creates or reuses the configured OpenField artifact and prints the canonical logical reference and, where useful, its physical location.
+On success, the command creates or reuses the configured ObsField artifact and prints the canonical logical reference and, where useful, its physical location.
 
 ### Errors
 
@@ -266,10 +267,10 @@ A validation report containing pass/fail status, errors, warnings, and the artif
 ### Example
 
 ```console
-ehp-sn data validate data/interim/openfield/default/v1 --level full
+ehp-sn data validate data/interim/obsfield/default/v1 --level full
 ```
 
-The command reports whether the complete OpenField artifact satisfies its declared contract.
+The command reports whether the complete ObsField artifact satisfies its declared contract.
 
 ### Errors
 
@@ -299,7 +300,7 @@ The command reports artifact identity, schema version, configuration fingerprint
 ### Example
 
 ```console
-ehp-sn data inspect data/interim/openfield/default/v1 --samples 3
+ehp-sn data inspect data/interim/obsfield/default/v1 --samples 3
 ```
 
 The result includes metadata and three bounded sample records.
@@ -315,6 +316,6 @@ The result includes metadata and three bounded sample records.
 
 ## See also
 
-- [Configuration interface](../configuration/_index.md)
-- [Framework semantics](../../framework/_index.md)
-- [Architecture overview](../../architecture/_index.md)
+- [Configuration interface](../configuration/index.md)
+- [Framework semantics](../../framework/index.md)
+- [Architecture overview](../../architecture/index.md)

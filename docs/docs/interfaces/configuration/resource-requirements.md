@@ -163,7 +163,7 @@ At scientific-invocation identity level, a selected scientific resource contribu
 
 - canonical logical reference;
 - immutable version when part of the reference;
-- content digest when the resource contract declares content identity necessary and VERIFIED evidence is available;
+- resource digest when the resource contract declares content identity necessary and VERIFIED evidence is available;
 - requirement identity.
 
 The operation or artifact identity specification determines whether the logical reference alone is sufficient before verification.
@@ -187,7 +187,7 @@ Configuration supplies the following candidate identity components:
 - requirement reference;
 - exact logical resource reference;
 - immutable version when encoded by the reference;
-- verified content digest when required by the resource contract.
+- verified resource digest when required by the resource contract.
 
 The owning operation identity specification and artifact identity specification declare which components contribute to scientific invocation, plan, result, and artifact identity.
 
@@ -197,12 +197,12 @@ If the required artifact or operation identity specification does not exist, ide
 
 ## Implementation dependency
 
-Resource parsing and precedence may be implemented before artifact identity is finalized.
+Resource parsing and precedence may be implemented independently of the specific operation and artifact identity contracts that consume them.
 
-The following behavior is blocked until the artifact and identity specifications exist:
+The following behavior is defined by the owning operation and artifact identity specifications, per [Identity](../../framework/identity.md), [Digests](../../framework/digests.md), and [Data artifacts](../../framework/data-artifacts.md), not by this page:
 
 - deciding whether logical reference alone is identity-complete;
-- requiring or interpreting content digests;
+- requiring or interpreting resource digests;
 - assigning verification evidence;
 - computing identity-sensitive plan fields;
 - determining resource compatibility beyond declared schema acceptance.

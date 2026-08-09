@@ -46,7 +46,7 @@ A resource may contribute:
 
 - logical reference;
 - immutable version;
-- content digest;
+- resource digest;
 - requirement identity.
 
 The exact combination is declared by the owning operation and artifact identity contract.
@@ -118,8 +118,8 @@ This page does not independently redefine that selection.
 
 Source document digests are semantic provenance only. They do not contribute to scientific-invocation identity unless the document itself is a declared scientific input.
 
-## Missing upstream authorities
+## Upstream authorities
 
 This page defines which configuration values are candidates for identity participation.
 
-The canonical serialization, digest algorithms, artifact identity contract, and reference grammar must be supplied by the future framework artifact and identity specifications. Until then, identity participation remains a design contract rather than an executable hashing contract.
+The canonical serialization, digest algorithms, artifact identity contract, and reference grammar are defined by [Digests](../../framework/digests.md), [Identity](../../framework/identity.md), and [References](../../framework/references.md). This page does not redefine them.
