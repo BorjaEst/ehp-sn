@@ -533,7 +533,7 @@ or generator-internal labels as model inputs or topology features.
 
 ## Open issues
 
-- [`raster-topology/v1`](raster-topology-v1.md) now exists but remains
+- [`raster-topology/v1`](../../framework/contracts/topology/raster-topology-v1.md) now exists but remains
   `draft`; DungeonGen cannot move from `draft` to `specified` until that
   shared schema does.
 - Stable reusable room, corridor, and door region semantics remain unverified;
@@ -544,7 +544,7 @@ or generator-internal labels as model inputs or topology features.
 ## Related specifications
 
 - [`Substrates`](./index.md)
-- [`raster-topology/v1`](raster-topology-v1.md)
+- [`raster-topology/v1`](../../framework/contracts/topology/raster-topology-v1.md)
 - [`Data artifacts`](../../framework/data-artifacts.md)
 - [`Manifests`](../../framework/manifests.md)
 - [`Identity`](../../framework/identity.md)

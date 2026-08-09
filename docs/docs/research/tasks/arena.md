@@ -93,14 +93,14 @@ Arena does not define:
 
 ### 2.3 Authoritative dependencies
 
-| Concern | Authoritative specification |
-| --- | --- |
-| Generic generated-data contract | `data-artifacts` |
-| Generic task-corpus contract | `corpora` |
-| Traversability and movement | `raster-topology/v1` |
-| Persistent categorical observations | `obsfield/v1` / `observation-field/v1` |
-| Task semantics | this document |
-| Task-to-model encoding | applicable Arena binding |
+| Concern                             | Authoritative specification |
+| ----------------------------------- | --------------------------- |
+| Generic generated-data contract     | `data-artifacts`            |
+| Generic task-corpus contract        | `corpora`                   |
+| Traversability and movement         | `raster-topology/v1`        |
+| Persistent categorical observations | `categorical-field/v1`      |
+| Task semantics                      | this document               |
+| Task-to-model encoding              | applicable Arena binding    |
 
 ## 3. Conceptual model
 
@@ -257,10 +257,10 @@ Environment entries are not model-visible merely because they are corpus-local.
 
 ### 6.1 Parent roles
 
-| Role | Required | Required contract | Task use |
-| --- | ---: | --- | --- |
-| `topology` | yes | `raster-topology/v1` | movement structure and physical state identity |
-| `observation_field` | yes | `obsfield/v1` compatible ambient domain | persistent observation at each ambient position |
+| Role                | Required | Required contract      | Task use                                        |
+| ------------------- | -------: | ---------------------- | ----------------------------------------------- |
+| `topology`          |      yes | `raster-topology/v1`   | movement structure and physical state identity  |
+| `observation_field` |      yes | `categorical-field/v1` | persistent observation at each ambient position |
 
 Arena depends on topology capabilities rather than a concrete topology family. DungeonGen and Maze-ND are both admissible when their records satisfy the required capabilities.
 
@@ -394,15 +394,15 @@ Observation prediction is evaluated against $o_t$. The task does not prescribe t
 
 One logical episode record contains or resolves at least:
 
-| Field | Required | Scope / semantic shape | Visibility | Role | Meaning |
-| --- | ---: | --- | --- | --- | --- |
-| `record_id` | yes | scalar | metadata | identifier | episode identity |
-| `environment_id` | yes | scalar | metadata | identifier | corpus-local composed environment |
-| `observation` | yes | `(T,)` | public/target by temporal role | sequence | observation encountered at each visited state |
-| `action` | yes | `(T-1,)` | public | sequence | action between consecutive visited states |
-| `episode_start` | yes | scalar or derivable | public control | boundary | episode reset condition |
-| `is_revisit` | yes | `(T,)` | privileged | metric truth | physical-state revisit indicator |
-| `trajectory_position` | yes | `(T,)` logical position IDs | privileged | validation | physical trajectory in canonical ambient-position identity |
+| Field                 | Required | Scope / semantic shape      | Visibility                     | Role         | Meaning                                                    |
+| --------------------- | -------: | --------------------------- | ------------------------------ | ------------ | ---------------------------------------------------------- |
+| `record_id`           |      yes | scalar                      | metadata                       | identifier   | episode identity                                           |
+| `environment_id`      |      yes | scalar                      | metadata                       | identifier   | corpus-local composed environment                          |
+| `observation`         |      yes | `(T,)`                      | public/target by temporal role | sequence     | observation encountered at each visited state              |
+| `action`              |      yes | `(T-1,)`                    | public                         | sequence     | action between consecutive visited states                  |
+| `episode_start`       |      yes | scalar or derivable         | public control                 | boundary     | episode reset condition                                    |
+| `is_revisit`          |      yes | `(T,)`                      | privileged                     | metric truth | physical-state revisit indicator                           |
+| `trajectory_position` |      yes | `(T,)` logical position IDs | privileged                     | validation   | physical trajectory in canonical ambient-position identity |
 
 A physical serialization may use padded fixed-width arrays, but padding is not part of the logical episode semantics.
 

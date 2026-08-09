@@ -64,15 +64,15 @@ Routebind does not define:
 
 ### 2.3 Authoritative dependencies
 
-| Concern                         | Authoritative specification        |
-| ------------------------------- | ---------------------------------- |
-| Generic generated-data contract | `data-artifacts`                   |
-| Generic task-corpus contract    | `corpora`                          |
-| Spatial topology                | `raster-topology/v1`               |
-| Observation field               | `obsfield/v1`                      |
-| Directed semantic graph         | `dagflow/v1` / `directed-graph/v1` |
-| Task semantics                  | this document                      |
-| Model encoding                  | applicable Routebind binding       |
+| Concern                         | Authoritative specification  |
+| ------------------------------- | ---------------------------- |
+| Generic generated-data contract | `data-artifacts`             |
+| Generic task-corpus contract    | `corpora`                    |
+| Spatial topology                | `raster-topology/v1`         |
+| Observation field               | `categorical-field/v1`       |
+| Directed semantic graph         | `simple-graph/v1`            |
+| Task semantics                  | this document                |
+| Model encoding                  | applicable Routebind binding |
 
 ## 3. Conceptual model
 
@@ -266,11 +266,11 @@ These resources are required for self-contained validation but remain privileged
 
 ### 6.1 Parent roles
 
-| Role                    |                   Required | Required contract    | Task use                                                    |
-| ----------------------- | -------------------------: | -------------------- | ----------------------------------------------------------- |
-| `topology`              |                        yes | `raster-topology/v1` | physical traversability and movement                        |
-| `observation_field`     |                        yes | `obsfield/v1`        | visible observation placement                               |
-| `semantic_graph_source` | yes for canonical v1 build | `dagflow/v1`         | source graph structure for corpus-level hidden semantic law |
+| Role                    |                   Required | Required contract      | Task use                                                    |
+| ----------------------- | -------------------------: | ---------------------- | ----------------------------------------------------------- |
+| `topology`              |                        yes | `raster-topology/v1`   | physical traversability and movement                        |
+| `observation_field`     |                        yes | `categorical-field/v1` | visible observation placement                               |
+| `semantic_graph_source` | yes for canonical v1 build | `simple-graph/v1`      | source graph structure for corpus-level hidden semantic law |
 
 ### 6.2 Required topology capabilities
 

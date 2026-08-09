@@ -21,6 +21,8 @@ task
 
 Model, binding, and experiment-family specifications will be added under this section as they are written.
 
+Substrate and task specifications conform to and require producer-agnostic, consumer-agnostic shared data schemas owned by the framework; see [Framework contracts](../framework/contracts/index.md).
+
 ## Related specifications
 
 - [Framework](../framework/index.md)

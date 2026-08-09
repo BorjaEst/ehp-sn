@@ -27,16 +27,17 @@ component and resource references
 
 ## Documents
 
-| Document                          | Owns                                                                     |
-| --------------------------------- | ------------------------------------------------------------------------ |
-| [References](references.md)       | Canonical reference grammar, version semantics, resource reference kinds |
-| [Compatibility](compatibility.md) | Component compatibility declarations, support levels, maturity           |
-| [Identity](identity.md)           | Identity categories, scientific vs operational identity, identity inputs |
-| [Digests](digests.md)             | Content digest semantics, algorithms, integrity verification             |
-| [Artifacts](artifacts.md)         | Artifact schema, artifact kinds, commitment, immutability                |
-| [Manifests](manifests.md)         | Manifest structure, declared resources, manifest authority               |
-| [Checkpoints](checkpoints.md)     | Checkpoint identity, capability levels, resume and initialization        |
-| [Provenance](provenance.md)       | Portable vs diagnostic provenance, provenance schema                     |
+| Document                          | Owns                                                                         |
+| --------------------------------- | ---------------------------------------------------------------------------- |
+| [References](references.md)       | Canonical reference grammar, version semantics, resource reference kinds     |
+| [Compatibility](compatibility.md) | Component compatibility declarations, support levels, maturity               |
+| [Contracts](contracts/index.md)   | Standard data-schema contracts and the producer/consumer compatibility model |
+| [Identity](identity.md)           | Identity categories, scientific vs operational identity, identity inputs     |
+| [Digests](digests.md)             | Content digest semantics, algorithms, integrity verification                 |
+| [Artifacts](artifacts.md)         | Artifact schema, artifact kinds, commitment, immutability                    |
+| [Manifests](manifests.md)         | Manifest structure, declared resources, manifest authority                   |
+| [Checkpoints](checkpoints.md)     | Checkpoint identity, capability levels, resume and initialization            |
+| [Provenance](provenance.md)       | Portable vs diagnostic provenance, provenance schema                         |
 
 ## Terminology
 

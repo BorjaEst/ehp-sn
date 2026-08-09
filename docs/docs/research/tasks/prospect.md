@@ -91,8 +91,8 @@ Prospect does not define:
 | Generic generated-data contract | `data-artifacts`                                |
 | Generic task-corpus contract    | `corpora`                                       |
 | Spatial topology                | `raster-topology/v1`                            |
-| Observation field               | `obsfield/v1`                                   |
-| Semantic graph source           | `dagflow/v1`                                    |
+| Observation field               | `categorical-field/v1`                          |
+| Semantic graph source           | `simple-graph/v1`                               |
 | Shared route semantics          | `routebind/v1` oracle semantics                 |
 | Task semantics                  | this document                                   |
 | Memory-native encoding          | applicable Prospect binding/model specification |
@@ -251,8 +251,8 @@ Records refer to these through corpus-local identifiers.
 | Role                     | Required | Required contract                                  | Task use                                                 |
 | ------------------------ | -------: | -------------------------------------------------- | -------------------------------------------------------- |
 | `topology`               |      yes | `raster-topology/v1`                               | oracle physical structure and memory compatibility       |
-| `observation_field`      |      yes | `obsfield/v1`                                      | oracle observation placement and memory compatibility    |
-| `semantic_graph_source`  |      yes | `dagflow/v1`                                       | source of hidden semantic law                            |
+| `observation_field`      |      yes | `categorical-field/v1`                             | oracle observation placement and memory compatibility    |
+| `semantic_graph_source`  |      yes | `simple-graph/v1`                                  | source of hidden semantic law                            |
 | `acquired_memory_source` |      yes | producer/binding-defined qualified memory resource | source bytes/state copied into corpus-local memory table |
 
 ### 6.2 Spatial compatibility

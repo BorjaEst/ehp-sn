@@ -196,11 +196,11 @@ semantics.
 ## Registered and proposed specifications
 
 | Family       | Specification                       | Classification                                                         | Component maturity |
-| ------------ | ----------------------------------- | ---------------------------------------------------------------------- | ------------------- |
-| `obsfield`  | [`obsfield/v1`](obsfield-v1.md)   | Procedural spatial substrate                                           | Planned             |
-| `dungeongen` | [`dungeongen/v1`](dungeongen-v1.md) | Procedural spatial substrate                                           | Planned             |
-| `dagflow`    | [`dagflow/v1`](dagflow-v1.md)       | Procedural directed-graph substrate                                    | Specified           |
-| `maze-nd`    | [`maze-nd/v1`](maze-nd-v1.md)       | Imported source-instance artifact; substrate classification unresolved | Planned             |
+| ------------ | ----------------------------------- | ---------------------------------------------------------------------- | ------------------ |
+| `obsfield`   | [`obsfield/v1`](obsfield-v1.md)     | Procedural spatial substrate                                           | Planned            |
+| `dungeongen` | [`dungeongen/v1`](dungeongen-v1.md) | Procedural spatial substrate                                           | Planned            |
+| `dagflow`    | [`dagflow/v1`](dagflow-v1.md)       | Procedural directed-graph substrate                                    | Specified          |
+| `maze-nd`    | [`maze-nd/v1`](maze-nd-v1.md)       | Imported source-instance artifact; substrate classification unresolved | Planned            |
 
 `Component maturity` reflects the component as a whole — specification, implementation, and validation evidence together — following the `planned → specified → implemented → validated → reference` progression. It is derived from each specification's own `document_status` (linked above) plus implementation/validation state, not restated independently.
 
@@ -208,15 +208,9 @@ The table registers specification work, not concrete artifact releases.
 
 ## Shared logical record schemas
 
-A logical record schema may be shared by more than one family. A shared schema is producer-agnostic: it defines the object, its authoritative representation, and a capability vocabulary for compatibility, but not which family produces or consumes it (see the shared schema's own "Scope and boundary" section).
-
-| Schema | Specification | Producing families |
-| --- | --- | --- |
-| `raster-topology/v1` | [`raster-topology/v1`](raster-topology-v1.md) | `dungeongen`, `maze-nd` |
-| `directed-graph/v1` | defined within [`dagflow/v1`](dagflow-v1.md) § "Canonical identity and conformance" | `dagflow` (sole producer; not yet split into an independent document) |
-| `observation-field/v1` | defined within [`obsfield/v1`](obsfield-v1.md) § "Canonical identity and conformance" | `obsfield` (sole producer; not yet split into an independent document) |
-
-A schema with exactly one current producer may have its schema defined inline within that producer's specification. It becomes its own document once a second producer needs to conform to it, as `raster-topology/v1` did.
+A logical record schema may be shared by more than one family.
+Shared schemas are producer-agnostic: they define the object, its authoritative representation, and a capability vocabulary for compatibility, but not which family produces or consumes them.
+They are `ehp_sn`-owned, registered in the framework's [`contracts/`](../../framework/contracts/index.md) section, not defined here.
 
 ## Related specifications
 
@@ -231,6 +225,7 @@ Framework contracts:
 
 Other ownership areas:
 
+- [`Contracts`](../../framework/contracts/index.md)
 - [`Corpora`](../../framework/corpora.md)
 - [`Data CLI`](../../interfaces/cli/data.md)
 - [`Data layout`](../../development/data-layout.md)

@@ -96,7 +96,7 @@ A committed task corpus must be self-contained for its declared normal consumers
 
 ### Raster topology
 
-DungeonGen and Maze-ND are producers of the shared [`raster-topology/v1`](../substrates/raster-topology-v1.md) contract.
+DungeonGen and Maze-ND are producers of the shared [`raster-topology/v1`](../../framework/contracts/topology/raster-topology-v1.md) contract.
 
 Tasks should depend on required topology capabilities rather than on concrete family identity unless a scientific experiment intentionally selects a family.
 
@@ -209,4 +209,5 @@ The four tasks in this section remain `draft` until their shared dependencies an
 - [`Maze-ND v1`](../substrates/maze-nd-v1.md)
 - [`ObsField v1`](../substrates/obsfield-v1.md)
 - [`Dagflow v1`](../substrates/dagflow-v1.md)
+- [`Contracts`](../../framework/contracts/index.md)
 - framework task/model/binding contracts

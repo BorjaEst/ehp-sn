@@ -583,7 +583,7 @@ problem occurrence through lineage.
 
 ## Open issues
 
-- [`raster-topology/v1`](raster-topology-v1.md) now exists but remains
+- [`raster-topology/v1`](../../framework/contracts/topology/raster-topology-v1.md) now exists but remains
   `draft`; Maze-ND cannot move from `draft` to `specified` until that shared
   schema does.
 - The authoritative source revision, fingerprint, and extraction profile must
@@ -596,7 +596,7 @@ problem occurrence through lineage.
 ## Related specifications
 
 - [`Substrates`](./index.md)
-- [`raster-topology/v1`](raster-topology-v1.md)
+- [`raster-topology/v1`](../../framework/contracts/topology/raster-topology-v1.md)
 - [`Data artifacts`](../../framework/data-artifacts.md)
 - [`Manifests`](../../framework/manifests.md)
 - [`Identity`](../../framework/identity.md)
