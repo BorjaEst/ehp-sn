@@ -9,9 +9,12 @@ api_stability: provisional
 
 This section defines the scientific task specifications used by EHP-SN research experiments.
 
-A task defines a scientific problem. It owns public information, targets, privileged or oracle-only truth, task-case or episode semantics, task-specific validity, and task-level scoring. It does not own model architecture, task-to-model encoding, generic data-artifact mechanics, or substrate generation.
+A task defines a scientific problem.
+It owns public information, targets, privileged or oracle-only truth, task-case or episode semantics, task-specific validity, and task-level scoring.
+It does not own model architecture, task-to-model encoding, generic data-artifact mechanics, or substrate generation.
 
-The framework-level task/model/binding ownership boundary remains authoritative. Task corpora additionally conform to the generic generated-data and corpus contracts.
+The framework-level task/model/binding ownership boundary remains authoritative.
+Task corpora additionally conform to the generic generated-data and corpus contracts.
 
 ## Task-document contract
 
@@ -24,7 +27,9 @@ Every normative task specification should answer six questions unambiguously:
 5. What is the canonical truth against which predictions are judged?
 6. What scientific claim can the resulting metrics support?
 
-"One logical task record" is documentation vocabulary describing a task's primary independently enumerable case, episode, or query unit — for example, Arena's replay episode, MazeHard's start–goal problem, or Routebind's start–semantic-goal query. Every task specification must define that unit locally and unambiguously. The phrase does not impose a repository-wide cardinality constraint: it does not require that all task-owned information be stored in one physical record, and it does not forbid corpus-level shared context, auxiliary tables, or other independently addressed resources, which Routebind and Prospect both use for their corpus-level semantic-law and memory resources.
+"One logical task record" is documentation vocabulary describing a task's primary independently enumerable case, episode, or query unit — for example, Arena's replay episode, MazeHard's start–goal problem, or Routebind's start–semantic-goal query.
+Every task specification must define that unit locally and unambiguously.
+The phrase does not impose a repository-wide cardinality constraint: it does not require that all task-owned information be stored in one physical record, and it does not forbid corpus-level shared context, auxiliary tables, or other independently addressed resources, which Routebind and Prospect both use for their corpus-level semantic-law and memory resources.
 
 Task specifications should reference, not restate, generic framework mechanics for manifests, release numbering, digests, fingerprints, staging, publication, corpus indexing, and generic lineage semantics.
 
@@ -50,15 +55,19 @@ Task documents use the following common structure:
 14. Binding boundary
 15. Open issues
 
-A subsection that does not apply may be omitted or replaced by a precise non-applicability statement. The structure is intended to expose task semantics, not to force boilerplate.
+A subsection that does not apply may be omitted or replaced by a precise non-applicability statement.
+The structure is intended to expose task semantics, not to force boilerplate.
 
-Normative clauses use **must** and **must not** for requirements and **may** for permitted behavior. **Should** is reserved for explicitly non-mandatory recommendations and should be avoided where a requirement or permission can be stated precisely.
+Normative clauses use **must** and **must not** for requirements and **may** for permitted behavior.
+**Should** is reserved for explicitly non-mandatory recommendations and should be avoided where a requirement or permission can be stated precisely.
 
 ## Mathematical notation discipline
 
-Each task specification is mathematically self-contained and defines every symbol it uses. Task documents do not depend on a separate shared mathematical-background page.
+Each task specification is mathematically self-contained and defines every symbol it uses.
+Task documents do not depend on a separate shared mathematical-background page.
 
-When choosing symbols and formal task semantics, task specifications follow the conventions established by the project formal research definition (`main.tex` in the research manuscript source). Each task nevertheless defines the variables it uses locally so that the task file remains independently readable:
+When choosing symbols and formal task semantics, task specifications follow the conventions established by the project formal research definition (`main.tex` in the research manuscript source).
+Each task nevertheless defines the variables it uses locally so that the task file remains independently readable:
 
 - for paired EC–HPC representations, a primed symbol such as $g'$ or $x'$ denotes a decoded/environment-level representation, while the corresponding unprimed symbol such as $g$ or $x$ denotes a latent/model-internal representation;
 - directly observed categorical identities such as $o$ and $o_{\mathrm{goal}}$ do not use the primed/unprimed distinction;
@@ -88,9 +97,11 @@ self-contained task corpora
     data/processed/<task>/<corpus>/v<N>/
 ```
 
-A task builder may compose several independent substrates. The resulting composition is task-corpus build context and does not become a new substrate merely because several tasks use similar composition logic.
+A task builder may compose several independent substrates.
+The resulting composition is task-corpus build context and does not become a new substrate merely because several tasks use similar composition logic.
 
-A committed task corpus must be self-contained for its declared normal consumers. Parent artifacts remain provenance and build inputs rather than runtime dependencies.
+A committed task corpus must be self-contained for its declared normal consumers.
+Parent artifacts remain provenance and build inputs rather than runtime dependencies.
 
 ## Substrate roles
 
@@ -100,13 +111,15 @@ DungeonGen and Maze-ND are producers of the shared [`raster-topology/v1`](../../
 
 Tasks should depend on required topology capabilities rather than on concrete family identity unless a scientific experiment intentionally selects a family.
 
-Topology owns traversability and movement. It does not own observation assignment, task starts, task goals, routes, solutions, or task-level `STAY`.
+Topology owns traversability and movement.
+It does not own observation assignment, task starts, task goals, routes, solutions, or task-level `STAY`.
 
 ### Observation field
 
 ObsField independently defines a total categorical observation assignment over one ambient spatial domain.
 
-Topology and ObsField are peer substrate inputs. A task builder validates ambient-domain compatibility and restricts the observation field to traversable topology positions.
+Topology and ObsField are peer substrate inputs.
+A task builder validates ambient-domain compatibility and restricts the observation field to traversable topology positions.
 
 Observation vocabulary identity must not be inferred from cardinality or integer range alone.
 
@@ -114,22 +127,25 @@ Observation vocabulary identity must not be inferred from cardinality or integer
 
 Dagflow defines reusable directed graph structure over graph-local categorical node IDs.
 
-Dagflow node IDs are not observation IDs. Any task that gives graph nodes observation semantics must create an explicit task-owned graph-node-to-observation binding.
+Dagflow node IDs are not observation IDs.
+Any task that gives graph nodes observation semantics must create an explicit task-owned graph-node-to-observation binding.
 
 ## Current task catalogue
 
-| Reference | Problem | Primary parent roles | Information regime | Component maturity |
-| --- | --- | --- | --- | --- |
-| [`arena/v1`](arena.md) | sequential spatial experience and observation-prediction supervision | raster topology + ObsField | replay exposes observations/actions; topology remains privileged | Planned |
-| [`maze-hard/v1`](mazehard.md) | fully observed shortest-route reasoning | raster topology | full maze topology/start/goal visible | Planned |
-| [`routebind/v1`](routebind.md) | visible spatial + hidden semantic route binding | raster topology + ObsField + Dagflow source | topology/observations visible; semantic law hidden | Planned |
-| [`prospect/v1`](prospect.md) | memory-conditioned semantic-spatial routing | raster topology + ObsField + Dagflow source + acquired memory source | decoded topology, observation placement, and physical goal locations withheld | Planned |
+| Reference                      | Problem                                                              | Primary parent roles                                                 | Information regime                                                            | Component maturity |
+| ------------------------------ | -------------------------------------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------ |
+| [`arena/v1`](arena.md)         | sequential spatial experience and observation-prediction supervision | raster topology + ObsField                                           | replay exposes observations/actions; topology remains privileged              | Planned            |
+| [`maze-hard/v1`](mazehard.md)  | fully observed shortest-route reasoning                              | raster topology                                                      | full maze topology/start/goal visible                                         | Planned            |
+| [`routebind/v1`](routebind.md) | visible spatial + hidden semantic route binding                      | raster topology + ObsField + Dagflow source                          | topology/observations visible; semantic law hidden                            | Planned            |
+| [`prospect/v1`](prospect.md)   | memory-conditioned semantic-spatial routing                          | raster topology + ObsField + Dagflow source + acquired memory source | decoded topology, observation placement, and physical goal locations withheld | Planned            |
 
-`Component maturity` reflects the component as a whole (specification, implementation, and validation evidence together), following `planned → specified → implemented → validated → reference`. All four task specifications are currently `document_status: draft`, so their component maturity is `planned`.
+`Component maturity` reflects the component as a whole (specification, implementation, and validation evidence together), following `planned → specified → implemented → validated → reference`.
+All four task specifications are currently `document_status: draft`, so their component maturity is `planned`.
 
 ## Scientific relationship among the four tasks
 
-The four tasks are intentionally not interchangeable. They isolate different capabilities:
+The four tasks are intentionally not interchangeable.
+They isolate different capabilities:
 
 ```text
 Arena
@@ -155,7 +171,8 @@ Routebind and Prospect should use matched oracle semantics so that their princip
 
 ## Task and binding boundary
 
-A task defines semantic inputs and outputs. A binding maps those semantics to one model family.
+A task defines semantic inputs and outputs.
+A binding maps those semantics to one model family.
 
 Bindings may own:
 
@@ -176,11 +193,13 @@ Bindings must not change:
 - split semantics;
 - metric meaning.
 
-Consequently, particular token IDs, ignore-label integers, model-native memory layouts, and concrete loss weighting belong to bindings or named reproduction profiles unless a task specification explicitly makes them part of the scientific problem. A fixed spatial size may belong to a named benchmark reproduction profile even when the task family itself admits other compatible extents.
+Consequently, particular token IDs, ignore-label integers, model-native memory layouts, and concrete loss weighting belong to bindings or named reproduction profiles unless a task specification explicitly makes them part of the scientific problem.
+A fixed spatial size may belong to a named benchmark reproduction profile even when the task family itself admits other compatible extents.
 
 ## Task and experiment boundary
 
-Task specifications define admissible scientific task semantics. Concrete experiment or corpus profiles may choose:
+Task specifications define admissible scientific task semantics.
+Concrete experiment or corpus profiles may choose:
 
 - record counts;
 - difficulty distributions;
@@ -197,7 +216,8 @@ A choice belongs in the task specification only when changing it changes what on
 
 A task should remain `draft` while any blocking issue remains unresolved in its semantic contract, parent compatibility, information regime, oracle truth, or self-contained corpus requirements.
 
-`Specified` should mean that the task semantics and boundaries are sufficiently complete to implement independently and test for conformance. It does not imply that an implementation or scientific result already exists.
+`Specified` should mean that the task semantics and boundaries are sufficiently complete to implement independently and test for conformance.
+It does not imply that an implementation or scientific result already exists.
 
 The four tasks in this section remain `draft` until their shared dependencies and named initial corpus profiles are finalized.
 

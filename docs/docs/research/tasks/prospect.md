@@ -9,13 +9,16 @@ api_stability: provisional
 
 ## Normative summary
 
-`prospect/v1` defines a memory-conditioned spatial–semantic prospective routing task. The current query input withholds visible topology and complete observation placement and instead supplies a previously acquired environment-specific memory representation together with a start cue and semantic goal observation identity.
+`prospect/v1` defines a memory-conditioned spatial–semantic prospective routing task.
+The current query input withholds visible topology and complete observation placement and instead supplies a previously acquired environment-specific memory representation together with a start cue and semantic goal observation identity.
 
 One corpus record represents one start–goal semantic routing query over one environment for which a compatible acquired-memory entry has already been produced.
 
-Prospect uses the same physical/semantic oracle semantics as Routebind, but changes the information regime: spatial traversability and non-goal observation placement are not directly exposed to the model. Required acquired-memory content is materialized as corpus-local shared task context so the committed corpus remains self-contained.
+Prospect uses the same physical/semantic oracle semantics as Routebind, but changes the information regime: spatial traversability and non-goal observation placement are not directly exposed to the model.
+Required acquired-memory content is materialized as corpus-local shared task context so the committed corpus remains self-contained.
 
-Prospect owns the memory-conditioned task information boundary, memory/environment compatibility relation, query generation, shared Routebind-compatible oracle truth, leakage constraints, and Prospect metrics. It does not own memory-model architecture, acquisition-model internals, topology or ObsField generation, or model-native memory encoding.
+Prospect owns the memory-conditioned task information boundary, memory/environment compatibility relation, query generation, shared Routebind-compatible oracle truth, leakage constraints, and Prospect metrics.
+It does not own memory-model architecture, acquisition-model internals, topology or ObsField generation, or model-native memory encoding.
 
 A conforming Prospect corpus also satisfies the generic `DataArtifact` and `TaskCorpus` contracts.
 
@@ -92,7 +95,7 @@ Prospect does not define:
 | Generic task-corpus contract    | `corpora`                                       |
 | Spatial topology                | `raster-topology/v1`                            |
 | Observation field               | `categorical-field/v1`                          |
-| Semantic graph source           | `simple-graph/v1`                               |
+| Semantic graph source           | `simple-digraph/v1`                             |
 | Shared route semantics          | `routebind/v1` oracle semantics                 |
 | Task semantics                  | this document                                   |
 | Memory-native encoding          | applicable Prospect binding/model specification |
@@ -140,23 +143,30 @@ $$
 
 which is privileged environment truth and is not a Prospect model input.
 
-A binding converts the benchmark-level query and memory role into model-facing representations. Prospect constrains the information available to that conversion but does not prescribe the model-native encodings.
+A binding converts the benchmark-level query and memory role into model-facing representations.
+Prospect constrains the information available to that conversion but does not prescribe the model-native encodings.
 
 ### 3.2 Composed environment
 
-A Prospect environment is produced by composing one compatible topology and ObsField. The composition defines $G'_{\mathrm{free}}$, $E'_{\mathrm{spatial}}$, and $\phi$ for generation, oracle computation, and validation. Most of this decoded structure is withheld from the model-facing query.
+A Prospect environment is produced by composing one compatible topology and ObsField.
+The composition defines $G'_{\mathrm{free}}$, $E'_{\mathrm{spatial}}$, and $\phi$ for generation, oracle computation, and validation.
+Most of this decoded structure is withheld from the model-facing query.
 
 ### 3.3 Acquired environment memory
 
-An acquired-memory entry is an environment-specific state produced before Prospect query generation by a declared acquisition process. Prospect treats it abstractly as the semantic input role `acquired_environment_memory`; the task does not standardize the internal tensors, slots, latent variables, or recurrent objects constituting the memory.
+An acquired-memory entry is an environment-specific state produced before Prospect query generation by a declared acquisition process.
+Prospect treats it abstractly as the semantic input role `acquired_environment_memory`; the task does not standardize the internal tensors, slots, latent variables, or recurrent objects constituting the memory.
 
 ### 3.4 Corpus-local memory table
 
-Required acquired-memory entries are copied or deterministically materialized into a corpus-local shared memory table during Prospect corpus construction. Prospect records reference a local `memory_entry_id`. Normal corpus use must not require an external memory-bank lookup.
+Required acquired-memory entries are copied or deterministically materialized into a corpus-local shared memory table during Prospect corpus construction.
+Prospect records reference a local `memory_entry_id`.
+Normal corpus use must not require an external memory-bank lookup.
 
 ### 3.5 Semantic law
 
-Prospect uses the same hidden observation-level semantic graph $D_{\mathrm{obs}}=(Obs,E_{\mathrm{obs}})$ and graph-node-to-observation binding semantics as Routebind. The semantic law is corpus-level privileged task context and is not assumed to be encoded in the acquired spatial memory.
+Prospect uses the same hidden observation-level semantic graph $D_{\mathrm{obs}}=(Obs,E_{\mathrm{obs}})$ and graph-node-to-observation binding semantics as Routebind.
+The semantic law is corpus-level privileged task context and is not assumed to be encoded in the acquired spatial memory.
 
 ## 4. Information regime
 
@@ -169,7 +179,8 @@ At the benchmark/task level, Prospect provides:
 - semantic goal observation identity $o_{\mathrm{goal}}$ as the source of the model's sensory goal cue;
 - the technical output-slot validity mask required to interpret the fixed spatial output domain, when applicable.
 
-The decoded task variables are not necessarily supplied directly to the model. A binding must derive the model-facing start and sensory goal representations without exposing additional privileged environment structure.
+The decoded task variables are not necessarily supplied directly to the model.
+A binding must derive the model-facing start and sensory goal representations without exposing additional privileged environment structure.
 
 ### 4.2 Target information
 
@@ -199,7 +210,9 @@ The model is not directly given:
 
 ### 4.5 Goal-cue semantics
 
-Prospect v1 exposes the semantic goal identity $o_{\mathrm{goal}}$, or a binding-defined sensory encoding derived from it. It does not expose $C_{\mathrm{goal}}$, `goal_flag`, or any equivalent physical goal-location support. The evaluated system must recover any goal-location binding required for routing from the permitted acquired-memory and query representations.
+Prospect v1 exposes the semantic goal identity $o_{\mathrm{goal}}$, or a binding-defined sensory encoding derived from it.
+It does not expose $C_{\mathrm{goal}}$, `goal_flag`, or any equivalent physical goal-location support.
+The evaluated system must recover any goal-location binding required for routing from the permitted acquired-memory and query representations.
 
 ### 4.6 Leakage constraints
 
@@ -252,7 +265,7 @@ Records refer to these through corpus-local identifiers.
 | ------------------------ | -------: | -------------------------------------------------- | -------------------------------------------------------- |
 | `topology`               |      yes | `raster-topology/v1`                               | oracle physical structure and memory compatibility       |
 | `observation_field`      |      yes | `categorical-field/v1`                             | oracle observation placement and memory compatibility    |
-| `semantic_graph_source`  |      yes | `simple-graph/v1`                                  | source of hidden semantic law                            |
+| `semantic_graph_source`  |      yes | `simple-digraph/v1`                                | source of hidden semantic law                            |
 | `acquired_memory_source` |      yes | producer/binding-defined qualified memory resource | source bytes/state copied into corpus-local memory table |
 
 ### 6.2 Spatial compatibility
@@ -261,7 +274,8 @@ Topology and ObsField compatibility is identical to Routebind: their complete am
 
 ### 6.3 Semantic binding
 
-Graph-node-to-observation identity is explicit and task-owned exactly as in Routebind. The selected semantic graph node domain is bound bijectively to the complete task observation vocabulary:
+Graph-node-to-observation identity is explicit and task-owned exactly as in Routebind.
+The selected semantic graph node domain is bound bijectively to the complete task observation vocabulary:
 
 $$
 \beta:N_{\mathrm{sem}}\xrightarrow{\sim} Obs,
@@ -341,7 +355,8 @@ $$
 (g',\tilde g')\in E'_{\mathrm{spatial}},
 $$
 
-and has unit cost. Semantic acceptance satisfies
+and has unit cost.
+Semantic acceptance satisfies
 
 $$
 \left((g',o),(g',\tilde o)\right)\in R_{\mathrm{sem}}
@@ -365,7 +380,8 @@ whose consecutive states follow $R_{\mathrm{phys}}\cup R_{\mathrm{sem}}$ and whi
 
 ### 7.4 Query novelty
 
-A corpus profile must define any claimed novelty relative to acquisition experience, for example whether the exact start–goal pair or route was absent from acquisition. Novelty is not inferred from different record identifiers.
+A corpus profile must define any claimed novelty relative to acquisition experience, for example whether the exact start–goal pair or route was absent from acquisition.
+Novelty is not inferred from different record identifiers.
 
 ### 7.5 Acquisition diagnostics
 
@@ -373,11 +389,13 @@ Acquisition-coverage diagnostics may be retained as privileged metadata when req
 
 ## 8. Oracle and target semantics
 
-Prospect repeats the route mathematics here so that the specification remains independently readable. Matched Routebind and Prospect cases must nevertheless use identical oracle semantics.
+Prospect repeats the route mathematics here so that the specification remains independently readable.
+Matched Routebind and Prospect cases must nevertheless use identical oracle semantics.
 
 ### 8.1 Canonical route set and cost
 
-Let $\mathcal V$ be the complete finite set of valid simple accepting routes for query $q'$. With unit-cost physical transitions and zero-cost semantic acceptances,
+Let $\mathcal V$ be the complete finite set of valid simple accepting routes for query $q'$.
+With unit-cost physical transitions and zero-cost semantic acceptances,
 
 $$
 C(\Pi)=\left|I_{\mathrm{move}}(\Pi)\right|,
@@ -414,7 +432,8 @@ $$
 
 ### 8.4 Canonical trajectory and waypoint targets
 
-For $g'\in R(\Pi)$, let $d_R(g',\Pi)$ count physical transitions completed before the first occurrence of $g'$. For $g'\in W(\Pi)$, let $d_W(g',\Pi)$ count semantic acceptances completed up to and including the first acceptance at $g'$.
+For $g'\in R(\Pi)$, let $d_R(g',\Pi)$ count physical transitions completed before the first occurrence of $g'$.
+For $g'\in W(\Pi)$, let $d_W(g',\Pi)$ count semantic acceptances completed up to and including the first acceptance at $g'$.
 
 For $\gamma_{\mathrm{space}},\gamma_{\mathrm{semantic}}\in(0,1]$,
 
@@ -450,17 +469,21 @@ f_{\mathrm{wp}}^*(g')
 \right).
 $$
 
-The corpus channels `target_trajectory` and `target_waypoint` materialize these fields. Model predictions are denoted $\hat f_{\mathrm{traj}}$ and $\hat f_{\mathrm{wp}}$.
+The corpus channels `target_trajectory` and `target_waypoint` materialize these fields.
+Model predictions are denoted $\hat f_{\mathrm{traj}}$ and $\hat f_{\mathrm{wp}}$.
 
-A deterministic enumeration limit may truncate $\mathcal V$ only under the same declared semantics used by the matched Routebind control. When truncation occurs, the enumeration order, retained-subset rule, limit, and truncation status are identity-bearing target-generation semantics.
+A deterministic enumeration limit may truncate $\mathcal V$ only under the same declared semantics used by the matched Routebind control.
+When truncation occurs, the enumeration order, retained-subset rule, limit, and truncation status are identity-bearing target-generation semantics.
 
 ### 8.5 Ground-truth independence from memory quality
 
-Oracle routes and target fields are computed from decoded topology, $\phi$, $D_{\mathrm{obs}}$, and the decoded query $q'$, never from the acquired-memory payload. A degraded, ablated, or incorrect memory state must not alter ground truth.
+Oracle routes and target fields are computed from decoded topology, $\phi$, $D_{\mathrm{obs}}$, and the decoded query $q'$, never from the acquired-memory payload.
+A degraded, ablated, or incorrect memory state must not alter ground truth.
 
 ### 8.6 Routebind equivalence
 
-For matched cases with identical decoded environment, semantic law, decoded query, enumeration protocol, and target parameters, Routebind and Prospect must produce identical route truth and target fields. Their scientific difference is the model-visible source of environment-specific spatial information.
+For matched cases with identical decoded environment, semantic law, decoded query, enumeration protocol, and target parameters, Routebind and Prospect must produce identical route truth and target fields.
+Their scientific difference is the model-visible source of environment-specific spatial information.
 
 ## 9. Logical corpus contract
 
@@ -478,7 +501,8 @@ For matched cases with identical decoded environment, semantic law, decoded quer
 | `optimal_cost`        |                              yes | scalar                      | privileged | oracle metadata   | $C^*$                                                                |
 | `spatial_mask`        | when fixed padded output is used | storage/output domain       | technical  | mask              | valid output slots only                                              |
 
-`memory_entry_id` is storage metadata; the semantic input is the resolved corpus-local acquired-memory content. The public query fields define $q'$ and must be encoded by a binding without exposing decoded topology or physical goal support.
+`memory_entry_id` is storage metadata; the semantic input is the resolved corpus-local acquired-memory content.
+The public query fields define $q'$ and must be encoded by a binding without exposing decoded topology or physical goal support.
 
 ### 9.2 Corpus-local memory resource
 
@@ -492,17 +516,20 @@ Each memory entry must resolve entirely within the committed Prospect corpus and
 
 ### 9.3 Environment validation resource
 
-The corpus retains sufficient privileged environment context to validate route truth and memory compatibility without parent access. This context is not automatically model-visible.
+The corpus retains sufficient privileged environment context to validate route truth and memory compatibility without parent access.
+This context is not automatically model-visible.
 
 ### 9.4 Natural and storage domains
 
-Padding is outside the natural environment and must not be conflated with walls or traversable states. A public technical mask may identify valid output slots only; it must not encode traversability, adjacency, observation identity, goal location, or route support.
+Padding is outside the natural environment and must not be conflated with walls or traversable states.
+A public technical mask may identify valid output slots only; it must not encode traversability, adjacency, observation identity, goal location, or route support.
 
 ## 10. Split and sampling semantics
 
 ### 10.1 Environment-level split grouping
 
-Prospect split boundaries are defined at the composed-environment level. All Prospect queries generated from one topology–ObsField environment belong to the same split:
+Prospect split boundaries are defined at the composed-environment level.
+All Prospect queries generated from one topology–ObsField environment belong to the same split:
 
 $$
 \operatorname{environment}(q_i)=\operatorname{environment}(q_j)
@@ -518,7 +545,8 @@ The hidden semantic graph $D_{\mathrm{obs}}$ and bijection $\beta$ are corpus-le
 
 ### 10.3 Memory split semantics
 
-A Prospect record may use only a memory entry whose acquisition inputs and provenance correspond to the same environment and satisfy the split/novelty policy declared for that record. Because memory is environment-specific, an environment's memory entries cannot be reused to construct queries in another split.
+A Prospect record may use only a memory entry whose acquisition inputs and provenance correspond to the same environment and satisfy the split/novelty policy declared for that record.
+Because memory is environment-specific, an environment's memory entries cannot be reused to construct queries in another split.
 
 The corpus must validate this relationship from explicit lineage or acquisition diagnostics rather than infer safety from a storage label.
 
@@ -562,7 +590,8 @@ The declared $\beta$ is a bijection between the complete semantic graph node dom
 
 ### PR-MEM-001 — Local memory availability
 
-Every record's `memory_entry_id` resolves to exactly one corpus-local memory entry. No external memory-bank lookup is required for normal corpus use.
+Every record's `memory_entry_id` resolves to exactly one corpus-local memory entry.
+No external memory-bank lookup is required for normal corpus use.
 
 ### PR-MEM-002 — Exact environment compatibility
 
@@ -586,7 +615,8 @@ The public task query contains $o_{\mathrm{goal}}$; no `goal_flag`, $C_{\mathrm{
 
 ### PR-REC-003 — Technical-mask non-leakage
 
-Any public storage/output mask identifies only valid output slots. It must not encode traversability, adjacency, observation identity, goal location, or route support.
+Any public storage/output mask identifies only valid output slots.
+It must not encode traversability, adjacency, observation identity, goal location, or route support.
 
 ### PR-ORACLE-001 — Routebind equivalence
 
@@ -636,7 +666,8 @@ These diagnostics require experiment/binding support and do not alter task groun
 
 ### 13.5 Interpretation
 
-A performance advantage over an appropriate memory ablation, together with matched Routebind controls, supports causal reliance on acquired environment-specific memory. Performance alone does not establish which internal memory features carry the required topology or observation bindings.
+A performance advantage over an appropriate memory ablation, together with matched Routebind controls, supports causal reliance on acquired environment-specific memory.
+Performance alone does not establish which internal memory features carry the required topology or observation bindings.
 
 ## 14. Binding boundary
 
@@ -655,6 +686,7 @@ A binding must not expose privileged topology/observation fields that Prospect v
 
 ## 15. Open issues
 
-- A project-level reusable memory-artifact abstraction should be introduced only if acquired memory must be independently published and consumed by multiple workflows. Prospect v1 itself requires only corpus-local materialization of its needed memory entries.
+- A project-level reusable memory-artifact abstraction should be introduced only if acquired memory must be independently published and consumed by multiple workflows.
+  Prospect v1 itself requires only corpus-local materialization of its needed memory entries.
 - The initial acquisition profile must define memory qualification and query-novelty evidence precisely.
 - The first matched Routebind/Prospect corpus pair must freeze one shared graph-node-to-observation binding protocol and one shared query/oracle protocol.

@@ -8,20 +8,17 @@ document_status: draft
 
 ## Purpose
 
-This section contains the research-owned specifications for substrate families
-implemented by `ehp_research`.
+This section contains the research-owned specifications for substrate families implemented by `ehp_research`.
 
-A substrate represents reusable, task-neutral domain structure from which one
-or more task corpora may be derived:
+A substrate represents reusable, task-neutral domain structure from which one or more task corpora may be derived:
 
 ```text
 substrate = reusable world, structure, or preserved source facts
 task corpus = task-specific cases, episodes, inputs, and targets
 ```
 
-Concrete substrate specifications define domain semantics. Generic artifact
-identity, manifests, resources, lifecycle, validation mechanics, publication,
-and common I/O remain owned by the framework specifications.
+Concrete substrate specifications define domain semantics.
+Generic artifact identity, manifests, resources, lifecycle, validation mechanics, publication, and common I/O remain owned by the framework specifications.
 
 ## Documentation boundary
 
@@ -54,8 +51,7 @@ They do not redefine:
 
 ### Family
 
-A family is the stable namespace for one substrate concept, such as
-`obsfield`, `dungeongen`, or `dagflow`.
+A family is the stable namespace for one substrate concept, such as `obsfield`, `dungeongen`, or `dagflow`.
 
 ### Specification version
 
@@ -65,13 +61,12 @@ A specification version identifies one semantic contract for a family:
 <family>/v<N>
 ```
 
-For example, `obsfield/v1` denotes the first ObsField semantic contract. It
-is not a concrete data release.
+For example, `obsfield/v1` denotes the first ObsField semantic contract.
+It is not a concrete data release.
 
 ### Variant
 
-A variant is a stable, consumer-visible subdivision of a family represented in
-the artifact coordinate:
+A variant is a stable, consumer-visible subdivision of a family represented in the artifact coordinate:
 
 ```text
 data/interim/<family>/<variant>/v<N>/
@@ -82,37 +77,34 @@ A concrete family specification must define their relationship.
 
 ### Preset
 
-A preset is a package-owned named configuration. Presets are configuration
-conveniences unless a family specification explicitly assigns the same name
-and semantics to a coordinate variant.
+A preset is a package-owned named configuration.
+Presets are configuration conveniences unless a family specification explicitly assigns the same name and semantics to a coordinate variant.
 
 ### Release
 
-A release is one committed substrate artifact. Its final `v<N>` component is a
-monotonically increasing release number local to one `(family, variant)` pair.
+A release is one committed substrate artifact.
+Its final `v<N>` component is a monotonically increasing release number local to one `(family, variant)` pair.
 Release semantics are defined by the framework.
 
 ### Record
 
-A record is one independently addressable domain instance contained in a
-substrate artifact. Each family specification defines its record boundary and
-stable identifier semantics.
+A record is one independently addressable domain instance contained in a substrate artifact.
+Each family specification defines its record boundary and stable identifier semantics.
 
 ### Channel
 
-A channel is a named semantic component of a record or artifact. Channel
-existence and meaning are independent of physical serialization.
+A channel is a named semantic component of a record or artifact.
+Channel existence and meaning are independent of physical serialization.
 
 ### Logical record schema
 
-A logical record schema defines the fields and channels that jointly form a
-valid record. It is distinct from a physical serialization schema.
+A logical record schema defines the fields and channels that jointly form a valid record.
+It is distinct from a physical serialization schema.
 
 ### Logical resource
 
-A logical resource is a manifest-declared resource through which records,
-channels, indexes, or split descriptors are resolved. The framework defines
-resource mechanics; family specifications define required semantic content.
+A logical resource is a manifest-declared resource through which records, channels, indexes, or split descriptors are resolved.
+The framework defines resource mechanics; family specifications define required semantic content.
 
 ## Generic substrate boundary
 
@@ -133,8 +125,8 @@ A substrate must not define task-specific protocol such as:
 - model tokenization or batch structures;
 - task-specific evaluation metrics.
 
-Whether a source field is task-neutral is a concrete family decision. Calling a
-field an annotation does not by itself establish substrate ownership.
+Whether a source field is task-neutral is a concrete family decision.
+Calling a field an annotation does not by itself establish substrate ownership.
 
 ## Conformance of a substrate specification
 
@@ -146,13 +138,10 @@ A document conforms to this section when it:
 4. defines all required channels and cross-channel constraints;
 5. distinguishes semantic contracts from physical serialization;
 6. defines testable family-specific invariants;
-7. identifies unresolved interoperability decisions while its status is
-   `draft`;
+7. identifies unresolved interoperability decisions while its status is `draft`;
 8. applies, rather than duplicates, the generic framework contracts.
 
-A specification must not be marked `specified` while unresolved decisions can
-change record identity, required channels, consumer interpretation, split
-semantics, or validation outcomes.
+A specification must not be marked `specified` while unresolved decisions can change record identity, required channels, consumer interpretation, split semantics, or validation outcomes.
 
 ## Required and conditional sections
 
@@ -190,8 +179,7 @@ For externally sourced substrates, specifications must distinguish:
 - assumptions introduced by EHP-SN;
 - descriptive observations that are not normative guarantees.
 
-Unsupported upstream claims must not be promoted to normative substrate
-semantics.
+Unsupported upstream claims must not be promoted to normative substrate semantics.
 
 ## Registered and proposed specifications
 
@@ -202,7 +190,8 @@ semantics.
 | `dagflow`    | [`dagflow/v1`](dagflow-v1.md)       | Procedural directed-graph substrate                                    | Specified          |
 | `maze-nd`    | [`maze-nd/v1`](maze-nd-v1.md)       | Imported source-instance artifact; substrate classification unresolved | Planned            |
 
-`Component maturity` reflects the component as a whole — specification, implementation, and validation evidence together — following the `planned → specified → implemented → validated → reference` progression. It is derived from each specification's own `document_status` (linked above) plus implementation/validation state, not restated independently.
+`Component maturity` reflects the component as a whole — specification, implementation, and validation evidence together — following the `planned → specified → implemented → validated → reference` progression.
+It is derived from each specification's own `document_status` (linked above) plus implementation/validation state, not restated independently.
 
 The table registers specification work, not concrete artifact releases.
 

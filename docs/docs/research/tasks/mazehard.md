@@ -15,7 +15,8 @@ One corpus record represents one task-generated start–goal problem over one ra
 
 MazeHard consumes one compatible raster-topology record, generates a reachable start and goal, computes canonical shortest-route truth, and materializes a self-contained task case containing the visible maze problem and route supervision.
 
-MazeHard owns start/goal generation, shortest-route oracle semantics, ambiguity treatment, public problem representation, target semantics, and task-level metrics. It does not own Maze-ND source extraction, topology generation, generic artifact mechanics, model architecture, or model-native tokenization.
+MazeHard owns start/goal generation, shortest-route oracle semantics, ambiguity treatment, public problem representation, target semantics, and task-level metrics.
+It does not own Maze-ND source extraction, topology generation, generic artifact mechanics, model architecture, or model-native tokenization.
 
 A conforming MazeHard corpus also satisfies the generic `DataArtifact` and `TaskCorpus` contracts.
 
@@ -25,7 +26,8 @@ A conforming MazeHard corpus also satisfies the generic `DataArtifact` and `Task
 
 Given an explicitly presented raster maze together with a start position and goal position, predict a path-labelled output grid representing one stored optimal route from start to goal.
 
-The canonical reference Maze-Hard profile described by the research manuscript uses a `30 × 30` grid flattened to `900` positions for the HRM interface. The task semantics remain the same under another explicitly named compatible corpus profile, but such a profile must not be confused with direct reproduction of the reference 30 × 30 benchmark.
+The canonical reference Maze-Hard profile described by the research manuscript uses a `30 × 30` grid flattened to `900` positions for the HRM interface.
+The task semantics remain the same under another explicitly named compatible corpus profile, but such a profile must not be confused with direct reproduction of the reference 30 × 30 benchmark.
 
 ### 1.2 Scientific question
 
@@ -91,7 +93,8 @@ A faithful reproduction of source Maze-Hard problem rows is a separate corpus-im
 
 ## 3. Conceptual model
 
-MazeHard defines one fully observed spatial shortest-route problem over a decoded raster environment. Let
+MazeHard defines one fully observed spatial shortest-route problem over a decoded raster environment.
+Let
 
 $$
 G' \quad \text{be the decoded raster domain},
@@ -125,7 +128,8 @@ $$
 R = \left(g'_0,\ldots,g'_L\right)
 $$
 
-such that $g'_0=g'_{\mathrm{start}}$, $g'_L=g'_{\mathrm{goal}}$, and $(g'_k,g'_{k+1})\in E'_{\mathrm{spatial}}$ for every $k<L$. With unit physical edge cost,
+such that $g'_0=g'_{\mathrm{start}}$, $g'_L=g'_{\mathrm{goal}}$, and $(g'_k,g'_{k+1})\in E'_{\mathrm{spatial}}$ for every $k<L$.
+With unit physical edge cost,
 
 $$
 C(R)=L.
@@ -196,7 +200,8 @@ Task-semantic discriminators include:
 
 ### 5.3 Shared task context
 
-A corpus may deduplicate topology payload through a corpus-local environment table referenced by several problem records. Such deduplication is a corpus representation choice and does not alter the logical record unit.
+A corpus may deduplicate topology payload through a corpus-local environment table referenced by several problem records.
+Such deduplication is a corpus representation choice and does not alter the logical record unit.
 
 ## 6. Parent roles and composition
 
@@ -263,13 +268,15 @@ Distance bands, topology reuse, record counts, and difficulty balancing belong t
 
 ### 7.3 Retry and exhaustion
 
-When a protocol uses rejection to satisfy query constraints, attempts must be deterministic and record-addressable. An exhausted logical query fails explicitly.
+When a protocol uses rejection to satisfy query constraints, attempts must be deterministic and record-addressable.
+An exhausted logical query fails explicitly.
 
 ### 7.4 Source-reproduction profile
 
 A named source-reproduction corpus may reconstruct original source start/goal/solution problem rows through immutable Maze-ND source lineage or raw-source material.
 
-Such a profile must state explicitly that its query and reference solution are source-instance data. It must not redefine Maze-ND topology records to contain those fields.
+Such a profile must state explicitly that its query and reference solution are source-instance data.
+It must not redefine Maze-ND topology records to contain those fields.
 
 ## 8. Oracle and target semantics
 
@@ -283,7 +290,8 @@ d^*(g')
 \min_{R:g'\leadsto g'_{\mathrm{goal}}} C(R)
 $$
 
-for every traversable position from which the goal is reachable. A transition $(g',\tilde g')\in E'_{\mathrm{spatial}}$ is shortest-path optimal exactly when
+for every traversable position from which the goal is reachable.
+A transition $(g',\tilde g')\in E'_{\mathrm{spatial}}$ is shortest-path optimal exactly when
 
 $$
 d^*(g') = 1 + d^*(\tilde g').
@@ -297,9 +305,11 @@ $$
 
 ### 8.2 Canonical reference route
 
-MazeHard stores one reference optimal route per task record. Multiple optimal routes may exist, so the stored reference is canonical benchmark truth rather than the only mathematically valid optimum.
+MazeHard stores one reference optimal route per task record.
+Multiple optimal routes may exist, so the stored reference is canonical benchmark truth rather than the only mathematically valid optimum.
 
-For EHP-SN-generated cases, the generation protocol must define a deterministic tie-break over shortest routes. The selected route is
+For EHP-SN-generated cases, the generation protocol must define a deterministic tie-break over shortest routes.
+The selected route is
 
 $$
 R^*
@@ -307,7 +317,8 @@ R^*
 \left(g_0'^*,\ldots,g_{C^*}'^*\right),
 $$
 
-with $g_0'^*=g'_{\mathrm{start}}$, $g_{C^*}'^*=g'_{\mathrm{goal}}$, and every transition shortest-path optimal. A source-reproduction corpus may instead preserve the source dataset's designated optimal reference route when its provenance is exact.
+with $g_0'^*=g'_{\mathrm{start}}$, $g_{C^*}'^*=g'_{\mathrm{goal}}$, and every transition shortest-path optimal.
+A source-reproduction corpus may instead preserve the source dataset's designated optimal reference route when its provenance is exact.
 
 ### 8.3 Canonical path-labelled target
 
@@ -318,15 +329,18 @@ y^*:G'\rightarrow
 \{\text{wall},\text{free},\text{start},\text{goal},\text{path}\}
 $$
 
-denote the semantic reference labeling. It preserves the visible maze classes and marks exactly the route cells selected by $R^*$ according to the declared endpoint-overlay convention.
+denote the semantic reference labeling.
+It preserves the visible maze classes and marks exactly the route cells selected by $R^*$ according to the declared endpoint-overlay convention.
 
 Concrete token IDs, flattening order, ignore-label integers, and model-native tensor layout belong to a binding or named reproduction profile.
 
 ### 8.4 Alternative optimal-route validity
 
-A decoded prediction may describe an optimal route different from $R^*$. It is an any-valid-optimal solution when it begins at $g'_{\mathrm{start}}$, ends at $g'_{\mathrm{goal}}$, follows only transitions in $E'_{\mathrm{spatial}}$, and has cost $C^*$.
+A decoded prediction may describe an optimal route different from $R^*$.
+It is an any-valid-optimal solution when it begins at $g'_{\mathrm{start}}$, ends at $g'_{\mathrm{goal}}$, follows only transitions in $E'_{\mathrm{spatial}}$, and has cost $C^*$.
 
-Such a prediction is structurally optimal but fails exact reference-grid equality if its path cells differ from the stored target. This distinction is intentional and must be reported rather than collapsed.
+Such a prediction is structurally optimal but fails exact reference-grid equality if its path cells differ from the stored target.
+This distinction is intentional and must be reported rather than collapsed.
 
 ### 8.5 Oracle correctness
 
@@ -352,9 +366,11 @@ The public environment resource must resolve traversability over the same natura
 
 ### 9.2 Storage representation and reference profile
 
-MazeHard task semantics are expressed over the natural raster domain. The canonical reference reproduction profile is a `30 × 30` maze represented as `900` flattened spatial positions, matching the benchmark interface described in the research manuscript.
+MazeHard task semantics are expressed over the natural raster domain.
+The canonical reference reproduction profile is a `30 × 30` maze represented as `900` flattened spatial positions, matching the benchmark interface described in the research manuscript.
 
-A separately named corpus may use another raster extent only if it preserves the same task meaning and clearly declares that results are not direct Maze-Hard reference-reproduction results. Flattening order, token IDs, embeddings, and model-native tensor layout remain binding/profile concerns.
+A separately named corpus may use another raster extent only if it preserves the same task meaning and clearly declares that results are not direct Maze-Hard reference-reproduction results.
+Flattening order, token IDs, embeddings, and model-native tensor layout remain binding/profile concerns.
 
 ### 9.3 Padding
 
@@ -366,11 +382,13 @@ When heterogeneous natural extents are represented in a common storage canvas, p
 
 When a topology parent has intrinsic splits, MazeHard preserves same-split derivation under the generic corpus contract.
 
-Maze-ND v1 has no intrinsic topology train/validation/test split; source-row split labels are lineage, not topology splits. A MazeHard corpus using Maze-ND must therefore define its own topology/query split policy.
+Maze-ND v1 has no intrinsic topology train/validation/test split; source-row split labels are lineage, not topology splits.
+A MazeHard corpus using Maze-ND must therefore define its own topology/query split policy.
 
 ### 10.2 Environment-level split grouping and novelty
 
-For benchmark corpora that generate several queries from one maze environment, all records derived from the same environment must belong to the same split. This matches the environment-level split architecture used by the research evaluation and prevents shared topology from crossing train/validation/test boundaries.
+For benchmark corpora that generate several queries from one maze environment, all records derived from the same environment must belong to the same split.
+This matches the environment-level split architecture used by the research evaluation and prevents shared topology from crossing train/validation/test boundaries.
 
 A named MazeHard corpus must additionally state whether novelty applies to:
 
@@ -380,7 +398,8 @@ A named MazeHard corpus must additionally state whether novelty applies to:
 
 ### 10.3 Sampling
 
-Sampling policies must not silently bias the benchmark through topology duplication or start–goal multiplicity. Any balancing over path length or difficulty must be explicit.
+Sampling policies must not silently bias the benchmark through topology duplication or start–goal multiplicity.
+Any balancing over path length or difficulty must be explicit.
 
 ## 11. Determinism and task identity inputs
 
@@ -421,7 +440,8 @@ The stored $R^*$ starts at $g'_{\mathrm{start}}$, ends at $g'_{\mathrm{goal}}$, 
 
 ### MH-ORACLE-003 — Deterministic reference selection
 
-For generated cases with more than one optimal route, the declared canonical tie-break selects exactly one $R^*$ deterministically. Source-reproduction corpora may preserve one exact source-designated optimal route instead.
+For generated cases with more than one optimal route, the declared canonical tie-break selects exactly one $R^*$ deterministically.
+Source-reproduction corpora may preserve one exact source-designated optimal route instead.
 
 ### MH-ORACLE-004 — Target encoding correctness
 
@@ -443,7 +463,8 @@ Every record satisfies the corpus's declared topology/query novelty and parent-u
 
 ### 13.1 Primary metric: exact solution accuracy
 
-The primary MazeHard metric is exact reference-grid accuracy: a record is correct only when every supervised output position equals the stored reference target $y^*$. This matches the benchmark result used for direct HRM/MazeHard comparison.
+The primary MazeHard metric is exact reference-grid accuracy: a record is correct only when every supervised output position equals the stored reference target $y^*$.
+This matches the benchmark result used for direct HRM/MazeHard comparison.
 
 Conceptually:
 
@@ -457,7 +478,8 @@ $$
 
 ### 13.2 Secondary metric: token accuracy
 
-Token accuracy reports the fraction of supervised positions whose predicted label equals $y^*$. It is diagnostic because high token accuracy does not imply a complete correct route.
+Token accuracy reports the fraction of supervised positions whose predicted label equals $y^*$.
+It is diagnostic because high token accuracy does not imply a complete correct route.
 
 ### 13.3 Structural any-valid-optimal metric
 
@@ -467,7 +489,9 @@ This metric answers a different question from exact reference-grid accuracy and 
 
 ### 13.4 Aggregation
 
-Exact accuracy is aggregated per record. Token accuracy is accumulated from total correct and supervised token counts. Structural route validity is aggregated per decoded record.
+Exact accuracy is aggregated per record.
+Token accuracy is accumulated from total correct and supervised token counts.
+Structural route validity is aggregated per decoded record.
 
 ## 14. Binding boundary
 

@@ -13,9 +13,12 @@ api_stability: provisional
 
 One corpus record represents one complete replay episode over one compatible topology and observation-field composition.
 
-Arena consumes one raster-topology record and one compatible ObsField record. It generates an initial state and movement trajectory, resolves the observation encountered at every visited position, and materializes a self-contained replay episode containing the semantic information required for prediction and evaluation.
+Arena consumes one raster-topology record and one compatible ObsField record.
+It generates an initial state and movement trajectory, resolves the observation encountered at every visited position, and materializes a self-contained replay episode containing the semantic information required for prediction and evaluation.
 
-Arena owns episode generation, task-level action semantics, temporal alignment of observations and actions, revisit truth, public replay information, observation targets, and Arena-specific task metrics. Model-specific prediction pathways and latent-state diagnostics belong to the applicable binding/model evaluation contract. It does not own topology generation, observation-field generation, generic artifact or corpus mechanics, model architecture, model-native recurrent-state representation, or experiment policy.
+Arena owns episode generation, task-level action semantics, temporal alignment of observations and actions, revisit truth, public replay information, observation targets, and Arena-specific task metrics.
+Model-specific prediction pathways and latent-state diagnostics belong to the applicable binding/model evaluation contract.
+It does not own topology generation, observation-field generation, generic artifact or corpus mechanics, model architecture, model-native recurrent-state representation, or experiment policy.
 
 A conforming Arena corpus also satisfies the generic `DataArtifact` and `TaskCorpus` contracts.
 
@@ -31,11 +34,15 @@ $$
 o_t=\phi(g'_t),
 $$
 
-and the discrete action $a_t$ associated with that transition step. For $t>0$, $a_t$ is the action that produced $g'_t$ from $g'_{t-1}$ under the declared movement semantics. Step $t=0$ uses the declared initialization-action convention.
+and the discrete action $a_t$ associated with that transition step.
+For $t>0$, $a_t$ is the action that produced $g'_t$ from $g'_{t-1}$ under the declared movement semantics.
+Step $t=0$ uses the declared initialization-action convention.
 
-The task target at step $t$ is the experienced observation $o_t$. Arena does not prescribe the internal computational pathway by which a model predicts or reconstructs that observation.
+The task target at step $t$ is the experienced observation $o_t$.
+Arena does not prescribe the internal computational pathway by which a model predicts or reconstructs that observation.
 
-In the reference Arena–TEM evaluation, the same replay supports several model-specific prediction pathways with different access to the current sensory observation, including posterior, sensory-recall, and structural-prior/path-integration predictions. Those pathway-specific information restrictions and metrics are properties of the Arena–TEM binding/model evaluation, not different Arena corpus records.
+In the reference Arena–TEM evaluation, the same replay supports several model-specific prediction pathways with different access to the current sensory observation, including posterior, sensory-recall, and structural-prior/path-integration predictions.
+Those pathway-specific information restrictions and metrics are properties of the Arena–TEM binding/model evaluation, not different Arena corpus records.
 
 ### 1.2 Scientific question
 
@@ -106,7 +113,8 @@ Arena does not define:
 
 ### 3.1 Notation and composed environment
 
-Arena defines its mathematical symbols locally. Primed structural symbols denote decoded environment-level quantities; hats denote predictions; stars denote oracle/reference targets; and $p$ is reserved for the model-internal conjunctive representation rather than a physical position.
+Arena defines its mathematical symbols locally.
+Primed structural symbols denote decoded environment-level quantities; hats denote predictions; stars denote oracle/reference targets; and $p$ is reserved for the model-internal conjunctive representation rather than a physical position.
 
 For one compatible topology record and ObsField record, let
 
@@ -125,13 +133,16 @@ G'_{\mathrm{free}} \times G'_{\mathrm{free}}
 \quad \text{be the valid physical-transition relation},
 $$
 
-and let $Obs$ be the categorical observation vocabulary. The composed observation assignment is
+and let $Obs$ be the categorical observation vocabulary.
+The composed observation assignment is
 
 $$
 \phi : G'_{\mathrm{free}} \rightarrow Obs.
 $$
 
-The topology supplies $G'_{\mathrm{free}}$ and $E'_{\mathrm{spatial}}$. The compatible ObsField supplies the ambient observation assignment from which $\phi$ is obtained by restriction to traversable positions. This composition is task context, not a new substrate artifact.
+The topology supplies $G'_{\mathrm{free}}$ and $E'_{\mathrm{spatial}}$.
+The compatible ObsField supplies the ambient observation assignment from which $\phi$ is obtained by restriction to traversable positions.
+This composition is task context, not a new substrate artifact.
 
 ### 3.2 Episode
 
@@ -153,7 +164,8 @@ g'_t \in G'_{\mathrm{free}},
 o_t = \phi(g'_t).
 $$
 
-For $t>0$, $a_t$ denotes the action whose application at $g'_{t-1}$ produces $g'_t$. The initialization value $a_0$ is defined by the Arena action protocol and does not imply a topology self-loop.
+For $t>0$, $a_t$ denotes the action whose application at $g'_{t-1}$ produces $g'_t$.
+The initialization value $a_0$ is defined by the Arena action protocol and does not imply a topology self-loop.
 
 ### 3.3 Revisit
 
@@ -190,7 +202,8 @@ $$
 
 The corpus channel `observation` materializes this target sequence.
 
-The fact that $o_t$ is present in the replay does not imply that every model-specific prediction pathway may use it directly. A binding/model evaluation may construct a restricted prediction pathway, such as the structural-prior/path-integration pathway, in which the current observation is deliberately withheld from that particular prediction.
+The fact that $o_t$ is present in the replay does not imply that every model-specific prediction pathway may use it directly.
+A binding/model evaluation may construct a restricted prediction pathway, such as the structural-prior/path-integration pathway, in which the current observation is deliberately withheld from that particular prediction.
 
 `is_revisit[t]` is task evaluation truth used for metric stratification and is not a sensory observation input.
 
@@ -216,7 +229,8 @@ Arena withholds from the ordinary replay interface:
 
 ### 4.5 Pathway-specific restrictions
 
-Arena defines the replay sequence and task truth, not model-internal prediction pathways. A task–model binding or evaluation regime may restrict which public replay quantities a particular prediction pathway may consume, provided that the restriction does not change the underlying episode, target observation, or revisit truth.
+Arena defines the replay sequence and task truth, not model-internal prediction pathways.
+A task–model binding or evaluation regime may restrict which public replay quantities a particular prediction pathway may consume, provided that the restriction does not change the underlying episode, target observation, or revisit truth.
 
 ## 5. Unit of record and shared task context
 
@@ -262,7 +276,8 @@ Environment entries are not model-visible merely because they are corpus-local.
 | `topology`          |      yes | `raster-topology/v1`   | movement structure and physical state identity  |
 | `observation_field` |      yes | `categorical-field/v1` | persistent observation at each ambient position |
 
-Arena depends on topology capabilities rather than a concrete topology family. DungeonGen and Maze-ND are both admissible when their records satisfy the required capabilities.
+Arena depends on topology capabilities rather than a concrete topology family.
+DungeonGen and Maze-ND are both admissible when their records satisfy the required capabilities.
 
 ### 6.2 Required topology capabilities
 
@@ -276,7 +291,8 @@ directed: false
 edge_cost_kind: unit
 ```
 
-Arena does not require topology-level self-loops. `STAY`, when enabled by the episode protocol, is task-owned.
+Arena does not require topology-level self-loops.
+`STAY`, when enabled by the episode protocol, is task-owned.
 
 ### 6.3 Parent exclusions
 
@@ -354,21 +370,26 @@ $$
 \texttt{observation}[t] = \phi(g'_t),
 $$
 
-and an action sequence aligned so that, for $t>0$, `action[t]` is the action producing $g'_t$ from $g'_{t-1}$. `action[0]` is the declared initialization action or sentinel.
+and an action sequence aligned so that, for $t>0$, `action[t]` is the action producing $g'_t$ from $g'_{t-1}$.
+`action[0]` is the declared initialization action or sentinel.
 
-The action convention is part of Arena v1 task semantics. A binding may shift or re-encode the sequence for a model-native recurrent API, but must preserve the same transition alignment.
+The action convention is part of Arena v1 task semantics.
+A binding may shift or re-encode the sequence for a model-native recurrent API, but must preserve the same transition alignment.
 
 ### 7.5 Revisit truth
 
-`is_revisit[t]` is computed from the complete prefix of physical states and is valid for all `t`. It is independent of observation repetition.
+`is_revisit[t]` is computed from the complete prefix of physical states and is valid for all `t`.
+It is independent of observation repetition.
 
 ### 7.6 Retry and exhaustion
 
-If an episode protocol can reject candidate starts or trajectories, it must define deterministic attempt identity, attempt budget, and exhaustion behavior. Exhaustion is explicit failure; it must not silently substitute a different logical episode identity.
+If an episode protocol can reject candidate starts or trajectories, it must define deterministic attempt identity, attempt budget, and exhaustion behavior.
+Exhaustion is explicit failure; it must not silently substitute a different logical episode identity.
 
 ## 8. Oracle and target semantics
 
-Arena does not require a planning oracle. For each valid replay step $t$, the authoritative task truth consists of
+Arena does not require a planning oracle.
+For each valid replay step $t$, the authoritative task truth consists of
 
 $$
 g'_t \quad \text{(privileged decoded position)},
@@ -386,7 +407,9 @@ $$
 \exists j<t:\;g'_j=g'_t.
 $$
 
-Observation prediction is evaluated against $o_t$. The task does not prescribe the internal pathway used to produce a compatible prediction. Pathway-specific outputs and diagnostics belong to the applicable binding/model evaluation contract.
+Observation prediction is evaluated against $o_t$.
+The task does not prescribe the internal pathway used to produce a compatible prediction.
+Pathway-specific outputs and diagnostics belong to the applicable binding/model evaluation contract.
 
 ## 9. Logical corpus contract
 
@@ -408,7 +431,8 @@ A physical serialization may use padded fixed-width arrays, but padding is not p
 
 ### 9.2 Shared environment resource
 
-A corpus-local environment resource must provide enough information to validate observations and trajectories without resolving parent artifacts. It may deduplicate information shared by several episodes.
+A corpus-local environment resource must provide enough information to validate observations and trajectories without resolving parent artifacts.
+It may deduplicate information shared by several episodes.
 
 At minimum it resolves:
 
@@ -420,7 +444,8 @@ At minimum it resolves:
 
 ### 9.3 Sentinels and padding
 
-If physical serialization pads variable-length episodes, the corpus schema must distinguish padding from valid values through an explicit valid-step mask or length field. Sentinel values must never be interpreted as semantic observation, action, or position identities.
+If physical serialization pads variable-length episodes, the corpus schema must distinguish padding from valid values through an explicit valid-step mask or length field.
+Sentinel values must never be interpreted as semantic observation, action, or position identities.
 
 ## 10. Split and sampling semantics
 
@@ -428,11 +453,13 @@ If physical serialization pads variable-length episodes, the corpus schema must 
 
 Arena follows the generic parent-to-corpus split rule where parents declare intrinsic splits.
 
-ObsField and some topology substrates may define no intrinsic experimental splits. For such parents, the Arena corpus specification or named corpus profile owns assignment of reusable records to task splits and must record that policy explicitly.
+ObsField and some topology substrates may define no intrinsic experimental splits.
+For such parents, the Arena corpus specification or named corpus profile owns assignment of reusable records to task splits and must record that policy explicitly.
 
 ### 10.2 Multi-parent pairing
 
-Pairing of topology and ObsField records must be deterministic and compatibility-aware. The policy may deliberately hold one factor fixed while varying the other, but the policy is part of the corpus build semantics.
+Pairing of topology and ObsField records must be deterministic and compatibility-aware.
+The policy may deliberately hold one factor fixed while varying the other, but the policy is part of the corpus build semantics.
 
 ### 10.3 Leakage and novelty
 
@@ -499,7 +526,8 @@ For every step $t>0$, $a_t$ corresponds exactly to the declared transition from 
 
 ### AR-REC-004 — Spatial-privilege exclusion
 
-Decoded physical identity, topology geometry, movement-valid structure, future replay content, and revisit truth are not ordinary public Arena inputs. Current $o_t$ is part of the replay; any pathway-specific restriction on using it is binding/model-evaluation semantics.
+Decoded physical identity, topology geometry, movement-valid structure, future replay content, and revisit truth are not ordinary public Arena inputs.
+Current $o_t$ is part of the replay; any pathway-specific restriction on using it is binding/model-evaluation semantics.
 
 ### AR-REC-005 — Vocabulary validity
 
@@ -525,7 +553,8 @@ A_{\mathrm{obs}}^{\mathrm{rev}}
 \frac{N_{\mathrm{correct,rev}}}{N_{\mathrm{rev}}}.
 $$
 
-This corresponds to the revisit-conditioned observation-prediction quantity used by the formal research evaluation. The metric is undefined for an evaluation set with zero revisit targets; an evaluator must report the empty denominator rather than silently substitute a value.
+This corresponds to the revisit-conditioned observation-prediction quantity used by the formal research evaluation.
+The metric is undefined for an evaluation set with zero revisit targets; an evaluator must report the empty denominator rather than silently substitute a value.
 
 ### 13.2 Secondary task metrics
 
@@ -536,7 +565,8 @@ Task-level supporting quantities include:
 - `correct_revisit`, `count_revisit`;
 - first-visit accuracy when useful diagnostically.
 
-Model/binding-specific Arena–TEM evaluation may additionally report the pathway metrics `A_post`, `A_rec^rev`, and `A_PI^rev`. These are not generic Arena task channels because they refer to particular TEM inference/retrieval pathways.
+Model/binding-specific Arena–TEM evaluation may additionally report the pathway metrics `A_post`, `A_rec^rev`, and `A_PI^rev`.
+These are not generic Arena task channels because they refer to particular TEM inference/retrieval pathways.
 
 ### 13.3 Aggregation
 
@@ -544,7 +574,8 @@ Count-based sufficient statistics are summed across batches or distributed worke
 
 ### 13.4 Interpretation
 
-Higher `A_obs^rev` supports the behavioral claim that the evaluated system can recover environment-specific sensory–spatial information at previously experienced locations. It does not by itself identify which internal pathway or representation produced that recovery.
+Higher `A_obs^rev` supports the behavioral claim that the evaluated system can recover environment-specific sensory–spatial information at previously experienced locations.
+It does not by itself identify which internal pathway or representation produced that recovery.
 
 ## 14. Binding boundary
 
@@ -559,7 +590,8 @@ A binding may define:
 - one or more observation-prediction pathways;
 - pathway-specific access restrictions and diagnostic outputs.
 
-For the Arena–TEM binding, posterior and sensory-recall pathways may use the current encoded observation according to the TEM model contract, while the structural-prior/path-integration pathway must not use the current observation. The binding must not expose decoded topology or privileged spatial identity beyond the Arena task contract.
+For the Arena–TEM binding, posterior and sensory-recall pathways may use the current encoded observation according to the TEM model contract, while the structural-prior/path-integration pathway must not use the current observation.
+The binding must not expose decoded topology or privileged spatial identity beyond the Arena task contract.
 
 ## 15. Open issues
 

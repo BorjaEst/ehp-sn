@@ -8,14 +8,15 @@ document_status: specified
 
 ## Normative summary
 
-`dagflow/v1` is a substrate family that procedurally generates directed graphs conforming to [`simple-graph/v1`](../../framework/contracts/relations/simple-graph-v1.md), guaranteeing the additional `single-terminal` structural capability, for downstream task-corpus construction.
+`dagflow/v1` is a substrate family that procedurally generates directed graphs conforming to [`simple-digraph/v1`](../../framework/contracts/relations/simple-digraph-v1.md), guaranteeing the additional `single-terminal` structural capability, for downstream task-corpus construction.
 
 One record represents one complete graph realization conforming to the shared contract.
 Dagflow owns generation, the `single-terminal` capability guarantee, record identity, and intrinsic graph split membership.
 It does not own task queries, observation bindings, goals, paths, targets, episodes, rewards, or model-facing graph encodings.
 
 The `single-terminal` variant requires a finite, non-empty directed acyclic graph with exactly one terminal node, where a terminal is a node with out-degree zero.
-Every node must reach that terminal. Dagflow uses NetworkX as the reference construction and validation dependency, but committed artifacts contain stable EHP-SN graph records rather than serialized NetworkX or Python objects.
+Every node must reach that terminal.
+Dagflow uses NetworkX as the reference construction and validation dependency, but committed artifacts contain stable EHP-SN graph records rather than serialized NetworkX or Python objects.
 
 ## Scope and boundary
 
@@ -30,40 +31,21 @@ This specification defines:
 - Dagflow scientific invariants and validation beyond the shared contract;
 - the boundary between public graph structure and private generation state.
 
-The public node domain, directed-edge relation, canonical edge ordering, and labelled-graph equality are owned by [`simple-graph/v1`](../../framework/contracts/relations/simple-graph-v1.md), not restated here.
-
-### Excluded semantics
-
-This specification does not define:
-
-- graph-node-to-observation bindings;
-- spatial or environmental context;
-- task starts, current states, or queries;
-- task interpretation of the terminal as a goal;
-- required or preferred paths;
-- trajectory or waypoint targets;
-- task-specific node or edge weights;
-- rewards, episodes, or training examples;
-- padded successor arrays, masks, reachability matrices, or other task-facing encodings;
-- generic artifact manifests, digests, fingerprints, release conflict handling, staging, or publication;
-- CLI option spelling or configuration precedence;
-- repository-local physical placement beyond the framework coordinate model.
-
-A downstream task may interpret or transform the graph relation, but that interpretation does not become part of Dagflow.
+The public node domain, directed-edge relation, canonical edge ordering, and labelled-graph equality are owned by [`simple-digraph/v1`](../../framework/contracts/relations/simple-digraph-v1.md), not restated here.
 
 ## Canonical identity and conformance
 
-| Property                | Required value    |
-| ----------------------- | ----------------- |
-| Artifact kind           | `substrate`       |
-| Family                  | `dagflow`         |
-| Specification reference | `dagflow/v1`      |
-| Shared logical schema   | `simple-graph/v1` |
-| Initial variant         | `single-terminal` |
+| Property                | Required value      |
+| ----------------------- | ------------------- |
+| Artifact kind           | `substrate`         |
+| Family                  | `dagflow`           |
+| Specification reference | `dagflow/v1`        |
+| Shared logical schema   | `simple-digraph/v1` |
+| Initial variant         | `single-terminal`   |
 
 The family identifier is exactly `dagflow`.
 
-A conforming release satisfies the generic framework `SubstrateArtifact` contract, the complete `simple-graph/v1` contract, and every applicable requirement and invariant in this specification.
+A conforming release satisfies the generic framework `SubstrateArtifact` contract, the complete `simple-digraph/v1` contract, and every applicable requirement and invariant in this specification.
 A concrete release uses the framework coordinate form:
 
 ```text
@@ -79,10 +61,10 @@ Dagflow v1's `single-terminal` variant declares:
 ```text
 acyclic: true
 terminal_count: 1
-all_nodes_reach_terminal: true
+all_nodes_reach_a_terminal: true
 ```
 
-per [`simple-graph/v1`](../../framework/contracts/relations/simple-graph-v1.md) § "Capabilities".
+per [`simple-digraph/v1`](../../framework/contracts/relations/simple-digraph-v1.md) § "Capabilities".
 
 ## Conceptual model
 
@@ -109,7 +91,7 @@ It may be retained only as integrity-protected provenance or bounded diagnostic 
 
 ### Unit of record
 
-One record represents one complete directed graph realization conforming to `simple-graph/v1`.
+One record represents one complete directed graph realization conforming to `simple-digraph/v1`.
 A task dataset generator may derive any number of processed task cases from one record.
 
 ### Variant model
@@ -137,7 +119,7 @@ A stable graph class with materially different consumer-visible guarantees, such
 
 ### `single-terminal` graph semantics
 
-A conforming graph satisfies every `simple-graph/v1` requirement and is additionally: acyclic; equipped with exactly one terminal; such that every node reaches that terminal.
+A conforming graph satisfies every `simple-digraph/v1` requirement and is additionally: acyclic; equipped with exactly one terminal; such that every node reaches that terminal.
 
 For a finite DAG, a unique sink implies that every node reaches it.
 The unique terminal and terminal-reachability requirements remain separately normative because they communicate the intended reusable structure and support distinct validation diagnostics.
@@ -193,7 +175,7 @@ It must not persist Python objects or pickle files as the normative graph repres
 Required construction edges establish the `single-terminal` reachability contract.
 Their exact distribution is owned by the declared generator protocol.
 
-Additional edges are optional admissible edges that preserve acyclicity and simple-graph semantics.
+Additional edges are optional admissible edges that preserve acyclicity and simple-digraph semantics.
 The initial v1 edge policy is probability-based:
 
 ```text
@@ -309,7 +291,7 @@ They must not change generated graph content.
 
 ### Family-specific identity inputs
 
-In addition to generic framework inputs and `simple-graph/v1`'s own identity inputs, Dagflow contributes:
+In addition to generic framework inputs and `simple-digraph/v1`'s own identity inputs, Dagflow contributes:
 
 - `dagflow/v1`;
 - the declared variant;
@@ -332,22 +314,22 @@ The framework remains authoritative for build-input identity and artifact finger
 | Artifact kind              | `substrate`                                                                                  |
 | Family                     | Exactly `dagflow`                                                                            |
 | Allowed variant            | `single-terminal`                                                                            |
-| Shared logical schema      | `simple-graph/v1`                                                                            |
+| Shared logical schema      | `simple-digraph/v1`                                                                          |
 | Required logical resources | Deterministically enumerable graph records and framework-required split/resource descriptors |
 | Family descriptors         | Generator protocol, node-count policy, additional-edge policy, canonicalization policy       |
 
-Dagflow does not redefine the generic manifest, resource-descriptor, digest, identity, lifecycle, reuse, validation-mode, or publication contracts, nor the `simple-graph/v1` schema.
+Dagflow does not redefine the generic manifest, resource-descriptor, digest, identity, lifecycle, reuse, validation-mode, or publication contracts, nor the `simple-digraph/v1` schema.
 
 ### Record enumeration
 
 Subject to the authoritative framework enumeration contract, one enumeration entry corresponds to one complete graph record.
-Dagflow-specific enumeration information must resolve `record_id`, intrinsic split, graph payload locator, and `simple-graph/v1` schema reference.
+Dagflow-specific enumeration information must resolve `record_id`, intrinsic split, graph payload locator, and `simple-digraph/v1` schema reference.
 It may include bounded non-authoritative summaries such as `node_count` and edge count, which must agree with the authoritative graph payload.
 The physical enumeration format is not fixed by this specification.
 
 ## Invariants and validation
 
-Common node-domain, edge-domain, simple-graph, and canonical-ordering invariants are owned by [`simple-graph/v1`](../../framework/contracts/relations/simple-graph-v1.md) and are not duplicated here.
+Common node-domain, edge-domain, simple-digraph, and canonical-ordering invariants are owned by [`simple-digraph/v1`](../../framework/contracts/relations/simple-digraph-v1.md) and are not duplicated here.
 
 ### Record-level invariants
 
@@ -395,7 +377,7 @@ For a bounded policy, every record falls within the declared bounds and the prot
 
 ### Validation requirements
 
-Validation must operate on materialized interim graph records rather than only on generator-runtime objects, and must invoke the shared `simple-graph/v1` checks in addition to the invariants above.
+Validation must operate on materialized interim graph records rather than only on generator-runtime objects, and must invoke the shared `simple-digraph/v1` checks in addition to the invariants above.
 
 NetworkX may be used to reconstruct a `DiGraph` and perform DAG, degree, terminal, reachability, path, and summary checks.
 A non-NetworkX validator is also conforming when it verifies the same normative conditions.
@@ -409,14 +391,14 @@ Private construction identities must not be required to validate the committed g
 
 A new concrete release may remain under `dagflow/v1` while changing base seed, generated graph records, split counts, fixed node count, bounded node-count policy values, additional-edge probability, graph density and depth distributions, or generator protocol, when the new protocol preserves the v1 semantic contract and is recorded as an identity-bearing input.
 
-A new specification version is required for incompatible changes to terminal meaning, intrinsic split semantics, or core `single-terminal` conformance invariants, or for any change that would also require a new `simple-graph/v1` version (see that contract's own "Compatibility and evolution").
+A new specification version is required for incompatible changes to terminal meaning, intrinsic split semantics, or core `single-terminal` conformance invariants, or for any change that would also require a new `simple-digraph/v1` version (see that contract's own "Compatibility and evolution").
 
 Consumers must reject unsupported specification versions, unknown required fields, or incompatible logical schemas.
 Optional future fields may be ignored only when their optionality and compatibility are explicitly declared by the applicable specification.
 
 ### Downstream-use boundary
 
-Downstream task corpus builders may consume `record_id`, the public node domain, the canonical directed edge relation, intrinsic split membership, and framework-declared source and identity references, per `simple-graph/v1`.
+Downstream task corpus builders may consume `record_id`, the public node domain, the canonical directed edge relation, intrinsic split membership, and framework-declared source and identity references, per `simple-digraph/v1`.
 
 Downstream tasks own selection of Dagflow records, combination with spatial or other substrates, graph-node-to-observation bindings, starts, current states, and queries, interpretation of the structural terminal as a task goal, hidden-information policies, path/trajectory/waypoint construction, targets, rewards, episodes, evaluation cases, and tensor/sparse/padded/model-facing graph encodings.
 
@@ -426,7 +408,7 @@ Prospect supplies observation bindings, spatial context, queries, task-level goa
 ## Related specifications
 
 - [`Substrates`](index.md)
-- [`Simple graph v1`](../../framework/contracts/relations/simple-graph-v1.md)
+- [`Simple directed graph v1`](../../framework/contracts/relations/simple-digraph-v1.md)
 - [`Data artifacts`](../../framework/data-artifacts.md)
 - [`Manifests`](../../framework/manifests.md)
 - [`Identity`](../../framework/identity.md)

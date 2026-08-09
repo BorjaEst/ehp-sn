@@ -13,7 +13,8 @@ api_stability: provisional
 
 One corpus record represents one start–goal semantic routing query over one composed topology–ObsField environment under one corpus-level semantic graph and explicit graph-node-to-observation binding.
 
-Routebind owns parent composition, semantic binding, query generation, semantic–spatial route oracle semantics, valid-route-set targets, public information, and route-specific metrics. It does not own topology generation, observation-field generation, Dagflow graph generation, generic corpus mechanics, model architecture, or model-native encoding.
+Routebind owns parent composition, semantic binding, query generation, semantic–spatial route oracle semantics, valid-route-set targets, public information, and route-specific metrics.
+It does not own topology generation, observation-field generation, Dagflow graph generation, generic corpus mechanics, model architecture, or model-native encoding.
 
 A conforming Routebind corpus also satisfies the generic `DataArtifact` and `TaskCorpus` contracts.
 
@@ -29,7 +30,8 @@ Routebind tests whether a system can combine visible spatial structure with a co
 
 ### 1.3 Intended comparisons
 
-Routebind is intended as a visible-structure control for memory-conditioned tasks such as Prospect. It also supports comparisons across physical route length, semantic transition depth, topology family, observation realization, and graph structure.
+Routebind is intended as a visible-structure control for memory-conditioned tasks such as Prospect.
+It also supports comparisons across physical route length, semantic transition depth, topology family, observation realization, and graph structure.
 
 ### 1.4 Non-claims
 
@@ -70,7 +72,7 @@ Routebind does not define:
 | Generic task-corpus contract    | `corpora`                    |
 | Spatial topology                | `raster-topology/v1`         |
 | Observation field               | `categorical-field/v1`       |
-| Directed semantic graph         | `simple-graph/v1`            |
+| Directed semantic graph         | `simple-digraph/v1`          |
 | Task semantics                  | this document                |
 | Model encoding                  | applicable Routebind binding |
 
@@ -113,7 +115,8 @@ D_{\mathrm{sem}}
 \left(N_{\mathrm{sem}},E_{\mathrm{sem}}\right).
 $$
 
-Dagflow node identifiers are not observation identifiers. Routebind therefore constructs an explicit task-owned bijection
+Dagflow node identifiers are not observation identifiers.
+Routebind therefore constructs an explicit task-owned bijection
 
 $$
 \beta:N_{\mathrm{sem}}\xrightarrow{\sim} Obs.
@@ -183,7 +186,8 @@ $$
 \xi=(g',o),
 $$
 
-where $g'$ is the current physical position and $o$ is the last semantically accepted observation. The initial semantic state is the observation at the start position:
+where $g'$ is the current physical position and $o$ is the last semantically accepted observation.
+The initial semantic state is the observation at the start position:
 
 $$
 o_{\mathrm{start}}=\phi(g'_{\mathrm{start}}),
@@ -220,7 +224,8 @@ The following are available for generation, validation, or evaluation but not as
 
 ### 4.4 Withheld information
 
-The hidden semantic graph and its binding are not exposed as model inputs. The model must infer the reusable semantic law from route supervision across corpus cases.
+The hidden semantic graph and its binding are not exposed as model inputs.
+The model must infer the reusable semantic law from route supervision across corpus cases.
 
 ### 4.5 Leakage constraints
 
@@ -270,7 +275,7 @@ These resources are required for self-contained validation but remain privileged
 | ----------------------- | -------------------------: | ---------------------- | ----------------------------------------------------------- |
 | `topology`              |                        yes | `raster-topology/v1`   | physical traversability and movement                        |
 | `observation_field`     |                        yes | `categorical-field/v1` | visible observation placement                               |
-| `semantic_graph_source` | yes for canonical v1 build | `simple-graph/v1`      | source graph structure for corpus-level hidden semantic law |
+| `semantic_graph_source` | yes for canonical v1 build | `simple-digraph/v1`    | source graph structure for corpus-level hidden semantic law |
 
 ### 6.2 Required topology capabilities
 
@@ -305,7 +310,9 @@ $$
 \beta:N_{\mathrm{sem}}\xrightarrow{\sim} Obs.
 $$
 
-The binding protocol must be explicit and deterministic. It may use a declared mapping, deterministic permutation, or another registered bijective protocol. Matching integer values alone never establish identity.
+The binding protocol must be explicit and deterministic.
+It may use a declared mapping, deterministic permutation, or another registered bijective protocol.
+Matching integer values alone never establish identity.
 
 ### 6.6 Composition procedure
 
@@ -321,7 +328,8 @@ The binding protocol must be explicit and deterministic. It may use a declared m
 
 Routebind v1 defines one semantic graph and one binding as corpus-level task state shared across all splits of a corpus.
 
-Because Dagflow has intrinsic graph splits while the same hidden law is intentionally reused across Routebind splits, the selected Dagflow record is not treated as an example-level same-split parent. Instead, the Routebind builder materializes the chosen graph and binding as corpus-level generated/derived task resources whose exact Dagflow source remains provenance.
+Because Dagflow has intrinsic graph splits while the same hidden law is intentionally reused across Routebind splits, the selected Dagflow record is not treated as an example-level same-split parent.
+Instead, the Routebind builder materializes the chosen graph and binding as corpus-level generated/derived task resources whose exact Dagflow source remains provenance.
 
 This is a deliberate task-law construction, not cross-split derivation of individual task records from a parent example.
 
@@ -351,7 +359,8 @@ $$
 (o,\tilde o)\in E_{\mathrm{obs}}.
 $$
 
-Semantic acceptance has zero physical cost and is optional whenever the condition holds. Merely crossing a position carrying an admissible observation does not update semantic state unless the acceptance transition is taken.
+Semantic acceptance has zero physical cost and is optional whenever the condition holds.
+Merely crossing a position carrying an admissible observation does not update semantic state unless the acceptance transition is taken.
 
 The complete route relation is
 
@@ -369,7 +378,8 @@ $$
 \Pi=(\xi_0,\xi_1,\ldots,\xi_L)
 $$
 
-whose consecutive states follow $E_{\mathrm{route}}$. It is a successful accepting route when it begins at the query's initial state and terminates immediately after accepting $o_{\mathrm{goal}}$ at a position in $C_{\mathrm{goal}}$.
+whose consecutive states follow $E_{\mathrm{route}}$.
+It is a successful accepting route when it begins at the query's initial state and terminates immediately after accepting $o_{\mathrm{goal}}$ at a position in $C_{\mathrm{goal}}$.
 
 Routebind v1 uses simple product-state routes: no joint state $\xi$ may repeat within one valid route.
 
@@ -384,13 +394,17 @@ A candidate query is eligible only when:
 
 ### 7.5 Query distribution and exhaustion
 
-A corpus profile may stratify queries by physical cost, semantic depth, or other task-derived difficulty variables. Such stratification must be explicit. If generation cannot satisfy a required quota under the declared attempt policy, exhaustion is an explicit build failure unless the profile explicitly defines degraded completion semantics.
+A corpus profile may stratify queries by physical cost, semantic depth, or other task-derived difficulty variables.
+Such stratification must be explicit.
+If generation cannot satisfy a required quota under the declared attempt policy, exhaustion is an explicit build failure unless the profile explicitly defines degraded completion semantics.
 
 ## 8. Oracle and target semantics
 
 ### 8.1 Mathematical route set and cost
 
-Let $\mathcal V$ be the complete finite set of valid simple accepting routes for a query. For a route $\Pi$, let $I_{\mathrm{move}}(\Pi)$ denote its physical-transition indexes. Unit physical cost gives
+Let $\mathcal V$ be the complete finite set of valid simple accepting routes for a query.
+For a route $\Pi$, let $I_{\mathrm{move}}(\Pi)$ denote its physical-transition indexes.
+Unit physical cost gives
 
 $$
 C(\Pi)=\left|I_{\mathrm{move}}(\Pi)\right|.
@@ -429,11 +443,13 @@ w_\lambda(\Pi)
 \end{cases}
 $$
 
-Thus all optimal routes have unit route-level weight. The special case $\lambda_{\mathrm{valid}}=0$ gives positive weight only to optimal routes; $\lambda_{\mathrm{valid}}=1$ weights every valid route equally.
+Thus all optimal routes have unit route-level weight.
+The special case $\lambda_{\mathrm{valid}}=0$ gives positive weight only to optimal routes; $\lambda_{\mathrm{valid}}=1$ weights every valid route equally.
 
 ### 8.4 Physical and semantic depth
 
-For $g'\in R(\Pi)$, let $d_R(g',\Pi)$ be the number of physical transitions completed before the first occurrence of $g'$ in $\Pi$. For $g'\in W(\Pi)$, let $d_W(g',\Pi)$ be the number of semantic acceptances completed up to and including the first acceptance at $g'$.
+For $g'\in R(\Pi)$, let $d_R(g',\Pi)$ be the number of physical transitions completed before the first occurrence of $g'$ in $\Pi$.
+For $g'\in W(\Pi)$, let $d_W(g',\Pi)$ be the number of semantic acceptances completed up to and including the first acceptance at $g'$.
 
 ### 8.5 Canonical target fields
 
@@ -471,17 +487,24 @@ f_{\mathrm{wp}}^*(g')
 \right).
 $$
 
-Both fields are defined over $G'$ and take values in $[0,1]$. Non-traversable positions and positions unsupported by any contributing route receive zero. Maximum aggregation prevents target amplitude from depending on route multiplicity.
+Both fields are defined over $G'$ and take values in $[0,1]$.
+Non-traversable positions and positions unsupported by any contributing route receive zero.
+Maximum aggregation prevents target amplitude from depending on route multiplicity.
 
-The corpus channels `target_trajectory` and `target_waypoint` materialize $f_{\mathrm{traj}}^*$ and $f_{\mathrm{wp}}^*$ respectively. Model predictions are denoted $\hat f_{\mathrm{traj}}$ and $\hat f_{\mathrm{wp}}$.
+The corpus channels `target_trajectory` and `target_waypoint` materialize $f_{\mathrm{traj}}^*$ and $f_{\mathrm{wp}}^*$ respectively.
+Model predictions are denoted $\hat f_{\mathrm{traj}}$ and $\hat f_{\mathrm{wp}}$.
 
 ### 8.6 Finite enumeration protocol
 
-The mathematical reference set is $\mathcal V$. A concrete benchmark protocol may impose a deterministic finite enumeration limit. If that limit truncates $\mathcal V$, the enumeration order, retained-subset rule, limit, and truncation status are part of target-generation semantics and corpus identity. Target construction then uses the declared retained set exactly.
+The mathematical reference set is $\mathcal V$.
+A concrete benchmark protocol may impose a deterministic finite enumeration limit.
+If that limit truncates $\mathcal V$, the enumeration order, retained-subset rule, limit, and truncation status are part of target-generation semantics and corpus identity.
+Target construction then uses the declared retained set exactly.
 
 ### 8.7 Privileged oracle information
 
-The route set, per-route costs, $C^*$, hidden semantic graph, graph-observation binding, and target fields are privileged. None is a model input.
+The route set, per-route costs, $C^*$, hidden semantic graph, graph-observation binding, and target fields are privileged.
+None is a model input.
 
 ### 8.8 Oracle correctness
 
@@ -503,7 +526,8 @@ Validation must establish that every retained route is a simple accepting route 
 | `valid_route_count` |         yes | scalar                 | privileged | diagnostic        | number of retained valid routes |
 | `spatial_mask`      | when padded | storage domain         | technical  | mask              | natural-domain membership only  |
 
-The referenced environment entry resolves the public traversability and observation identity needed by the task input. Additional route-enumeration diagnostics may be stored as privileged channels but are not additional canonical outputs.
+The referenced environment entry resolves the public traversability and observation identity needed by the task input.
+Additional route-enumeration diagnostics may be stored as privileged channels but are not additional canonical outputs.
 
 ### 9.2 Shared semantic-law resource
 
@@ -516,13 +540,15 @@ The corpus-local privileged semantic-law resource resolves:
 
 ### 9.3 Natural and storage domains
 
-If heterogeneous natural extents are embedded in a common storage canvas, the corpus must distinguish natural-domain positions, blocked natural-domain positions, traversable natural-domain positions, and storage padding. Padding is outside the natural environment: it is neither a wall nor a traversable state.
+If heterogeneous natural extents are embedded in a common storage canvas, the corpus must distinguish natural-domain positions, blocked natural-domain positions, traversable natural-domain positions, and storage padding.
+Padding is outside the natural environment: it is neither a wall nor a traversable state.
 
 ## 10. Split and sampling semantics
 
 ### 10.1 Environment-level split grouping
 
-Routebind split boundaries are defined at the composed-environment level. All queries generated from the same topology–ObsField environment belong to the same corpus split:
+Routebind split boundaries are defined at the composed-environment level.
+All queries generated from the same topology–ObsField environment belong to the same corpus split:
 
 $$
 \operatorname{environment}(q_i)=\operatorname{environment}(q_j)
@@ -536,15 +562,18 @@ When parent substrates have intrinsic splits, their use must additionally satisf
 
 ### 10.2 Corpus-level semantic law
 
-The hidden $D_{\mathrm{obs}}$ and its $\beta$ binding are shared across the complete Routebind corpus, including train, validation, and test. They are corpus-level task law rather than example-level split-specific target information.
+The hidden $D_{\mathrm{obs}}$ and its $\beta$ binding are shared across the complete Routebind corpus, including train, validation, and test.
+They are corpus-level task law rather than example-level split-specific target information.
 
 ### 10.3 Query sampling
 
-Within each environment, start positions and goal observations are selected under the declared query protocol, subject to task validity ($\mathcal V\neq\varnothing$) and any named difficulty constraints. The reference sampling regime may draw admissible start/goal pairs without replacement within an environment when the eligible set exceeds the corpus budget.
+Within each environment, start positions and goal observations are selected under the declared query protocol, subject to task validity ($\mathcal V\neq\varnothing$) and any named difficulty constraints.
+The reference sampling regime may draw admissible start/goal pairs without replacement within an environment when the eligible set exceeds the corpus budget.
 
 ### 10.4 Additional novelty and balancing
 
-A named corpus may impose stronger novelty constraints or balance by physical cost, semantic depth, topology family, or another declared task property. Such policies must preserve environment-level split grouping and be identity-bearing when they change corpus content.
+A named corpus may impose stronger novelty constraints or balance by physical cost, semantic depth, topology family, or another declared task property.
+Such policies must preserve environment-level split grouping and be identity-bearing when they change corpus content.
 
 ## 11. Determinism and task identity inputs
 
@@ -569,7 +598,8 @@ Every composed topology and ObsField record pair identifies the same ambient pos
 
 ### RB-COMP-002 — Explicit semantic binding
 
-Every semantic node used by Routebind resolves through one declared graph-node-to-observation binding. Equality is never inferred from numeric IDs alone.
+Every semantic node used by Routebind resolves through one declared graph-node-to-observation binding.
+Equality is never inferred from numeric IDs alone.
 
 ### RB-REC-001 — Valid start semantics
 
@@ -593,7 +623,8 @@ For every decoded position $g'$, `target_trajectory` and `target_waypoint` equal
 
 ### RB-ORACLE-004 — Multiplicity semantics
 
-No single route is privileged as the canonical Routebind solution. When several valid routes contribute, maximum aggregation depends on their eligibility, costs, and depths rather than on route multiplicity.
+No single route is privileged as the canonical Routebind solution.
+When several valid routes contribute, maximum aggregation depends on their eligibility, costs, and depths rather than on route multiplicity.
 
 ### RB-ORACLE-005 — Enumeration declaration
 
@@ -605,7 +636,8 @@ The hidden semantic graph and binding required for validation are available as c
 
 ### RB-SPLIT-001 — Declared semantic-law scope
 
-The corpus records whether its semantic graph and binding are shared across splits or split-specific. Routebind v1 default semantics require one corpus-level shared law.
+The corpus records whether its semantic graph and binding are shared across splits or split-specific.
+Routebind v1 default semantics require one corpus-level shared law.
 
 ## 13. Metrics and evaluation semantics
 
@@ -638,7 +670,8 @@ These are representational diagnostics unless a concrete experiment identifies o
 
 ### 13.4 Structural validity precedes field similarity
 
-A low field error does not by itself establish a valid semantic-spatial route. Behavioral structural validity and optimality must remain separately reported.
+A low field error does not by itself establish a valid semantic-spatial route.
+Behavioral structural validity and optimality must remain separately reported.
 
 ## 14. Binding boundary
 

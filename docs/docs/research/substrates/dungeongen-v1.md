@@ -8,18 +8,13 @@ document_status: draft
 
 ## Normative summary
 
-`dungeongen/v1` defines reusable, procedurally generated irregular raster
-topologies for downstream task-corpus construction.
+`dungeongen/v1` defines reusable, procedurally generated irregular raster topologies for downstream task-corpus construction.
 
-One record represents one accepted and normalized procedural topology
-realization conforming to `raster-topology/v1`. DungeonGen defines how such a
-topology is generated, converted, accepted, and provenanced. The shared
-`raster-topology/v1` contract defines how tasks read and interpret the resulting
-topology.
+One record represents one accepted and normalized procedural topology realization conforming to `raster-topology/v1`.
+DungeonGen defines how such a topology is generated, converted, accepted, and provenanced.
+The shared `raster-topology/v1` contract defines how tasks read and interpret the resulting topology.
 
-DungeonGen does not contain observation assignments, starts, goals, paths,
-solutions, trajectories, targets, rewards, task splits, or model-facing
-encodings.
+DungeonGen does not contain observation assignments, starts, goals, paths, solutions, trajectories, targets, rewards, task splits, or model-facing encodings.
 
 ## Scope and boundary
 
@@ -40,21 +35,6 @@ DungeonGen defines:
 - duplicate-topology policy;
 - family-specific validation of generation and conversion provenance.
 
-### Excluded semantics
-
-DungeonGen does not define:
-
-- observation vocabularies, observation IDs, or sensory realizations;
-- task starts, goals, paths, or solutions;
-- Arena walks or replay records;
-- Prospect bindings, acquisition histories, queries, or targets;
-- MazeHard problem instances;
-- task-level `STAY` semantics;
-- training, validation, or test corpus composition;
-- tensor padding, tokenization, batching, or model inputs;
-- generic artifact manifests, digests, fingerprints, lifecycle, reuse, or
-  publication.
-
 ## Canonical identity and conformance
 
 | Property                | Required value       |
@@ -69,8 +49,7 @@ A conforming release satisfies:
 
 1. the generic framework `SubstrateArtifact` contract;
 2. the complete `raster-topology/v1` contract;
-3. every applicable DungeonGen-specific requirement and invariant in this
-   specification.
+3. every applicable DungeonGen-specific requirement and invariant in this specification.
 
 A concrete release uses:
 
@@ -84,26 +63,20 @@ The release number is independent of the `v1` specification version.
 
 ### Raw candidate
 
-A raw candidate is one output of the declared procedural generator before
-EHP-SN conversion, component selection, acceptance, and normalization.
+A raw candidate is one output of the declared procedural generator before EHP-SN conversion, component selection, acceptance, and normalization.
 
-A raw candidate may contain generator-specific geometry, internal padding,
-unstable room identifiers, door objects, corridor labels, or other
-implementation-specific state. It is not yet a public DungeonGen record.
+A raw candidate may contain generator-specific geometry, internal padding, unstable room identifiers, door objects, corridor labels, or other implementation-specific state.
+It is not yet a public DungeonGen record.
 
 ### Converted candidate
 
-A converted candidate is the raster passability interpretation obtained from a
-raw candidate under the declared conversion policy.
+A converted candidate is the raster passability interpretation obtained from a raw candidate under the declared conversion policy.
 
-The conversion policy must define how all generator-specific spatial concepts
-map to passable or non-passable raster positions and which source padding is
-non-semantic.
+The conversion policy must define how all generator-specific spatial concepts map to passable or non-passable raster positions and which source padding is non-semantic.
 
 ### Accepted topology realization
 
-An accepted topology realization is the normalized raster topology remaining
-after:
+An accepted topology realization is the normalized raster topology remaining after:
 
 1. raw generation;
 2. conversion;
@@ -115,18 +88,15 @@ The resulting record conforms to `raster-topology/v1`.
 
 ### Topology realization identity
 
-A topology realization has an identity independent of any observation field or
-task case. The same DungeonGen record may be referenced by multiple ObsField
-realizations and multiple processed corpora.
+A topology realization has an identity independent of any observation field or task case.
+The same DungeonGen record may be referenced by multiple ObsField realizations and multiple processed corpora.
 
 ### Region annotation
 
-A region annotation is an optional reusable categorical partition or labeling
-of valid topology states.
+A region annotation is an optional reusable categorical partition or labeling of valid topology states.
 
-A region channel is permitted only when its meaning is defined by a stable
-region schema. Generator-internal room numbers are not public substrate
-semantics merely because they exist during generation.
+A region channel is permitted only when its meaning is defined by a stable region schema.
+Generator-internal room numbers are not public substrate semantics merely because they exist during generation.
 
 ## Unit of record and variant model
 
@@ -168,12 +138,9 @@ DungeonGen v1 initially defines one variant:
 | --------- | ------------------------------------------------------------------------------------------------------------------- |
 | `general` | Irregular raster topologies produced under explicitly declared generation, conversion, and acceptance configuration |
 
-Size limits, density settings, room preferences, and downstream adapter bounds
-are configuration or presets under `general` unless they define a durable
-consumer-visible structural class.
+Size limits, density settings, room preferences, and downstream adapter bounds are configuration or presets under `general` unless they define a durable consumer-visible structural class.
 
-Names derived from tasks or models, such as `routebind-30`, are not canonical
-DungeonGen variants.
+Names derived from tasks or models, such as `routebind-30`, are not canonical DungeonGen variants.
 
 ## Shared topology interface
 
@@ -199,22 +166,17 @@ DungeonGen must not redefine those semantics.
 
 ### Required shared capabilities
 
-DungeonGen v1 records declare or satisfy:
+`topology_kind`, `coordinate_system`, `movement_kind`, `directed`, `edge_cost_kind`, and `stay_included` are fixed by `raster-topology/v1` itself (see that contract's § "Fixed schema parameters") and are not redeclared here.
+
+DungeonGen v1 records declare or satisfy the remaining, genuinely producer-varying capabilities:
 
 ```text
-topology_kind: raster
-coordinate_system: row-column
-movement_kind: grid4
-directed: false
-edge_cost_kind: unit
-stay_included: false
 connected: true
 component_count: 1
 ```
 
-The shared schema treats normalized raster passability as the authoritative
-structural representation. Compact states and movement tables are canonical
-derived views.
+The shared schema treats normalized raster passability as the authoritative structural representation.
+Compact states and movement tables are canonical derived views.
 
 ### Optional family extension: `region_id`
 
@@ -233,14 +195,11 @@ When present:
 
 ### Generator dependency
 
-A conforming release identifies the exact procedural generator dependency by
-immutable revision, source digest, package artifact, or equivalent stable
-coordinate.
+A conforming release identifies the exact procedural generator dependency by immutable revision, source digest, package artifact, or equivalent stable coordinate.
 
 A mutable package name or local import path is insufficient.
 
-The generator is a reference production dependency, not the public task-facing
-interface.
+The generator is a reference production dependency, not the public task-facing interface.
 
 ### Conversion policy
 
@@ -258,15 +217,13 @@ The conversion policy must define:
 
 ### Component-selection policy
 
-DungeonGen v1 uses an explicit largest-component conversion policy unless a
-release declares another compatible policy.
+DungeonGen v1 uses an explicit largest-component conversion policy unless a release declares another compatible policy.
 
 Under the standard policy:
 
 1. identify all four-connected passable components in the converted candidate;
 2. select the component with greatest cell count;
-3. when tied, select the component whose lexicographically smallest
-   `(row, column)` coordinate is smallest;
+3. when tied, select the component whose lexicographically smallest `(row, column)` coordinate is smallest;
 4. discard all other passable components;
 5. normalize the retained topology according to the conversion policy;
 6. evaluate acceptance criteria on the retained normalized topology.
@@ -275,8 +232,7 @@ Component selection is an identity-bearing transformation, not hidden repair.
 
 ### Acceptance policy
 
-The resolved acceptance policy defines every condition capable of rejecting a
-normalized candidate, including any:
+The resolved acceptance policy defines every condition capable of rejecting a normalized candidate, including any:
 
 - minimum or maximum state count;
 - natural-extent bounds;
@@ -286,13 +242,11 @@ normalized candidate, including any:
 - required region availability;
 - topology-quality thresholds.
 
-Approximate observed generator ranges are descriptive and must not be treated
-as hard requirements unless represented by exact acceptance fields.
+Approximate observed generator ranges are descriptive and must not be treated as hard requirements unless represented by exact acceptance fields.
 
 ### Retry and exhaustion
 
-For logical topology index `i`, the generator evaluates a deterministic
-candidate stream indexed by retry attempt `a`.
+For logical topology index `i`, the generator evaluates a deterministic candidate stream indexed by retry attempt `a`.
 
 The protocol must define:
 
@@ -303,8 +257,8 @@ The protocol must define:
 - exhaustion behavior;
 - the accepted-attempt lineage recorded for the final record.
 
-Exhaustion fails the logical realization explicitly. The builder must not
-silently substitute another realization index.
+Exhaustion fails the logical realization explicitly.
+The builder must not silently substitute another realization index.
 
 ### Record-addressable determinism
 
@@ -330,8 +284,7 @@ The protocol must guarantee:
 - fixed semantic inputs and dependency revision reproduce the same normalized
   topology.
 
-The specification does not require a particular RNG library unless the
-referenced generator protocol requires one for exact reproducibility.
+The specification does not require a particular RNG library unless the referenced generator protocol requires one for exact reproducibility.
 
 ### Duplicate-topology policy
 
@@ -368,13 +321,12 @@ collection and, for `reject-exact`, retry behavior.
 | `topology.duplicate_policy` | enum                                | required     | `allow` or `reject-exact`               |                         Yes |
 | `region.policy`             | policy reference                    | optional     | Optional reusable region derivation     |            Yes when present |
 
-DungeonGen does not impose intrinsic `train`, `validation`, or `test` splits by
-default. Task corpora own experimental split composition.
+DungeonGen does not impose intrinsic `train`, `validation`, or `test` splits by default.
+Task corpora own experimental split composition.
 
 ### Operational configuration
 
-Worker count, logging, progress reporting, cache location, and temporary paths
-are operational and must not alter topology content.
+Worker count, logging, progress reporting, cache location, and temporary paths are operational and must not alter topology content.
 
 ### Family-specific identity inputs
 
@@ -395,8 +347,7 @@ DungeonGen contributes:
 - base seed;
 - requested record count.
 
-The framework remains authoritative for build-input identity, artifact
-fingerprints, release reuse, conflicts, staging, and publication.
+The framework remains authoritative for build-input identity, artifact fingerprints, release reuse, conflicts, staging, and publication.
 
 ## Framework contract instantiation
 
@@ -412,49 +363,42 @@ fingerprints, release reuse, conflicts, staging, and publication.
 | Optional extension             | Declared `region_id` schema                                                                     |
 | Intrinsic experimental splits  | None by default                                                                                 |
 
-Generator profile and conversion policy should be artifact-level descriptors
-when homogeneous across the release. Per-record materialization is required
-only for values that actually vary between records.
+Generator profile and conversion policy should be artifact-level descriptors when homogeneous across the release.
+Per-record materialization is required only for values that actually vary between records.
 
-Accepted-attempt identity belongs to record lineage or validation metadata, not
-the common topology payload.
+Accepted-attempt identity belongs to record lineage or validation metadata, not the common topology payload.
 
 ## Family-specific invariants and validation
 
-Common raster, compact-state, movement, and capability invariants are owned by
-`raster-topology/v1` and are not duplicated here.
+Common raster, compact-state, movement, and capability invariants are owned by `raster-topology/v1` and are not duplicated here.
 
 ### DG-REC-001 — Declared production identity
 
-Every record resolves to the artifact's declared generator dependency,
-protocol, profile, conversion policy, acceptance policy, and randomness
+Every record resolves to the artifact's declared generator dependency, protocol, profile, conversion policy, acceptance policy, and randomness
 policy.
 
 ### DG-REC-002 — Canonical component selection
 
-The committed passability raster is exactly the normalized component selected
-from the accepted raw candidate by the declared component-selection policy.
+The committed passability raster is exactly the normalized component selected from the accepted raw candidate by the declared component-selection policy.
 
 ### DG-REC-003 — Acceptance conformance
 
-The accepted normalized topology satisfies every configured acceptance
-requirement.
+The accepted normalized topology satisfies every configured acceptance requirement.
 
 ### DG-REC-004 — Retry lineage
 
-The accepted-attempt index lies within the configured attempt budget. Every
-prior attempt for the same logical topology index is rejected under the same
+The accepted-attempt index lies within the configured attempt budget.
+Every prior attempt for the same logical topology index is rejected under the same
 declared policy.
 
 ### DG-REC-005 — Region extension validity
 
-When `region_id` is present, it conforms to the declared region schema. When no
-stable region semantics are declared, the channel is absent.
+When `region_id` is present, it conforms to the declared region schema.
+When no stable region semantics are declared, the channel is absent.
 
 ### DG-REC-006 — Observation exclusion
 
-No public DungeonGen record channel assigns an environmental observation to a
-state.
+No public DungeonGen record channel assigns an environmental observation to a state.
 
 ### DG-ART-001 — Record identity uniqueness
 
@@ -466,19 +410,16 @@ The artifact contains exactly the configured number of topology records.
 
 ### DG-ART-003 — Duplicate-policy conformance
 
-The record collection and retry history conform to the declared duplicate
-policy. Exact duplicates are reported under `allow` and absent under
-`reject-exact`.
+The record collection and retry history conform to the declared duplicate policy.
+Exact duplicates are reported under `allow` and absent under `reject-exact`.
 
 ### DG-ART-004 — Prefix and parallel stability
 
-Reproduction checks establish that record content for existing logical indexes
-is stable under increased requested counts and different worker counts.
+Reproduction checks establish that record content for existing logical indexes is stable under increased requested counts and different worker counts.
 
 ### Validation requirements
 
-Full validation operates on committed topology resources and production
-lineage, not only on generator runtime objects.
+Full validation operates on committed topology resources and production lineage, not only on generator runtime objects.
 
 Diagnostics should identify:
 
@@ -505,8 +446,7 @@ A new release may change:
 - duplicate policy;
 - optional region configuration.
 
-It remains `dungeongen/v1` when one record still means one normalized
-procedural raster topology and all shared topology semantics remain compatible.
+It remains `dungeongen/v1` when one record still means one normalized procedural raster topology and all shared topology semantics remain compatible.
 
 ### New specification version
 
@@ -522,24 +462,17 @@ A new specification version is required for incompatible changes to:
 
 ### Downstream use
 
-Tasks and ObsField consume DungeonGen through `raster-topology/v1` and must not
-require family-specific metadata for ordinary traversal.
+Tasks and ObsField consume DungeonGen through `raster-topology/v1` and must not require family-specific metadata for ordinary traversal.
 
-Family identity may still be used as an explicit experimental selection
-criterion.
+Family identity may still be used as an explicit experimental selection criterion.
 
-Downstream consumers must not treat accepted-attempt indexes, generator seeds,
-or generator-internal labels as model inputs or topology features.
+Downstream consumers must not treat accepted-attempt indexes, generator seeds, or generator-internal labels as model inputs or topology features.
 
 ## Open issues
 
-- [`raster-topology/v1`](../../framework/contracts/topology/raster-topology-v1.md) now exists but remains
-  `draft`; DungeonGen cannot move from `draft` to `specified` until that
-  shared schema does.
-- Stable reusable room, corridor, and door region semantics remain unverified;
-  `region_id` therefore remains optional.
-- Exact generator dependency and reference protocol must be fixed against the
-  implementation selected for the first release.
+- [`raster-topology/v1`](../../framework/contracts/topology/raster-topology-v1.md) now exists but remains `draft`; DungeonGen cannot move from `draft` to `specified` until that shared schema does.
+- Stable reusable room, corridor, and door region semantics remain unverified; `region_id` therefore remains optional.
+- Exact generator dependency and reference protocol must be fixed against the implementation selected for the first release.
 
 ## Related specifications
 

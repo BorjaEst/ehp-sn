@@ -194,6 +194,9 @@ Those filenames are conventional, not semantic. The manifest identifies the auth
 A physical `splits/` directory is permitted and is the default local organization, but it is not required by the framework contract.
 Split membership and split-owned payloads are declared by the manifest and index.
 
+The artifact index provides access to logical records, but the generic per-record identity/envelope contract is not yet specified.
+See [Contracts](contracts/index.md) § "Per-record identity and record envelope — deferred".
+
 ## Manifest, configuration, and provenance authority
 
 The dedicated framework documents define generic manifest, identity, digest, and provenance semantics.

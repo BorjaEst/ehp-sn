@@ -37,22 +37,6 @@ The ambient spatial domain, observation field, vocabulary, and logical record sc
 
 ### Excluded semantics
 
-This specification does not define:
-
-- walls, blocked positions, corridors, or irregular traversability;
-- compact topology-state identifiers;
-- topology edges or action-conditioned transitions;
-- references to topology artifacts or topology records;
-- task trajectories or experienced-observation sequences;
-- starts, current states, goals, solutions, or terminal task conditions;
-- task queries, rewards, supervision, or targets;
-- hidden semantic structures or task-owned bindings;
-- train, validation, or test composition;
-- model tokens, tensors, masks, batches, or padding;
-- generic artifact manifests, digests, lifecycle, publication, or reuse;
-- CLI option spelling or configuration precedence;
-- repository-local staging or cleanup paths.
-
 Observation values assigned to positions that are blocked by a subsequently selected topology are valid ObsField content.
 They are simply unused in that composition.
 
@@ -395,7 +379,7 @@ ObsField v1 remains `draft` until the following are finalized:
 ## Related specifications
 
 - [`Substrates`](index.md)
-- [`Categorical field v1`](../../framework/contracts/observations/categorical-field-v1.md)
+- [`Categorical observation field v1`](../../framework/contracts/observations/categorical-field-v1.md)
 - [`Ambient spatial domain v1`](../../framework/contracts/domains/ambient-domain-v1.md)
 - [`Data artifacts`](../../framework/data-artifacts.md)
 - [`Manifests`](../../framework/manifests.md)
