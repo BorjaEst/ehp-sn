@@ -21,22 +21,21 @@ This section contains `ehp_sn`-owned standard scientific data contracts: produce
        ↑ producers                                consumers ↓
 
     substrate builders                         task builders
-    (any package, including                    (any package, including
-     ehp_research/research/substrates/)         ehp_research/research/tasks/)
+    (any conforming package)                    (any conforming package)
 ```
 
-A contract defines the object represented, its authoritative and derived representations, and a capability vocabulary producers declare and consumers require.
-It does not define which package or family produces it, or which task consumes it — that coupling is deliberately absent.
-No framework contract normatively depends on or derives its semantics from a concrete research component.
-`ehp_research → ehp_sn` is the only dependency direction; a contract must remain meaningful if `ehp_research` did not exist.
+A contract defines one reusable semantic object, its authoritative representation and any canonical derived views, its logical schema, invariants, composition boundary, and any compatibility properties that consumers may constrain.
+It does not define which package or family produces it, or which task consumes it — that coupling is deliberately absent, and no contract here imports or references a concrete `ehp_research` component.
+`ehp_research → ehp_sn` is the only dependency direction.
+No contract may normatively depend on, derive semantics from, or require a concrete `ehp_research` component; every contract must remain meaningful if `ehp_research` did not exist.
 
-Compatibility is checked through schema ID plus declared/required capabilities.
-Today this reuses the mechanism [Resource requirements](../../interfaces/configuration/resource-requirements.md) already defines generically (accepted schema IDs plus, where schema equality alone is insufficient, a package-owned compatibility validator).
-See "Compatibility mechanism" below for the planned generic form.
+Compatibility currently reuses the [Resource requirements](../../interfaces/configuration/resource-requirements.md) schema-ID-plus-validator integration surface.
+The intended producer-guarantee, consumer-requirement, property-scope, and deterministic matching model is deferred to the framework compatibility specification; see "Compatibility mechanism" below.
 
 ## Documentation boundary
 
-A contract specification defines the object represented and its unit of record, the authoritative representation versus any canonical derived views, the capability vocabulary, the logical record schema independent of physical serialization, schema-level invariants that hold for every conforming record regardless of producer, and compatibility/evolution rules for the schema itself — not generic artifact manifests, digests, lifecycle, publication, or reuse, which the rest of this framework reference already owns.
+A contract specification defines the object represented and its unit of record, authoritative content versus canonical derived views, the logical record schema independent of physical serialization, schema-fixed and derived compatibility properties, schema-level invariants, composition boundaries, and evolution rules.
+It does not redefine generic artifact manifests, digests, lifecycle, publication, reuse, or generic record-envelope semantics.
 
 ## When a concept becomes a contract here
 
@@ -54,17 +53,98 @@ Having a second producer or consumer is useful _evidence_ toward points 2 and 3;
 A schema whose current guarantees are narrower than its name implies should be named for what it actually guarantees (for example, `categorical-field/v1`, not a generic `observation-field/v1` that would misleadingly suggest it covers continuous, multimodal, or partial observation structures too).
 A broader or different structure gets its own, separately named contract rather than becoming a "variant" of an existing one.
 
+## Contract document structure
+
+Every contract in this section must address the following normative concerns in this order.
+The structure standardizes semantic authority and document navigation; it must not be expanded with boilerplate solely for symmetry.
+
+```text
+## Normative summary
+
+## Scope and boundary
+### Owned semantics
+### Excluded semantics
+
+## Canonical identity and conformance
+
+## Conceptual model
+### <contract-specific subsections>
+
+## Logical record schema
+### <contract-specific subsections>
+
+## Properties and compatibility surface
+### Fixed schema properties              # when applicable
+### Derived compatibility properties     # when applicable
+
+## Invariants and validation
+### Record invariants
+#### XX-REC-001 — ...
+#### XX-REC-002 — ...
+### Validation requirements
+
+## Compatibility and composition boundary
+### Compatibility requirements
+### Composition rules                    # when applicable
+
+## Evolution
+### Compatible changes
+### Breaking changes
+
+## Related specifications
+```
+
+`Conceptual model` and `Logical record schema` may use contract-specific subsection names because the represented objects genuinely differ.
+`Fixed schema properties`, `Derived compatibility properties`, and `Composition rules` are optional when they do not apply.
+
+`Record invariants`, `Validation requirements`, `Compatibility requirements`, `Compatible changes`, and `Breaking changes` use those exact subsection names in every contract.
+
+An `Artifact invariants` subsection is permitted only when the scientific contract itself owns an artifact-level invariant.
+Generic artifact lifecycle, record addressing, record-ID uniqueness, index semantics, and record-envelope behavior must not be introduced here merely because a concrete artifact needs them.
+
+Across those sections, every contract must:
+
+- define exactly one reusable semantic object;
+- identify authoritative semantic content and distinguish canonical derived views where they exist;
+- define content equality or identity-bearing semantic inputs where meaningful;
+- provide a complete logical representation rather than only physical channels;
+- remain independent of physical serialization;
+- distinguish schema-fixed properties from derived compatibility properties;
+- avoid encoding producer guarantee scope, consumer requirement representation, or matching algorithms before the framework compatibility specification defines them;
+- avoid redefining generic artifact, index, or record-envelope semantics;
+- state its compatibility and composition boundary explicitly;
+- state compatible and breaking contract changes separately;
+- remain meaningful without any concrete producer, consumer, task, substrate family, or `ehp_research` package.
+
+The following headings are not used as contract-level substitutes for the canonical structure:
+
+- `Downstream use`;
+- `Task-owned validation`;
+- `New release under a producing family`;
+- `New specification version of this schema`.
+
+Their legitimate content belongs under `Compatibility requirements`, `Composition rules`, `Compatible changes`, or `Breaking changes`.
+
 ## Compatibility mechanism
 
-`ehp_sn` will define a generic producer–consumer compatibility contract for reusable scientific data schemas.
-The mechanism will support canonical contract/schema references, producer-declared capabilities, consumer-required capabilities, and deterministic conformance validation.
-The exact public type decomposition and serialization are deferred until the framework compatibility specification is written.
+`ehp_sn` will define a generic producer–consumer compatibility model for reusable scientific data contracts.
+The intended model must support:
 
-Until that specification exists, a contract in this section states its capability vocabulary in its own "Capabilities" section, and binding is described informally in terms of the existing [Resource requirements](../../interfaces/configuration/resource-requirements.md) schema-ID-plus-validator mechanism.
-No contract here should be read as implying that `ContractRef`, `CapabilityDeclaration`, or `CapabilityRequirement` already exist as public types.
+- canonical contract/schema references;
+- producer guarantees over contract-defined properties;
+- consumer requirements over those properties;
+- explicit scope for artifact-wide guarantees versus per-record values;
+- deterministic conformance and compatibility validation;
+- integration with `ResourceRequirement` binding and validation.
 
-Today's capability tables also do not yet distinguish schema invariants (fixed by the schema itself), producer/artifact-wide guarantees, and per-record properties (for example, a value declared `record-dependent`) — nor do they define what a consumer's requirement means when checked against an artifact whose records vary on that property.
-Both distinctions are part of what the future compatibility specification defines; a contract's current "Compatibility holds when..." sentence is an informal placeholder, not a final conformance algorithm.
+The exact public type decomposition, serialization, guarantee-scope representation, requirement language, and compatibility-result model are intentionally deferred until the framework compatibility specification is written.
+
+Until that specification exists:
+
+- a contract defines only schema-fixed properties and the scientific meaning/value domain of derived compatibility properties;
+- values such as `record-dependent`, `derived`, or `not-applicable` must not be used to encode guarantee scope when the underlying mathematical property has an ordinary value;
+- [Resource requirements](../../interfaces/configuration/resource-requirements.md) remains the provisional operational integration surface through accepted schema IDs and package-owned compatibility validators;
+- no contract here implies that public types such as `ContractRef`, `CapabilityDeclaration`, or `CapabilityRequirement` already exist.
 
 ## Per-record identity and record envelope — deferred
 
@@ -83,13 +163,11 @@ They must not define global identity semantics, hashing rules, cross-artifact eq
 | `categorical-field/v1` | [`observations/categorical-field/v1`](observations/categorical-field-v1.md) |
 | `simple-digraph/v1`    | [`relations/simple-digraph/v1`](relations/simple-digraph-v1.md)             |
 
-The table registers specification work, not concrete artifact releases.
-Current producers and consumers are documented in each research substrate/task's own specification, not duplicated here.
+The table registers framework contract specifications, not concrete artifact releases or producing families.
+Concrete producers and consumers declare their relationships to these contracts downstream; those relationships are not part of the contracts' normative authority.
 
 ## Related specifications
 
 - [`Framework reference`](../index.md)
-- [`Substrates`](../../research/substrates/index.md) — families that produce records conforming to these contracts
-- [`Tasks`](../../research/tasks/index.md) — tasks that require records conforming to these contracts
-- [`Resource requirements`](../../interfaces/configuration/resource-requirements.md) — the schema-ID-plus-capability compatibility mechanism
+- [`Resource requirements`](../../interfaces/configuration/resource-requirements.md) — the provisional schema-ID-plus-validator integration surface
 - [`Data artifacts`](../data-artifacts.md)
