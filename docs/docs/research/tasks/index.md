@@ -169,22 +169,35 @@ Prospect
 
 Routebind and Prospect should use matched oracle semantics so that their principal difference is the source of environment-specific spatial information rather than a different definition of correctness.
 
-## Task and binding boundary
+## Task, adapter, and binding boundary
 
-A task defines semantic inputs and outputs.
-A binding maps those semantics to one model family.
+A task defines a task-data interface and a prediction interface (`docs/docs/framework/adapters.md`).
+An `InputAdapter` maps the task-data interface to one model's model-input interface; an
+`OutputAdapter` maps that model's model-output interface back to the task's prediction interface.
+The task, the model, and one configured `InputAdapter`/`OutputAdapter` pair together form the
+resolved binding.
 
-Bindings may own:
+`InputAdapter`s may own:
 
 - flattening and tokenization;
 - model-native dtypes and batch dimensions;
-- padding tensors;
-- recurrent unrolling;
-- memory-object decoding;
-- decoder/logit layout;
-- integration modules and binding-specific losses.
+- padding tensors and masks.
 
-Bindings must not change:
+`OutputAdapter`s may own:
+
+- decoder/logit layout;
+- memory-object decoding;
+- unpadding and reshaping.
+
+Recurrent unrolling and integration-specific losses belong to the experiment's training protocol,
+not to either adapter — they wire model-internal execution or training signals rather than
+transform a representation between two interfaces.
+
+A value already determined by the task's or model's own interface is not independently authored
+in adapter configuration; it is read from that interface or derived from it
+(`docs/invariants.md` `ADAPT-003`).
+
+The resolved binding must not change:
 
 - which information is public or withheld;
 - target meaning;
@@ -193,7 +206,7 @@ Bindings must not change:
 - split semantics;
 - metric meaning.
 
-Consequently, particular token IDs, ignore-label integers, model-native memory layouts, and concrete loss weighting belong to bindings or named reproduction profiles unless a task specification explicitly makes them part of the scientific problem.
+Consequently, particular token IDs, ignore-label integers, model-native memory layouts, and concrete loss weighting belong to adapters, the experiment's training protocol, or named reproduction profiles unless a task specification explicitly makes them part of the scientific problem.
 A fixed spatial size may belong to a named benchmark reproduction profile even when the task family itself admits other compatible extents.
 
 ## Task and experiment boundary
@@ -230,4 +243,4 @@ The four tasks in this section remain `draft` until their shared dependencies an
 - [`ObsField v1`](../substrates/obsfield-v1.md)
 - [`Dagflow v1`](../substrates/dagflow-v1.md)
 - [`Contracts`](../../framework/contracts/index.md)
-- framework task/model/binding contracts
+- [`Adapters`](../../framework/adapters.md)

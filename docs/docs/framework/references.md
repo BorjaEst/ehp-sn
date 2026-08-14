@@ -20,15 +20,21 @@ A canonical reference has the form:
 
 Where:
 
-- `kind` identifies the component or resource category (`task`, `model`, `binding`, `experiment`, `artifact`, `requirement`, `analysis`);
+- `kind` identifies the component or resource category (`task`, `model`, `input-adapter`, `output-adapter`, `binding`, `experiment`, `artifact`, `requirement`, `analysis`);
 - `name` is a unique identifier within the kind namespace and may contain internal path separators (for example, a release coordinate such as `arena-corpus/default`);
-- `v<N>` is the specification version for component kinds (`task`, `model`, `binding`, `experiment`, `analysis`), or the release number for release-coordinate kinds (`artifact`, `requirement`) whose targets are substrates or task corpora.
+- `v<N>` is the specification version for component kinds (`task`, `model`, `input-adapter`, `output-adapter`, `binding`, `experiment`, `analysis`), or the release number for release-coordinate kinds (`artifact`, `requirement`) whose targets are substrates or task corpora.
+
+A `binding` reference denotes a resolved composition — one task, one model, and their configured
+`input-adapter`/`output-adapter` pair — rather than an independently specified component; see
+[Adapters](adapters.md).
 
 Examples:
 
 ```text
 task:arena/v1
 model:tem/v1
+input-adapter:categorical-spatial-encoder/v1
+output-adapter:spatial-classification-decoder/v1
 binding:arena-tem/v1
 experiment:arena-tem/v1
 artifact:arena-corpus/default/v1
@@ -70,5 +76,6 @@ A canonical reference is a logical identity. It is portable across processes and
 
 ## Related documents
 
+- [Adapters](adapters.md)
 - [Compatibility](compatibility.md)
 - [Identity](identity.md)

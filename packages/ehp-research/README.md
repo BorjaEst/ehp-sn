@@ -43,7 +43,7 @@ This README provides package orientation and a catalogue overview. Exact scienti
 - reusable spatial and relational substrates;
 - navigation and structural-reasoning tasks;
 - TEM, HRM, and integrated EHP model families;
-- task–model bindings;
+- resolved task–model bindings, composed from `ehp_sn` adapters;
 - objectives and research metrics;
 - scientific analyses;
 - reusable experiment definitions;
@@ -61,8 +61,11 @@ task
 model
     model-native computation
 
+adapter
+    task ↔ model representation transformation (ehp_sn, when generic)
+
 binding
-    task ↔ model representation and integration
+    resolved task+model+adapter composition (assembled by the experiment)
 
 experiment
     reusable scientific composition
@@ -128,7 +131,7 @@ Catalogue status should be derived or mechanically validated from the authoritat
 
 Models define model-native architecture, state, memory, and inference semantics.
 
-Bindings connect task families to model families and own integration-specific representation logic.
+A binding is the resolved, validated connection of one task and one model, formed by one configured `InputAdapter` and one configured `OutputAdapter`. The generic adapter contracts live in `ehp_sn`; a concrete resolved binding is assembled by an experiment.
 
 Typical research families include:
 
@@ -136,9 +139,9 @@ Typical research families include:
 - HRM;
 - integrated EHP models.
 
-Bindings may cover combinations such as Arena–TEM or Routebind–EHP as those specifications are defined.
+Resolved bindings may cover combinations such as Arena–TEM or Routebind–EHP as those specifications are defined.
 
-Exact model, binding, compatibility, and maturity information belongs in the corresponding research specifications rather than this README.
+Exact model, adapter, binding, compatibility, and maturity information belongs in the corresponding research and framework specifications rather than this README.
 
 ## Experiments
 
@@ -189,7 +192,6 @@ ehp_research/
 ├── substrates/
 ├── tasks/
 ├── models/
-├── bindings/
 ├── controllers/
 ├── objectives/
 ├── metrics/

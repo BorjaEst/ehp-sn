@@ -45,7 +45,7 @@ EHP-SN is developed specification-first. READMEs provide orientation and example
 
 Its responsibilities include:
 
-- generic Task, Model, Binding, Experiment, and request contracts;
+- generic Task, Model, Adapter, Binding, Experiment, and request contracts;
 - resource requirements and configuration resolution;
 - training, evaluation, analysis, and reporting orchestration;
 - generated-data and task-corpus contracts;
@@ -64,7 +64,7 @@ It includes:
 - task-neutral substrates;
 - navigation and structural-reasoning tasks;
 - TEM, HRM, and integrated EHP model families;
-- task–model bindings;
+- resolved task–model bindings, composed from framework adapters;
 - objectives, metrics, and analyses;
 - reusable experiment definitions;
 - research-specific study definitions.
@@ -158,6 +158,7 @@ Concrete executable examples should be taken from the corresponding interface an
 flowchart TB
     subgraph Framework["ehp_sn"]
         contracts["Contracts"] ~~~
+        adapters["Adapters"] ~~~
         execution["Execution"] ~~~
         artifacts["Artifacts"] ~~~
         config["Configuration"]~~~

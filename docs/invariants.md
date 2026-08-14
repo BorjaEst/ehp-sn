@@ -90,7 +90,7 @@ A committed scientific data release coordinate must never be rebound to differen
 
 A new intentional content identity requires a new release coordinate.
 
-## Tasks and bindings
+## Tasks, adapters, and bindings
 
 ### TASK-001 — Task ownership
 
@@ -106,11 +106,33 @@ Tasks own:
 - validity;
 - task-level metrics.
 
+### ADAPT-001 — Adapter genericity
+
+An `InputAdapter` or `OutputAdapter` must be expressible entirely in terms of its declared source interface, target interface, and resolved configuration.
+
+It must not branch on concrete task or model identity.
+
+### ADAPT-002 — Adapter direction boundary
+
+An `InputAdapter` must not change the task information boundary or introduce privileged information.
+
+An `OutputAdapter` must not perform oracle repair or task-level scoring.
+
+### ADAPT-003 — Single parameter ownership
+
+A semantic parameter has one authoritative owner: the task, the model, or an adapter's own
+authored configuration. Another component may constrain or derive a value from that owner but
+must not independently author the same fact.
+
+An `AdapterDefinition` must not declare authored configuration for a value already determined by
+the resolved task-data, task-prediction, model-input, or model-output interface; such a value
+must be declared derived and computed from those interfaces during resolution.
+
 ### BIND-001 — Binding boundary
 
-Bindings may adapt task semantics to model-native representations.
+A Binding is the resolved composition of one task, one model, one configured `InputAdapter`, and one configured `OutputAdapter`.
 
-Bindings must not change:
+That composition must not change:
 
 - public versus withheld information;
 - task truth;
@@ -246,36 +268,39 @@ The following are not sufficient verification:
 `manual` means the invariant is currently checked only by review.
 `none` means no check exists yet and one should be added when the invariant is next relied upon.
 
-| ID         | Observable check                                                                                                   | State  |
-| ---------- | ------------------------------------------------------------------------------------------------------------------ | ------ |
-| ARCH-001   | dependency declarations in `packages/ehp-sn/pyproject.toml`; no `ehp_research` import under `packages/ehp-sn/src/` | none   |
-| ARCH-002   | no two `authority: normative` specifications declare the same component reference                                  | none   |
-| ARCH-003   | framework source contains no import of a concrete research package by name; duplicate registration raises          | none   |
-| DATA-001   | substrate schemas expose no task-only query, target, episode, reward, or metric field                              | manual |
-| DATA-002   | substrate identity inputs exclude downstream task composition                                                      | manual |
-| DATA-003   | parent selection is reproducible from resolved configuration                                                       | manual |
-| DATA-004   | committed corpus loads and validates with parent artifacts absent                                                  | none   |
-| DATA-005   | shared research contracts remain under `packages/ehp-research/src/`                                                | none   |
-| DATA-006   | a committed release coordinate never resolves to changed content                                                   | none   |
-| TASK-001   | task-owned semantics are absent from substrate specifications and implementations                                  | manual |
-| BIND-001   | binding output preserves public/withheld split, truth, targets, splits, and metric meaning                         | manual |
-| CONFIG-001 | scientific definitions declare requirements; configuration binds them                                              | manual |
-| CONFIG-002 | public configuration surface exposes no backend-native syntax                                                      | none   |
-| CONFIG-003 | identity-affecting selection appears in resolved configuration or provenance                                       | none   |
-| CONFIG-004 | equivalent CLI and Python inputs produce equal resolved plans                                                      | none   |
-| CLI-001    | CLI modules define no scientific semantics                                                                         | manual |
-| CLI-002    | command names conform to the lifecycle vocabulary                                                                  | none   |
-| CLI-003    | CLI help and documented options contain no Hydra-native syntax                                                     | none   |
-| ART-001    | interrupted artifact production leaves no committed incomplete artifact                                            | none   |
-| ART-002    | normal use of a committed artifact opens no parent artifact                                                        | none   |
-| DOC-001    | README files introduce no `authority: normative` claim                                                             | manual |
-| DOC-002    | unresolved conflicts appear in `docs/decisions.md`                                                                 | manual |
-| DOC-003    | catalogue and status metadata match specification frontmatter                                                      | none   |
-| DOC-004    | documented examples use current CLI, configuration, and reference syntax                                           | none   |
-| DOC-005    | `docs/README.md` and `docs/docs/index.md` are not cross-referenced as equivalents                                  | manual |
-| DOC-006    | every `authority: normative` document under a specification root carries valid frontmatter                         | none   |
-| DOC-007    | no file under `.claude/` declares `authority: normative` or enumerates owned or excluded domain semantics          | manual |
-| DOC-008    | `mkdocs build --strict` in `.github/workflows/build-docs.yml` fails on an unresolved link under `docs/docs/`       | test   |
+| ID         | Observable check                                                                                                                                  | State  |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| ARCH-001   | dependency declarations in `packages/ehp-sn/pyproject.toml`; no `ehp_research` import under `packages/ehp-sn/src/`                                | none   |
+| ARCH-002   | no two `authority: normative` specifications declare the same component reference                                                                 | none   |
+| ARCH-003   | framework source contains no import of a concrete research package by name; duplicate registration raises                                         | none   |
+| DATA-001   | substrate schemas expose no task-only query, target, episode, reward, or metric field                                                             | manual |
+| DATA-002   | substrate identity inputs exclude downstream task composition                                                                                     | manual |
+| DATA-003   | parent selection is reproducible from resolved configuration                                                                                      | manual |
+| DATA-004   | committed corpus loads and validates with parent artifacts absent                                                                                 | none   |
+| DATA-005   | shared research contracts remain under `packages/ehp-research/src/`                                                                               | none   |
+| DATA-006   | a committed release coordinate never resolves to changed content                                                                                  | none   |
+| TASK-001   | task-owned semantics are absent from substrate specifications and implementations                                                                 | manual |
+| ADAPT-001  | adapter implementation contains no conditional keyed on concrete task or model identity                                                           | none   |
+| ADAPT-002  | InputAdapter output introduces no privileged information; OutputAdapter performs no oracle repair or scoring                                      | none   |
+| ADAPT-003  | adapter definition declares no authored field already determined by the resolved source or target interface; such values appear only as `derived` | none   |
+| BIND-001   | resolved binding output preserves public/withheld split, truth, targets, splits, and metric meaning                                               | manual |
+| CONFIG-001 | scientific definitions declare requirements; configuration binds them                                                                             | manual |
+| CONFIG-002 | public configuration surface exposes no backend-native syntax                                                                                     | none   |
+| CONFIG-003 | identity-affecting selection appears in resolved configuration or provenance                                                                      | none   |
+| CONFIG-004 | equivalent CLI and Python inputs produce equal resolved plans                                                                                     | none   |
+| CLI-001    | CLI modules define no scientific semantics                                                                                                        | manual |
+| CLI-002    | command names conform to the lifecycle vocabulary                                                                                                 | none   |
+| CLI-003    | CLI help and documented options contain no Hydra-native syntax                                                                                    | none   |
+| ART-001    | interrupted artifact production leaves no committed incomplete artifact                                                                           | none   |
+| ART-002    | normal use of a committed artifact opens no parent artifact                                                                                       | none   |
+| DOC-001    | README files introduce no `authority: normative` claim                                                                                            | manual |
+| DOC-002    | unresolved conflicts appear in `docs/decisions.md`                                                                                                | manual |
+| DOC-003    | catalogue and status metadata match specification frontmatter                                                                                     | none   |
+| DOC-004    | documented examples use current CLI, configuration, and reference syntax                                                                          | none   |
+| DOC-005    | `docs/README.md` and `docs/docs/index.md` are not cross-referenced as equivalents                                                                 | manual |
+| DOC-006    | every `authority: normative` document under a specification root carries valid frontmatter                                                        | none   |
+| DOC-007    | no file under `.claude/` declares `authority: normative` or enumerates owned or excluded domain semantics                                         | manual |
+| DOC-008    | `mkdocs build --strict` in `.github/workflows/build-docs.yml` fails on an unresolved link under `docs/docs/`                                      | test   |
 
 Checks marked `none` are the intended backlog for `tests/architecture/`, per `.claude/rules/tests.md`.
 

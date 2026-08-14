@@ -89,16 +89,16 @@ Prospect does not define:
 
 ### 2.3 Authoritative dependencies
 
-| Concern                         | Authoritative specification                     |
-| ------------------------------- | ----------------------------------------------- |
-| Generic generated-data contract | `data-artifacts`                                |
-| Generic task-corpus contract    | `corpora`                                       |
-| Spatial topology                | `raster-topology/v1`                            |
-| Observation field               | `categorical-field/v1`                          |
-| Semantic graph source           | `simple-digraph/v1`                             |
-| Shared route semantics          | `routebind/v1` oracle semantics                 |
-| Task semantics                  | this document                                   |
-| Memory-native encoding          | applicable Prospect binding/model specification |
+| Concern                         | Authoritative specification                              |
+| ------------------------------- | -------------------------------------------------------- |
+| Generic generated-data contract | `data-artifacts`                                         |
+| Generic task-corpus contract    | `corpora`                                                |
+| Spatial topology                | `raster-topology/v1`                                     |
+| Observation field               | `categorical-field/v1`                                   |
+| Semantic graph source           | `simple-digraph/v1`                                      |
+| Shared route semantics          | `routebind/v1` oracle semantics                          |
+| Task semantics                  | this document                                            |
+| Memory-native encoding          | applicable Prospect `InputAdapter`/`OutputAdapter`, § 14 |
 
 ## 3. Conceptual model
 
@@ -673,16 +673,20 @@ Performance alone does not establish which internal memory features carry the re
 
 Prospect defines the abstract `acquired_environment_memory` input role and its compatibility semantics, not a universal memory tensor schema.
 
-A Prospect binding may define:
+A Prospect `InputAdapter` (`docs/docs/framework/adapters.md`) may define:
 
 - how a corpus-local memory entry is decoded;
 - model-family-specific memory tensors or objects;
 - memory retrieval operations;
-- start/goal cue encoding;
-- spatial output representation;
-- recurrent deliberation.
+- start/goal cue encoding.
 
-A binding must not expose privileged topology/observation fields that Prospect v1 withholds.
+A Prospect `OutputAdapter` may define:
+
+- spatial output representation.
+
+Recurrent deliberation belongs to the experiment's training protocol, not to either adapter.
+
+The resolved binding must not expose privileged topology/observation fields that Prospect v1 withholds.
 
 ## 15. Open issues
 

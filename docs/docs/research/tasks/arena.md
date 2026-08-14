@@ -100,14 +100,14 @@ Arena does not define:
 
 ### 2.3 Authoritative dependencies
 
-| Concern                             | Authoritative specification |
-| ----------------------------------- | --------------------------- |
-| Generic generated-data contract     | `data-artifacts`            |
-| Generic task-corpus contract        | `corpora`                   |
-| Traversability and movement         | `raster-topology/v1`        |
-| Persistent categorical observations | `categorical-field/v1`      |
-| Task semantics                      | this document               |
-| Task-to-model encoding              | applicable Arena binding    |
+| Concern                             | Authoritative specification                     |
+| ----------------------------------- | ----------------------------------------------- |
+| Generic generated-data contract     | `data-artifacts`                                |
+| Generic task-corpus contract        | `corpora`                                       |
+| Traversability and movement         | `raster-topology/v1`                            |
+| Persistent categorical observations | `categorical-field/v1`                          |
+| Task semantics                      | this document                                   |
+| Task-to-model encoding              | applicable `InputAdapter`/`OutputAdapter`, § 14 |
 
 ## 3. Conceptual model
 
@@ -581,17 +581,21 @@ It does not by itself identify which internal pathway or representation produced
 
 Arena defines the replay sequence $(o_t,a_t)$, episode boundaries, decoded trajectory truth used for validation, observation targets, and revisit truth.
 
-A binding may define:
+An `InputAdapter` (`docs/docs/framework/adapters.md`) may define:
 
 - categorical/sensory encoding of $o_t$;
 - model-native action encoding;
-- recurrent unrolling and state reset;
-- batching, padding, and masks;
+- batching, padding, and masks.
+
+An `OutputAdapter` may define:
+
 - one or more observation-prediction pathways;
 - pathway-specific access restrictions and diagnostic outputs.
 
+Recurrent unrolling and state reset belong to the experiment's training protocol, not to either adapter.
+
 For the Arena–TEM binding, posterior and sensory-recall pathways may use the current encoded observation according to the TEM model contract, while the structural-prior/path-integration pathway must not use the current observation.
-The binding must not expose decoded topology or privileged spatial identity beyond the Arena task contract.
+The resolved binding must not expose decoded topology or privileged spatial identity beyond the Arena task contract.
 
 ## 15. Open issues
 

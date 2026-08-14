@@ -82,14 +82,14 @@ A faithful reproduction of source Maze-Hard problem rows is a separate corpus-im
 
 ### 2.3 Authoritative dependencies
 
-| Concern                            | Authoritative specification |
-| ---------------------------------- | --------------------------- |
-| Generic generated-data contract    | `data-artifacts`            |
-| Generic task-corpus contract       | `corpora`                   |
-| Raster maze topology               | `raster-topology/v1`        |
-| Maze-ND source topology production | `maze-nd/v1` when used      |
-| Task semantics                     | this document               |
-| Model encoding                     | applicable MazeHard binding |
+| Concern                            | Authoritative specification                     |
+| ---------------------------------- | ----------------------------------------------- |
+| Generic generated-data contract    | `data-artifacts`                                |
+| Generic task-corpus contract       | `corpora`                                       |
+| Raster maze topology               | `raster-topology/v1`                            |
+| Maze-ND source topology production | `maze-nd/v1` when used                          |
+| Task semantics                     | this document                                   |
+| Model encoding                     | applicable `InputAdapter`/`OutputAdapter`, § 14 |
 
 ## 3. Conceptual model
 
@@ -332,7 +332,7 @@ $$
 denote the semantic reference labeling.
 It preserves the visible maze classes and marks exactly the route cells selected by $R^*$ according to the declared endpoint-overlay convention.
 
-Concrete token IDs, flattening order, ignore-label integers, and model-native tensor layout belong to a binding or named reproduction profile.
+Concrete token IDs, flattening order, ignore-label integers, and model-native tensor layout belong to an adapter (§ 14) or named reproduction profile.
 
 ### 8.4 Alternative optimal-route validity
 
@@ -370,7 +370,7 @@ MazeHard task semantics are expressed over the natural raster domain.
 The canonical reference reproduction profile is a `30 × 30` maze represented as `900` flattened spatial positions, matching the benchmark interface described in the research manuscript.
 
 A separately named corpus may use another raster extent only if it preserves the same task meaning and clearly declares that results are not direct Maze-Hard reference-reproduction results.
-Flattening order, token IDs, embeddings, and model-native tensor layout remain binding/profile concerns.
+Flattening order, token IDs, embeddings, and model-native tensor layout remain adapter/profile concerns.
 
 ### 9.3 Padding
 
@@ -497,17 +497,24 @@ Structural route validity is aggregated per decoded record.
 
 MazeHard defines semantic topology visibility, start, goal, the stored optimal reference target, exact-reference scoring, and optional structural optimal-route validation.
 
-A binding may define:
+An `InputAdapter` (`docs/docs/framework/adapters.md`) may author:
 
-- flattening to `S = H * W`;
-- token vocabulary;
-- fixed sequence length such as 900;
-- padding and ignore labels;
-- logits layout;
-- legacy single-path canonicalization;
-- model-specific loss weighting.
+- token vocabulary and categorical encoding policy;
+- padding alignment and ignore-label policy.
 
-A binding must not change which maze information is public or redefine a non-shortest route as correct.
+The flattening slot count is not independently authored: it is derived from the task's
+domain-derived position count (`S = H * W`, `docs/docs/framework/contracts/domains/ambient-domain-v1.md`).
+Any fixed sequence capacity, such as 900, is model-owned or derived from the model's declared
+capacity, not adapter-authored (`docs/invariants.md` `ADAPT-003`).
+
+An `OutputAdapter` may define:
+
+- logits layout over the flattened sequence;
+- legacy single-path canonicalization, where a source-reproduction profile requires it.
+
+Model-specific loss weighting belongs to the experiment's training protocol, not to either adapter.
+
+The resolved binding — the task, the model, and this configured `InputAdapter`/`OutputAdapter` pair — must not change which maze information is public or redefine a non-shortest route as correct.
 
 ## 15. Open issues
 

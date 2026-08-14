@@ -36,6 +36,8 @@ CheckpointRef
 AnalysisRef
 TaskRef
 ModelRef
+InputAdapterRef
+OutputAdapterRef
 BindingRef
 ```
 

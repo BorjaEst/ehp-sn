@@ -66,15 +66,15 @@ Routebind does not define:
 
 ### 2.3 Authoritative dependencies
 
-| Concern                         | Authoritative specification  |
-| ------------------------------- | ---------------------------- |
-| Generic generated-data contract | `data-artifacts`             |
-| Generic task-corpus contract    | `corpora`                    |
-| Spatial topology                | `raster-topology/v1`         |
-| Observation field               | `categorical-field/v1`       |
-| Directed semantic graph         | `simple-digraph/v1`          |
-| Task semantics                  | this document                |
-| Model encoding                  | applicable Routebind binding |
+| Concern                         | Authoritative specification                     |
+| ------------------------------- | ----------------------------------------------- |
+| Generic generated-data contract | `data-artifacts`                                |
+| Generic task-corpus contract    | `corpora`                                       |
+| Spatial topology                | `raster-topology/v1`                            |
+| Observation field               | `categorical-field/v1`                          |
+| Directed semantic graph         | `simple-digraph/v1`                             |
+| Task semantics                  | this document                                   |
+| Model encoding                  | applicable `InputAdapter`/`OutputAdapter`, § 14 |
 
 ## 3. Conceptual model
 
@@ -677,16 +677,19 @@ Behavioral structural validity and optimality must remain separately reported.
 
 Routebind defines public spatial/observation information, hidden semantic-law semantics, targets, and validity.
 
-A binding may define:
+An `InputAdapter` (`docs/docs/framework/adapters.md`) may define:
 
 - dense or flattened layout representation;
 - padding tensors;
-- categorical observation encoding;
-- field decoder layout;
-- multi-label loss construction;
-- model-native recurrent deliberation.
+- categorical observation encoding.
 
-A binding must not expose the hidden graph/binding or change the product-state correctness relation.
+An `OutputAdapter` may define:
+
+- field decoder layout.
+
+Multi-label loss construction and model-native recurrent deliberation belong to the experiment's training protocol, not to either adapter.
+
+The resolved binding must not expose the hidden graph/binding or change the product-state correctness relation.
 
 ## 15. Open issues
 

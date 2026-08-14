@@ -41,7 +41,7 @@ This README provides the framework mental model and entry points. Exact semantic
 The framework provides reusable semantics and services for:
 
 - component references and compatibility;
-- Task, Model, and Binding contracts;
+- Task, Model, Adapter, and Binding contracts;
 - experiment and protocol composition;
 - execution requests and immutable plans;
 - resource requirements and configuration resolution;
@@ -90,19 +90,22 @@ A Model provides model-native computation:
 
 Concrete model semantics belong to research model specifications.
 
+### Adapter
+
+An Adapter transforms between a task's interfaces and a model's interfaces:
+
+- an `InputAdapter` transforms a task's task-data interface into a model's model-input interface;
+- an `OutputAdapter` transforms a model's model-output interface into a task's prediction interface.
+
+An adapter must be expressible entirely in terms of its declared source interface, target interface, and resolved configuration — it must not branch on concrete task or model identity. This is what makes `ehp_sn` the right owner for a generic adapter implementation, distinct from any one task or model.
+
 ### Binding
 
-A Binding connects one task family to one model family.
+A Binding is the resolved, validated connection of one task and one model, formed by one configured `InputAdapter` and one configured `OutputAdapter`.
 
-Bindings may define representation and integration logic such as:
+A Binding is not an independently implemented component; it is assembled by an experiment from the task, the model, and their configured adapters.
 
-- task-to-model encoding;
-- model-to-task decoding;
-- integration-specific masks or padding;
-- trainable integration modules;
-- task–model compatibility.
-
-Bindings do not redefine task truth or model architecture.
+Bindings do not redefine task truth or model architecture. Adapters composing a binding do not perform oracle repair or task scoring, and do not introduce privileged information.
 
 ### Experiment
 

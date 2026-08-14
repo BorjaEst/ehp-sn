@@ -12,11 +12,12 @@ This document defines component compatibility declarations, support levels, and 
 
 ## Support levels
 
-A binding declares exact supported task–model combinations:
+A resolved binding — one task, one model, and their configured `InputAdapter`/`OutputAdapter`
+pair (`docs/docs/framework/adapters.md`) — declares exact supported task–model combinations:
 
 ```yaml
 task: task:routebind/v1
-model: model:hrm/v2
+model: model:hrm/v1
 support: supported
 compatibility_maturity: declared
 ```
@@ -32,11 +33,11 @@ No declaration means the combination is unavailable for framework use. It does n
 
 ## Compatibility maturity
 
-`compatibility_maturity` describes one task–model(–binding) pair's compatibility, distinct from either component's own document or capability maturity:
+`compatibility_maturity` describes one task–model(–binding) pair's compatibility, distinct from either component's own document or capability maturity. Per-interface-transition compatibility (task-data interface, model-input interface, model-output interface, prediction interface, and the adapters between them) is defined in [Adapters](adapters.md); this document covers only the resulting per-pair declaration:
 
 | `compatibility_maturity` | Meaning                                              |
 | ------------------------ | ---------------------------------------------------- |
-| `declared`               | Support is asserted by the binding specification     |
+| `declared`               | Support is asserted by the resolved binding          |
 | `implemented`            | Construction and basic execution exist               |
 | `validated`              | Conformance and scientific validation evidence exist |
 | `reference`              | Used in a reference reproduction                     |
@@ -50,5 +51,6 @@ Compatibility is validated at experiment construction time. Incompatible combina
 
 ## Related documents
 
+- [Adapters](adapters.md)
 - [References](references.md)
 - [Identity](identity.md)

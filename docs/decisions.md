@@ -47,20 +47,21 @@ Identifiers are permanent. A resolved entry is deleted and its identifier is nev
 
 **Until decided:** do not treat content under `experiments/` as recoverable authority, and do not run any enforcement check that assumes it is tracked.
 
-## DEC-018 — No model or binding specification exists
+## DEC-018 — No model or binding specification exists (TEM and integrated EHP models)
 
 - `docs/authority.md` § "Authority map" assigns "Research model, binding, and experiment-family semantics" to `ehp_research` with specification roots `docs/docs/research/` and `experiments/`.
-- No model or binding specification exists under any specification root.
-- Model and binding references are nevertheless used as current examples in `docs/docs/framework/references.md` (`model:tem/v1`, `binding:arena-tem/v1`), `docs/docs/framework/compatibility.md` (`model:hrm/v2`), `docs/docs/interfaces/python/index.md` § "Extension scope", and both package READMEs. These name real intended model families (TEM, HRM, integrated EHP models) that both package READMEs already describe as planned, so they are kept as forward references rather than removed.
-- `docs/docs/interfaces/python/conventions.md` § "Nominal logical references" lists `TaskRef`, `ModelRef`, and `BindingRef` as public types with no defining specification.
+- `model:hrm/v1` (`docs/docs/research/models/hrm.md`) is now written and catalogued under `docs/docs/research/models/`. `docs/docs/research/bindings/` (which formerly held `binding:mazehard-hrm/v1` as an independently specified research binding) has been retired: `docs/docs/framework/adapters.md` now defines the generic, framework-owned `InputAdapter`/`OutputAdapter` contracts, `docs/docs/research/tasks/mazehard.md` § 14 illustrates MazeHard's concrete adapter configuration, and the resolved `task:maze-hard/v1` × `model:hrm/v1` binding composition belongs to the experiment definition rather than to a standalone research binding document. This establishes the location and document-contract pattern for this specification-root pair; it does not by itself resolve the remaining TEM/integrated-EHP-model case below.
+- No specification exists yet for `model:tem/v1`, `binding:arena-tem/v1`, or "integrated EHP models".
+- `model:tem/v1` and `binding:arena-tem/v1` are nevertheless used as current examples in `docs/docs/framework/references.md`. These name a real intended model family (TEM) that both package READMEs already describe as planned, so they are kept as forward references rather than removed.
+- `docs/docs/interfaces/python/conventions.md` § "Nominal logical references" lists `TaskRef`, `ModelRef`, and `BindingRef` as public types with no defining specification; this remains true for the TEM/integrated-EHP-model case, though `model:hrm/v1` now grounds one concrete `ModelRef` usage.
 - `docs/invariants.md` DOC-004 requires documented examples to use current component references.
 - `goaltrace`, `goaltrace-hrm`, and `seqmaze` previously appeared as example component names in `docs/docs/interfaces/cli/index.md`, `docs/docs/interfaces/cli/tasks.md`, `docs/docs/framework/compatibility.md`, and `docs/docs/development/data-layout.md`, but backed no catalogued or README-intended component. These have been removed and replaced with catalogued task names (`arena`, `mazehard`, `routebind`); this narrower placeholder problem is resolved.
 
-**Consequence of each interpretation:** if `model:tem/v1`, `binding:arena-tem/v1`, and `model:hrm/v2` name intended components, the documents are examples of unwritten specifications and DOC-004 cannot be satisfied; if they are placeholders, three documents present placeholder identifiers as current component references.
+**Consequence of each interpretation:** if `model:tem/v1` and `binding:arena-tem/v1` name intended components, `references.md` is an example of an unwritten specification and DOC-004 cannot be satisfied; if they are placeholders, `references.md` presents a placeholder identifier as a current component reference.
 
-**Decision required:** whether model and binding specifications are written now or the affected examples are marked non-current, and where those specifications live.
+**Decision required:** whether the TEM/integrated-EHP-model specifications are written now, following the pattern established by `hrm/v1` — a research model specification under `docs/docs/research/models/`, generic adapter contracts from `docs/docs/framework/adapters.md`, and a resolved binding composition captured by the applicable task specification's "Binding boundary" section and the experiment definition — or the affected TEM examples are marked non-current.
 
-**Until decided:** do not replace or delete the remaining TEM/HRM/EHP example references, and do not treat any model or binding reference as a catalogued component.
+**Until decided:** do not replace or delete the remaining TEM/EHP-model example references, and do not treat `model:tem/v1` or `binding:arena-tem/v1` as a catalogued component.
 
 ## DEC-022 — No canonical field for `--hardware-profile`'s distributed-launch semantics
 
