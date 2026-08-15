@@ -36,6 +36,7 @@ Check at minimum:
 - configuration semantics;
 - component references;
 - status and maturity;
-- examples and quick starts.
+- examples and quick starts;
+- table content and structure (DOC-009).
 
 Finish by identifying deterministic checks that could prevent recurrence.

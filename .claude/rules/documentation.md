@@ -67,3 +67,14 @@ In particular, verify:
 - current package ownership.
 
 Examples are not allowed to define behavior that is absent from the authoritative interface specification.
+
+## Table content
+
+Tables in `docs/docs/**/*.md`, `docs/authority.md`, and `docs/invariants.md` follow `docs/invariants.md` DOC-009.
+
+Before adding or editing a table:
+
+- confirm the data is genuinely multi-dimensional; single-attribute data becomes a list instead;
+- add an introductory sentence unless the immediately preceding heading already names the table's exact content precisely (a generic or multi-purpose heading does not count);
+- keep a table split by concern rather than widening it further;
+- keep row order and header casing consistent with sibling tables in the same document.
