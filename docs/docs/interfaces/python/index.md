@@ -201,7 +201,7 @@ The labels below are descriptive narrative, not a formal maturity vocabulary: th
 
 ## Extension scope
 
-EHP-SN is intended to support custom tasks, models, adapters, bindings, metrics, analyses, and experiment factories. Public registration, plugin, resolver, inheritance, and custom-component protocols remain provisional until Arena–TEM and MazeHard–HRM demonstrate the shared contract. No stable extension base classes are defined here.
+EHP-SN is intended to support custom tasks, models, adapters, bindings, metrics, analyses, and experiment factories. Public registration, plugin, resolver, inheritance, and custom-component protocols remain provisional until at least two independently defined task–model–adapter compositions demonstrate the shared contract. No stable extension base classes are defined here.
 
 ## Current execution scope
 

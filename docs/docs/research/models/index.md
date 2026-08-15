@@ -137,3 +137,7 @@ Hierarchical recurrent reasoning core with slow `H` and fast `L` processes, RoPE
 [HRM-rl](hrm-rl.md)
 
 HRM reasoning core with reinforcement-learned deliberation control, a halt/continue action-value head, and a separate STR state-value critic.
+
+### EHP
+
+Planned, not yet written. Referenced as an intended integrated model family in `packages/ehp-research/README.md`.
