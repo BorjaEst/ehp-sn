@@ -195,3 +195,4 @@ cython_debug/
 
 # Claude Code
 .claude/settings.local.json
+.claude/jobs/
