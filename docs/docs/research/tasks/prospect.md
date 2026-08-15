@@ -2,6 +2,7 @@
 title: Prospect v1
 authority: normative
 document_status: draft
+capability_status: planned
 api_stability: provisional
 ---
 
@@ -673,7 +674,7 @@ Performance alone does not establish which internal memory features carry the re
 
 Prospect defines the abstract `acquired_environment_memory` input role and its compatibility semantics, not a universal memory tensor schema.
 
-A Prospect `InputAdapter` (`docs/docs/framework/adapters.md`) may define:
+A Prospect `InputAdapter` (`docs/docs/framework/adapters/index.md`) may define:
 
 - how a corpus-local memory entry is decoded;
 - model-family-specific memory tensors or objects;

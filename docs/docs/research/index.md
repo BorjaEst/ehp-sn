@@ -2,6 +2,8 @@
 title: Research
 authority: normative
 document_status: draft
+capability_status: planned
+api_stability: provisional
 ---
 
 # Research
@@ -22,7 +24,7 @@ task
 
 A resolved binding — one task, one model, and their configured `InputAdapter`/`OutputAdapter`
 pair — is not an independent research artifact; it is assembled by an experiment definition from
-the generic adapter contracts in [Adapters](../framework/adapters.md).
+the generic adapter contracts in [Adapters](../framework/adapters/index.md).
 
 Experiment-family specifications live under `experiments/` at the repository root and will be added as they are written.
 

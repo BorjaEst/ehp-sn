@@ -81,7 +81,7 @@ Ownership is assigned by specification root, not per component. A specification'
 
 Generic `Task` and `Model` _contracts_ are framework-owned; their concrete scientific _definitions_ are research-owned. The distinction is the one drawn in "Ownership versus orchestration" above.
 
-`Binding` is not an independently specified contract: it is the resolved, validated connection of one task and one model, formed by one configured `InputAdapter` and one configured `OutputAdapter`. `InputAdapter` and `OutputAdapter` are generic framework contracts, specified under `docs/docs/framework/` (`docs/docs/framework/adapters.md`); a concrete resolved binding — its adapter configuration and the composition itself — is assembled by an `ExperimentDefinition` and is research-owned, following the same generic-contract/concrete-definition split.
+`Binding` is not an independently specified contract: it is the resolved, validated connection of one task and one model, formed by one configured `InputAdapter` and one configured `OutputAdapter`. `InputAdapter` and `OutputAdapter` are generic framework contracts, specified under `docs/docs/framework/` (`docs/docs/framework/adapters/index.md`); a concrete resolved binding — its adapter configuration and the composition itself — is assembled by an `ExperimentDefinition` and is research-owned, following the same generic-contract/concrete-definition split.
 
 ### Closure rule
 

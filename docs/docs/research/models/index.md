@@ -1,3 +1,9 @@
+---
+title: Research models
+authority: normative
+document_status: draft
+---
+
 # Research models
 
 ## Purpose
@@ -62,6 +68,8 @@ TaskPrediction
 The model document is authoritative from the earliest model-native input through the latest model-native output.
 
 Model-owned embeddings, recurrence, memory, attention, workspace updates, and intrinsic control remain inside this boundary.
+
+The generic `InputAdapter`/`OutputAdapter` contract and the task/model/adapter responsibility boundary are defined in [Adapters](../../framework/adapters/index.md); this section specializes that boundary for where a model begins and ends. Task ownership is defined in [Research tasks](../tasks/index.md) § "Task, adapter, and binding boundary".
 
 ## Document structure
 

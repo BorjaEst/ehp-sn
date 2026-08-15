@@ -2,6 +2,8 @@
 title: Ambient spatial domain v1
 authority: normative
 document_status: draft
+capability_status: planned
+api_stability: provisional
 ---
 
 # Ambient spatial domain v1

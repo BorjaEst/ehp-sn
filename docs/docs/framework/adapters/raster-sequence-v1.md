@@ -2,20 +2,22 @@
 title: Raster categorical to sequence adapter v1
 authority: normative
 document_status: draft
+capability_status: planned
+api_stability: provisional
 adapter_role: input
-contract: raster-categorical-to-sequence/v1
+contract: RasterSequenceAdapter
 ---
 
 # Raster categorical to sequence adapter v1
 
 ## 1. Purpose and scope
 
-`raster-categorical-to-sequence/v1` transforms a complete categorical field over a finite rectangular task-domain position space into a categorical model-input sequence.
+`RasterSequenceAdapter` transforms a complete categorical field over a finite rectangular task-domain position space into a categorical model-input sequence.
 
 ```text
 categorical raster TaskData
         ↓
-raster-categorical-to-sequence/v1
+RasterSequenceAdapter
         ↓
 categorical sequence ModelInput
 ```
@@ -38,12 +40,12 @@ It does not own task scientific semantics, task targets, oracle logic, model arc
 
 A compatible source declares:
 
-| Requirement | Meaning |
-|---|---|
-| rectangular domain | finite rectangular position domain with canonical dense position identity |
-| `position_count` | number `P >= 1` of source positions |
-| `category[position]` | exactly one categorical identity for every canonical position |
-| `source_vocabulary` | immutable identity and finite domain of source categories |
+| Requirement          | Meaning                                                                   |
+| -------------------- | ------------------------------------------------------------------------- |
+| rectangular domain   | finite rectangular position domain with canonical dense position identity |
+| `position_count`     | number `P >= 1` of source positions                                       |
+| `category[position]` | exactly one categorical identity for every canonical position             |
+| `source_vocabulary`  | immutable identity and finite domain of source categories                 |
 
 Every canonical source position is represented. `v1` has no independent source validity mask.
 
@@ -51,13 +53,13 @@ Every canonical source position is represented. `v1` has no independent source v
 
 A compatible target declares:
 
-| Requirement | Meaning |
-|---|---|
-| sequence representation | categorical model-input sequence |
-| `sequence_capacity` | fixed capacity `S >= 1`, or explicit variable-length support |
-| `slot_identity` | stable dense slot identity |
-| `target_vocabulary` | immutable identity and finite domain of accepted categories |
-| `sequence_mask` | optional or required representation mask when fixed-capacity padding is present |
+| Requirement             | Meaning                                                                         |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| sequence representation | categorical model-input sequence                                                |
+| `sequence_capacity`     | fixed capacity `S >= 1`, or explicit variable-length support                    |
+| `slot_identity`         | stable dense slot identity                                                      |
+| `target_vocabulary`     | immutable identity and finite domain of accepted categories                     |
+| `sequence_mask`         | optional or required representation mask when fixed-capacity padding is present |
 
 If the model owns trainable embeddings and accepts categorical IDs, those embeddings remain model-internal.
 
@@ -112,29 +114,29 @@ No position count, sequence capacity, ordering, padding count, embedding dimensi
 
 ### 4.2 Endpoint-owned values
 
-| Value | Authority |
-|---|---|
-| rectangular domain and canonical position identity | source task-data interface |
-| `P = position_count` | source task-data interface |
-| source vocabulary | source task-data interface |
+| Value                                              | Authority                    |
+| -------------------------------------------------- | ---------------------------- |
+| rectangular domain and canonical position identity | source task-data interface   |
+| `P = position_count`                               | source task-data interface   |
+| source vocabulary                                  | source task-data interface   |
 | target sequence capacity / variable-length support | target model-input interface |
-| target slot identity | target model-input interface |
-| target vocabulary | target model-input interface |
-| target mask requirement | target model-input interface |
+| target slot identity                               | target model-input interface |
+| target vocabulary                                  | target model-input interface |
+| target mask requirement                            | target model-input interface |
 
 ### 4.3 Derived values
 
 Successful resolution derives:
 
-| Value | Definition |
-|---|---|
-| `position_to_slot` | `p ↦ p` |
-| `slot_to_position` | inverse over `0 .. P-1` |
-| `represented_slots` | `0 .. P-1` |
-| `padding_slots` | `P .. S-1` when `S > P` |
-| `padding_count` | `S - P` for fixed capacity |
-| `category_mapping` | identity or resolved authored injective mapping |
-| `sequence_mask` | source-backed versus padding slots, if required |
+| Value               | Definition                                      |
+| ------------------- | ----------------------------------------------- |
+| `position_to_slot`  | `p ↦ p`                                         |
+| `slot_to_position`  | inverse over `0 .. P-1`                         |
+| `represented_slots` | `0 .. P-1`                                      |
+| `padding_slots`     | `P .. S-1` when `S > P`                         |
+| `padding_count`     | `S - P` for fixed capacity                      |
+| `category_mapping`  | identity or resolved authored injective mapping |
+| `sequence_mask`     | source-backed versus padding slots, if required |
 
 ## 5. Compatibility and resolution
 

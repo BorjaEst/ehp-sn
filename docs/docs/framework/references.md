@@ -26,15 +26,15 @@ Where:
 
 A `binding` reference denotes a resolved composition — one task, one model, and their configured
 `input-adapter`/`output-adapter` pair — rather than an independently specified component; see
-[Adapters](adapters.md).
+[Adapters](adapters/index.md).
 
 Examples:
 
 ```text
 task:arena/v1
 model:tem/v1
-input-adapter:categorical-spatial-encoder/v1
-output-adapter:spatial-classification-decoder/v1
+input-adapter:RelationalSequenceAdapter
+output-adapter:ObservationPredictionAdapter
 binding:arena-tem/v1
 experiment:arena-tem/v1
 artifact:arena-corpus/default/v1
@@ -76,6 +76,6 @@ A canonical reference is a logical identity. It is portable across processes and
 
 ## Related documents
 
-- [Adapters](adapters.md)
+- [Adapters](adapters/index.md)
 - [Compatibility](compatibility.md)
 - [Identity](identity.md)

@@ -2,6 +2,7 @@
 title: Research tasks
 authority: normative
 document_status: draft
+capability_status: planned
 api_stability: provisional
 ---
 
@@ -171,7 +172,7 @@ Routebind and Prospect should use matched oracle semantics so that their princip
 
 ## Task, adapter, and binding boundary
 
-A task defines a task-data interface and a prediction interface (`docs/docs/framework/adapters.md`).
+A task defines a task-data interface and a prediction interface (`docs/docs/framework/adapters/index.md`).
 An `InputAdapter` maps the task-data interface to one model's model-input interface; an
 `OutputAdapter` maps that model's model-output interface back to the task's prediction interface.
 The task, the model, and one configured `InputAdapter`/`OutputAdapter` pair together form the
@@ -243,4 +244,4 @@ The four tasks in this section remain `draft` until their shared dependencies an
 - [`ObsField v1`](../substrates/obsfield-v1.md)
 - [`Dagflow v1`](../substrates/dagflow-v1.md)
 - [`Contracts`](../../framework/contracts/index.md)
-- [`Adapters`](../../framework/adapters.md)
+- [`Adapters`](../../framework/adapters/index.md)

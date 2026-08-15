@@ -2,20 +2,22 @@
 title: Observation-relation sequence to sensory-relation sequence adapter v1
 authority: normative
 document_status: draft
+capability_status: planned
+api_stability: provisional
 adapter_role: input
-contract: observation-relation-sequence-to-sensory-relation-sequence/v1
+contract: RelationalSequenceAdapter
 ---
 
 # Observation-relation sequence to sensory-relation sequence adapter v1
 
 ## 1. Purpose and scope
 
-`observation-relation-sequence-to-sensory-relation-sequence/v1` transforms an ordered task sequence of categorical observations and incoming relations into an aligned model-input sequence of categorical sensory and relation identities.
+`RelationalSequenceAdapter` transforms an ordered task sequence of categorical observations and incoming relations into an aligned model-input sequence of categorical sensory and relation identities.
 
 ```text
 observation/relation TaskData
         ↓
-observation-relation-sequence-to-sensory-relation-sequence/v1
+RelationalSequenceAdapter
         ↓
 sensory/relation ModelInput
 ```
@@ -39,16 +41,16 @@ It does not own task episode semantics, revisit truth, physical position, model 
 
 A compatible source declares:
 
-| Requirement | Meaning |
-|---|---|
-| `step_count` | number `T >= 1` of task steps |
-| `step_identity` | stable dense task-step identity `0 .. T-1` |
-| `observation[step]` | one public categorical observation identity per step |
-| `observation_vocabulary` | immutable identity and finite observation domain |
-| `relation[step]` | categorical incoming relation for each ordinary step `t > 0` |
-| `relation_vocabulary` | immutable identity and finite ordinary relation domain |
-| `relation_alignment` | explicit declaration that `relation[t]` denotes the transition into `observation[t]` |
-| sequence start | step `0` is explicitly the episode/segment start |
+| Requirement              | Meaning                                                                              |
+| ------------------------ | ------------------------------------------------------------------------------------ |
+| `step_count`             | number `T >= 1` of task steps                                                        |
+| `step_identity`          | stable dense task-step identity `0 .. T-1`                                           |
+| `observation[step]`      | one public categorical observation identity per step                                 |
+| `observation_vocabulary` | immutable identity and finite observation domain                                     |
+| `relation[step]`         | categorical incoming relation for each ordinary step `t > 0`                         |
+| `relation_vocabulary`    | immutable identity and finite ordinary relation domain                               |
+| `relation_alignment`     | explicit declaration that `relation[t]` denotes the transition into `observation[t]` |
+| sequence start           | step `0` is explicitly the episode/segment start                                     |
 
 No ordinary scientific relation is required at step `0`.
 
@@ -58,16 +60,16 @@ Targets, revisit truth, physical positions, complete topology, and privileged/or
 
 A compatible target declares:
 
-| Requirement | Meaning |
-|---|---|
-| sequence representation | aligned sensory/relation model-input sequence |
-| `sequence_capacity` | fixed `S >= 1`, or explicit variable-length support |
-| `model_step_identity` | stable dense model-step identity |
-| `sensory_vocabulary` | immutable identity and finite sensory domain |
-| `model_relation_vocabulary` | immutable identity and finite ordinary relation domain |
-| `relation_alignment` | incoming-relation alignment |
-| reset/init representation | explicit model-native representation for sequence start |
-| `sequence_mask` | optional or required representation mask for fixed-capacity padding |
+| Requirement                 | Meaning                                                             |
+| --------------------------- | ------------------------------------------------------------------- |
+| sequence representation     | aligned sensory/relation model-input sequence                       |
+| `sequence_capacity`         | fixed `S >= 1`, or explicit variable-length support                 |
+| `model_step_identity`       | stable dense model-step identity                                    |
+| `sensory_vocabulary`        | immutable identity and finite sensory domain                        |
+| `model_relation_vocabulary` | immutable identity and finite ordinary relation domain              |
+| `relation_alignment`        | incoming-relation alignment                                         |
+| reset/init representation   | explicit model-native representation for sequence start             |
+| `sequence_mask`             | optional or required representation mask for fixed-capacity padding |
 
 If the model owns trainable sensory/relation embeddings, the adapter outputs IDs rather than embeddings.
 
@@ -119,10 +121,10 @@ The resolved step correspondence is derived once and may be reused by a compatib
 
 The adapter may author only:
 
-| Configuration | Meaning |
-|---|---|
-| `observation_mapping` | source observation → target sensory identity |
-| `relation_mapping` | source ordinary relation → target ordinary relation identity |
+| Configuration         | Meaning                                                      |
+| --------------------- | ------------------------------------------------------------ |
+| `observation_mapping` | source observation → target sensory identity                 |
+| `relation_mapping`    | source ordinary relation → target ordinary relation identity |
 
 These mappings are required only when endpoint declarations do not determine them uniquely.
 
@@ -130,33 +132,33 @@ There is no authored step count, sequence capacity, temporal offset, reset place
 
 ### 4.2 Endpoint-owned values
 
-| Value | Authority |
-|---|---|
-| task step domain and `T` | source task-data interface |
-| observation vocabulary | source task-data interface |
-| ordinary relation vocabulary/alignment | source task-data interface |
-| sequence-start semantics | source task-data interface |
+| Value                                   | Authority                    |
+| --------------------------------------- | ---------------------------- |
+| task step domain and `T`                | source task-data interface   |
+| observation vocabulary                  | source task-data interface   |
+| ordinary relation vocabulary/alignment  | source task-data interface   |
+| sequence-start semantics                | source task-data interface   |
 | target capacity/variable-length support | target model-input interface |
-| model-step identity | target model-input interface |
-| sensory/relation vocabularies | target model-input interface |
-| target reset/init representation | target model-input interface |
-| target mask requirement | target model-input interface |
+| model-step identity                     | target model-input interface |
+| sensory/relation vocabularies           | target model-input interface |
+| target reset/init representation        | target model-input interface |
+| target mask requirement                 | target model-input interface |
 
 ### 4.3 Derived values
 
 Successful resolution derives:
 
-| Value | Definition |
-|---|---|
-| `task_step_to_model_step` | `t ↦ t` |
-| `model_step_to_task_step` | inverse over `0 .. T-1` |
-| `represented_steps` | `0 .. T-1` |
-| `padding_steps` | `T .. S-1` when `S > T` |
-| `padding_count` | `S - T` for fixed capacity |
-| `observation_mapping` | identity or resolved authored injective mapping |
-| `relation_mapping` | identity or resolved authored injective mapping |
-| `reset_mapping` | source sequence start → target reset/init representation |
-| `sequence_mask` | represented versus padding model steps when required |
+| Value                     | Definition                                               |
+| ------------------------- | -------------------------------------------------------- |
+| `task_step_to_model_step` | `t ↦ t`                                                  |
+| `model_step_to_task_step` | inverse over `0 .. T-1`                                  |
+| `represented_steps`       | `0 .. T-1`                                               |
+| `padding_steps`           | `T .. S-1` when `S > T`                                  |
+| `padding_count`           | `S - T` for fixed capacity                               |
+| `observation_mapping`     | identity or resolved authored injective mapping          |
+| `relation_mapping`        | identity or resolved authored injective mapping          |
+| `reset_mapping`           | source sequence start → target reset/init representation |
+| `sequence_mask`           | represented versus padding model steps when required     |
 
 ## 5. Compatibility and resolution
 

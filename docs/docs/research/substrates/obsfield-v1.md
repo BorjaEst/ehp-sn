@@ -2,6 +2,8 @@
 title: ObsField v1
 authority: normative
 document_status: draft
+capability_status: planned
+api_stability: provisional
 ---
 
 # ObsField v1
@@ -64,7 +66,7 @@ value_kind: categorical
 persistent: true
 ```
 
-per [`categorical-field/v1`](../../framework/contracts/observations/categorical-field-v1.md) § "Capabilities".
+per [`categorical-field/v1`](../../framework/contracts/observations/categorical-field-v1.md) § "Properties and compatibility surface".
 
 ### Variant model
 

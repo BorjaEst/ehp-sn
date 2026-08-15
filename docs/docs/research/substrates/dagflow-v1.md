@@ -2,6 +2,8 @@
 title: Dagflow v1
 authority: normative
 document_status: specified
+capability_status: planned
+api_stability: provisional
 ---
 
 # Dagflow v1
@@ -64,7 +66,7 @@ terminal_count: 1
 all_nodes_reach_a_terminal: true
 ```
 
-per [`simple-digraph/v1`](../../framework/contracts/relations/simple-digraph-v1.md) § "Capabilities".
+per [`simple-digraph/v1`](../../framework/contracts/relations/simple-digraph-v1.md) § "Properties and compatibility surface".
 
 ## Conceptual model
 

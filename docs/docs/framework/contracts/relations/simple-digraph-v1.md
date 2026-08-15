@@ -2,6 +2,8 @@
 title: Simple directed graph v1
 authority: normative
 document_status: draft
+capability_status: planned
+api_stability: provisional
 ---
 
 # Simple directed graph v1

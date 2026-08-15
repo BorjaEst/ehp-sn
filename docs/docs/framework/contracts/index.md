@@ -3,6 +3,7 @@ title: Contracts
 authority: normative
 document_status: draft
 capability_status: planned
+api_stability: provisional
 ---
 
 # Contracts

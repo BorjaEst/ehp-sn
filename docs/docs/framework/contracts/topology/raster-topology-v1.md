@@ -2,6 +2,8 @@
 title: Raster topology v1
 authority: normative
 document_status: draft
+capability_status: planned
+api_stability: provisional
 ---
 
 # Raster topology v1

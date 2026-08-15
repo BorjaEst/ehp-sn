@@ -47,21 +47,19 @@ Identifiers are permanent. A resolved entry is deleted and its identifier is nev
 
 **Until decided:** do not treat content under `experiments/` as recoverable authority, and do not run any enforcement check that assumes it is tracked.
 
-## DEC-018 — No model or binding specification exists (TEM and integrated EHP models)
+## DEC-018 — No specification exists for the integrated EHP model
 
 - `docs/authority.md` § "Authority map" assigns "Research model, binding, and experiment-family semantics" to `ehp_research` with specification roots `docs/docs/research/` and `experiments/`.
-- `model:hrm/v1` (`docs/docs/research/models/hrm.md`) is now written and catalogued under `docs/docs/research/models/`. `docs/docs/research/bindings/` (which formerly held `binding:mazehard-hrm/v1` as an independently specified research binding) has been retired: `docs/docs/framework/adapters.md` now defines the generic, framework-owned `InputAdapter`/`OutputAdapter` contracts, `docs/docs/research/tasks/mazehard.md` § 14 illustrates MazeHard's concrete adapter configuration, and the resolved `task:maze-hard/v1` × `model:hrm/v1` binding composition belongs to the experiment definition rather than to a standalone research binding document. This establishes the location and document-contract pattern for this specification-root pair; it does not by itself resolve the remaining TEM/integrated-EHP-model case below.
-- No specification exists yet for `model:tem/v1`, `binding:arena-tem/v1`, or "integrated EHP models".
-- `model:tem/v1` and `binding:arena-tem/v1` are nevertheless used as current examples in `docs/docs/framework/references.md`. These name a real intended model family (TEM) that both package READMEs already describe as planned, so they are kept as forward references rather than removed.
-- `docs/docs/interfaces/python/conventions.md` § "Nominal logical references" lists `TaskRef`, `ModelRef`, and `BindingRef` as public types with no defining specification; this remains true for the TEM/integrated-EHP-model case, though `model:hrm/v1` now grounds one concrete `ModelRef` usage.
-- `docs/invariants.md` DOC-004 requires documented examples to use current component references.
-- `goaltrace`, `goaltrace-hrm`, and `seqmaze` previously appeared as example component names in `docs/docs/interfaces/cli/index.md`, `docs/docs/interfaces/cli/tasks.md`, `docs/docs/framework/compatibility.md`, and `docs/docs/development/data-layout.md`, but backed no catalogued or README-intended component. These have been removed and replaced with catalogued task names (`arena`, `mazehard`, `routebind`); this narrower placeholder problem is resolved.
+- `model:hrm/v1` (`docs/docs/research/models/hrm.md`) is written and catalogued under `docs/docs/research/models/`. `docs/docs/research/bindings/` (which formerly held `binding:mazehard-hrm/v1` as an independently specified research binding) has been retired: `docs/docs/framework/adapters/index.md` now defines the generic, framework-owned `InputAdapter`/`OutputAdapter` contracts, `docs/docs/research/tasks/mazehard.md` § 14 illustrates MazeHard's concrete adapter configuration, and the resolved `task:maze-hard/v1` × `model:hrm/v1` binding composition belongs to the experiment definition rather than to a standalone research binding document. This established the location and document-contract pattern for this specification-root pair.
+- `model:tem/v1` (`docs/docs/research/models/tem.md`), `model:tem-t/v1` (`tem-t.md`), and `model:hrm-rl/v1` (`hrm-rl.md`) are now likewise written and catalogued, following the same pattern. `binding:arena-tem/v1` is grounded by the existing `experiment:arena-tem/v1` composition (Python factory `arena_tem_v1`, referenced throughout `docs/docs/interfaces/python/`), which predates the model specification but is no longer a forward reference to an unwritten model now that `tem.md` exists. This resolves the TEM portion of what this entry originally covered.
+- No specification exists yet for an integrated EHP model. `packages/ehp-research/README.md` (lines 45, 140, 142) still describes "integrated EHP model" families and "Routebind–EHP" bindings as an intended, planned part of the research programme. The previous version of `docs/docs/research/models/index.md` listed `EHP` in its catalogue as "Planned, not yet written"; the current catalogue (TEM, TEM-t, HRM, HRM-rl) omits an EHP row entirely.
+- No document currently presents an `model:ehp/v1`-shaped reference as a current example, so DOC-004 is not presently violated by this gap — this entry tracks a roadmap/catalogue-completeness question, not an observed inconsistency.
 
-**Consequence of each interpretation:** if `model:tem/v1` and `binding:arena-tem/v1` name intended components, `references.md` is an example of an unwritten specification and DOC-004 cannot be satisfied; if they are placeholders, `references.md` presents a placeholder identifier as a current component reference.
+**Consequence of each interpretation:** if EHP is still an intended future model, `docs/docs/research/models/index.md`'s catalogue is incomplete relative to what the package README already commits to; if EHP has been deliberately dropped from the roadmap, `packages/ehp-research/README.md` should be updated to stop describing it as planned.
 
-**Decision required:** whether the TEM/integrated-EHP-model specifications are written now, following the pattern established by `hrm/v1` — a research model specification under `docs/docs/research/models/`, generic adapter contracts from `docs/docs/framework/adapters.md`, and a resolved binding composition captured by the applicable task specification's "Binding boundary" section and the experiment definition — or the affected TEM examples are marked non-current.
+**Decision required:** whether `docs/docs/research/models/index.md` should re-list `EHP` as a planned/not-yet-written catalogue entry (matching `packages/ehp-research/README.md`), or whether the README's EHP references should be revised to reflect a changed roadmap.
 
-**Until decided:** do not replace or delete the remaining TEM/EHP-model example references, and do not treat `model:tem/v1` or `binding:arena-tem/v1` as a catalogued component.
+**Until decided:** do not treat "integrated EHP model" as a catalogued or specified component, and do not remove the EHP references from `packages/ehp-research/README.md` on the assumption that the roadmap has changed.
 
 ## DEC-022 — No canonical field for `--hardware-profile`'s distributed-launch semantics
 
@@ -74,3 +72,18 @@ Identifiers are permanent. A resolved entry is deleted and its identifier is nev
 **Decision required:** the canonical request/configuration field(s) for distributed strategy, process topology, and environment-specific resource coordination, or an explicit statement that `--hardware-profile` must not affect them until such fields exist.
 
 **Until decided:** `--hardware-profile` must not be relied on for any effect beyond the `device`/`precision`-equivalent fields it shares with the direct runtime options.
+
+## DEC-023 — `experiment:mazehard-hrm/v1` and `experiment:routebind-hrm/v1` are used as examples with no backing definition
+
+- `docs/docs/interfaces/cli/index.md` § "Component and resource references" lists `experiment:mazehard-hrm/v1` and `experiment:routebind-hrm/v1` in its canonical-reference catalogue, alongside `experiment:arena-tem/v1`.
+- `experiment:arena-tem/v1` is backed by a concrete Python factory (`arena_tem_v1`, `docs/docs/interfaces/python/experiments.md`) and is used consistently as a worked example across `docs/docs/interfaces/cli/` and `docs/docs/interfaces/python/`.
+- `experiment:mazehard-hrm/v1` and `experiment:routebind-hrm/v1` each appear exactly once in the entire `docs/docs/` tree, at those two lines only. Neither has a Python factory, an experiment definition, or any other citation.
+- The underlying components exist and are specified independently: `docs/docs/research/tasks/mazehard.md` and `routebind.md` § 14 ("Binding boundary") already illustrate concrete adapter configuration against HRM, and `docs/docs/research/models/hrm.md` is written. Only the composed `experiment:`/`binding:` identity for each pair is undefined.
+- `docs/invariants.md` DOC-004 requires documented examples to use current component references.
+- This is the same shape as the `goaltrace`/`goaltrace-hrm`/`seqmaze` placeholder problem this register previously tracked and resolved (see DEC-018 history), but was never itself tracked.
+
+**Consequence of each interpretation:** if `mazehard-hrm`/`routebind-hrm` name intended experiment compositions, `cli/index.md` is an example of unwritten specifications and DOC-004 cannot be satisfied; if they are placeholders, `cli/index.md` presents placeholder identifiers as current component references with the same visual weight as the fully-grounded `arena-tem` example.
+
+**Decision required:** whether `experiment:mazehard-hrm/v1` and `experiment:routebind-hrm/v1` are written now — each requiring only a resolved binding composition and an experiment definition, since the task, model, and adapter configuration pattern already exist — or the two references in `cli/index.md` are marked non-current or removed.
+
+**Until decided:** do not treat `experiment:mazehard-hrm/v1` or `experiment:routebind-hrm/v1` as a catalogued component.

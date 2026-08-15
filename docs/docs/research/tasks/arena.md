@@ -2,6 +2,7 @@
 title: Arena v1
 authority: normative
 document_status: draft
+capability_status: planned
 api_stability: provisional
 ---
 
@@ -581,7 +582,7 @@ It does not by itself identify which internal pathway or representation produced
 
 Arena defines the replay sequence $(o_t,a_t)$, episode boundaries, decoded trajectory truth used for validation, observation targets, and revisit truth.
 
-An `InputAdapter` (`docs/docs/framework/adapters.md`) may define:
+An `InputAdapter` (`docs/docs/framework/adapters/index.md`) may define:
 
 - categorical/sensory encoding of $o_t$;
 - model-native action encoding;

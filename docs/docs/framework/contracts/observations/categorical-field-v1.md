@@ -2,6 +2,8 @@
 title: Categorical observation field v1
 authority: normative
 document_status: draft
+capability_status: planned
+api_stability: provisional
 ---
 
 # Categorical observation field v1

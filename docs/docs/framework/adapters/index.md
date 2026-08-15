@@ -56,18 +56,18 @@ An output adapter must not perform task-level scoring, oracle-assisted repair, s
 
 ## Responsibility boundary
 
-| Concern | Authority |
-|---|---|
-| Task-data semantics and information boundary | Task |
-| Task-prediction semantics | Task |
-| Model-native input semantics | Model |
-| Model-native output semantics | Model |
-| Source-to-target representation transformation | Adapter |
-| Adapter-specific compatibility constraints | Adapter |
-| Genuine adapter transformation choices | Adapter |
-| Task/model/adapter and model-output-role selection | Experiment / binding composition |
-| Objectives, metrics, traces, scientific protocols | Their respective scientific owners |
-| Device, workers, caching, execution policy | Request / runtime |
+| Concern                                            | Authority                          |
+| -------------------------------------------------- | ---------------------------------- |
+| Task-data semantics and information boundary       | Task                               |
+| Task-prediction semantics                          | Task                               |
+| Model-native input semantics                       | Model                              |
+| Model-native output semantics                      | Model                              |
+| Source-to-target representation transformation     | Adapter                            |
+| Adapter-specific compatibility constraints         | Adapter                            |
+| Genuine adapter transformation choices             | Adapter                            |
+| Task/model/adapter and model-output-role selection | Experiment / binding composition   |
+| Objectives, metrics, traces, scientific protocols  | Their respective scientific owners |
+| Device, workers, caching, execution policy         | Request / runtime                  |
 
 An adapter must not duplicate authority already owned by a task or model.
 
@@ -194,11 +194,11 @@ Concrete adapter specifications use a common section structure:
 
 Current adapter specifications:
 
-| File | Contract | Role | Source | Target |
-|---|---|---|---|---|
-| `raster-input-v1.md` | `raster-categorical-to-sequence/v1` | InputAdapter | categorical rectangular position domain | categorical sequence |
-| `raster-output-v1.md` | `categorical-sequence-to-raster/v1` | OutputAdapter | categorical sequence | categorical rectangular prediction |
-| `sequence-input-v1.md` | `observation-relation-sequence-to-sensory-relation-sequence/v1` | InputAdapter | observation/relation task sequence | sensory/relation model sequence |
-| `sequence-output-v1.md` | `sensory-prediction-sequence-to-observation-sequence/v1` | OutputAdapter | sensory-prediction model sequence | observation-prediction task sequence |
+| File                           | Contract                       | Role          | Source                                  | Target                               |
+| ------------------------------ | ------------------------------ | ------------- | --------------------------------------- | ------------------------------------ |
+| `raster-sequence-v1.md`        | `RasterSequenceAdapter`        | InputAdapter  | categorical rectangular position domain | categorical sequence                 |
+| `raster-prediction-v1.md`      | `RasterPredictionAdapter`      | OutputAdapter | categorical sequence                    | categorical rectangular prediction   |
+| `relational-sequence-v1.md`    | `RelationalSequenceAdapter`    | InputAdapter  | observation/relation task sequence      | sensory/relation model sequence      |
+| `observation-prediction-v1.md` | `ObservationPredictionAdapter` | OutputAdapter | sensory-prediction model sequence       | observation-prediction task sequence |
 
 Filenames are intentionally concise. Canonical contract identities describe the full source-to-target transformation.

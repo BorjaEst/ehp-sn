@@ -2,20 +2,22 @@
 title: Sensory-prediction sequence to observation sequence adapter v1
 authority: normative
 document_status: draft
+capability_status: planned
+api_stability: provisional
 adapter_role: output
-contract: sensory-prediction-sequence-to-observation-sequence/v1
+contract: ObservationPredictionAdapter
 ---
 
 # Sensory-prediction sequence to observation sequence adapter v1
 
 ## 1. Purpose and scope
 
-`sensory-prediction-sequence-to-observation-sequence/v1` transforms an aligned model-native sequence of categorical sensory predictions into an aligned task-domain sequence of categorical observation predictions.
+`ObservationPredictionAdapter` transforms an aligned model-native sequence of categorical sensory predictions into an aligned task-domain sequence of categorical observation predictions.
 
 ```text
 sensory-prediction ModelOutput
         ↓
-sensory-prediction-sequence-to-observation-sequence/v1
+ObservationPredictionAdapter
         ↓
 observation TaskPrediction
 ```
@@ -36,14 +38,14 @@ It does not own model-output-role selection, scientific preference between predi
 
 The selected model-output role must declare:
 
-| Requirement | Meaning |
-|---|---|
-| `model_step_identity` | stable dense output-step identity |
-| `step_preservation` | explicit preservation of the model-step identity referenced by the resolved correspondence |
-| `prediction_kind` | categorical labels or categorical scores |
-| `source_vocabulary` | immutable identity and finite sensory-prediction domain |
-| `prediction_timing` | explicit model-owned timing identity for the selected prediction |
-| `prediction_conditioning` | explicit model-owned description/identity of the information conditioning that prediction |
+| Requirement               | Meaning                                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------------------ |
+| `model_step_identity`     | stable dense output-step identity                                                          |
+| `step_preservation`       | explicit preservation of the model-step identity referenced by the resolved correspondence |
+| `prediction_kind`         | categorical labels or categorical scores                                                   |
+| `source_vocabulary`       | immutable identity and finite sensory-prediction domain                                    |
+| `prediction_timing`       | explicit model-owned timing identity for the selected prediction                           |
+| `prediction_conditioning` | explicit model-owned description/identity of the information conditioning that prediction  |
 
 Latent structural state, conjunctive state, recurrent state, memory diagnostics, and traces are not prediction roles unless the model explicitly declares them as such.
 
@@ -53,14 +55,14 @@ The selected source role is supplied by binding/experiment composition.
 
 A compatible target declares:
 
-| Requirement | Meaning |
-|---|---|
-| `step_count` | number `T >= 1` of required task prediction steps |
-| `task_step_identity` | stable dense task-prediction identity |
-| `prediction_kind` | categorical labels or categorical scores |
-| `target_vocabulary` | immutable identity and finite observation-prediction domain |
-| `prediction_timing` | explicit task-owned timing identity required of the prediction |
-| canonical score-to-label rule | only when the target requires labels derived from scores |
+| Requirement                   | Meaning                                                        |
+| ----------------------------- | -------------------------------------------------------------- |
+| `step_count`                  | number `T >= 1` of required task prediction steps              |
+| `task_step_identity`          | stable dense task-prediction identity                          |
+| `prediction_kind`             | categorical labels or categorical scores                       |
+| `target_vocabulary`           | immutable identity and finite observation-prediction domain    |
+| `prediction_timing`           | explicit task-owned timing identity required of the prediction |
+| canonical score-to-label rule | only when the target requires labels derived from scores       |
 
 `v1` requires source and target `prediction_timing` identities to match exactly. The adapter does not infer semantic equivalence between differently declared timing/conditioning regimes.
 
@@ -117,28 +119,28 @@ There is no authored temporal offset, task/model sequence length, threshold, cal
 
 ### 4.2 Endpoint-owned values
 
-| Value | Authority |
-|---|---|
-| selected prediction-role semantics | model-output interface |
-| model-step identity/preservation | model-output interface |
-| source prediction timing/conditioning | model-output interface |
-| source prediction kind/vocabulary | model-output interface |
-| task prediction step domain | task-prediction interface |
-| target prediction timing | task-prediction interface |
-| target prediction kind/vocabulary | task-prediction interface |
-| canonical score-to-label rule | task-prediction interface |
+| Value                                 | Authority                 |
+| ------------------------------------- | ------------------------- |
+| selected prediction-role semantics    | model-output interface    |
+| model-step identity/preservation      | model-output interface    |
+| source prediction timing/conditioning | model-output interface    |
+| source prediction kind/vocabulary     | model-output interface    |
+| task prediction step domain           | task-prediction interface |
+| target prediction timing              | task-prediction interface |
+| target prediction kind/vocabulary     | task-prediction interface |
+| canonical score-to-label rule         | task-prediction interface |
 
 ### 4.3 Derived values
 
 Successful resolution validates/reuses:
 
-| Value | Meaning |
-|---|---|
+| Value                     | Meaning                                          |
+| ------------------------- | ------------------------------------------------ |
 | `task_step_to_model_step` | explicit correspondence from binding composition |
-| `model_step_to_task_step` | inverse correspondence |
-| `mapped_model_steps` | model steps with task-prediction identity |
-| `ignored_model_steps` | representation-only steps |
-| `category_mapping` | resolved label mapping or score-axis bijection |
+| `model_step_to_task_step` | inverse correspondence                           |
+| `mapped_model_steps`      | model steps with task-prediction identity        |
+| `ignored_model_steps`     | representation-only steps                        |
+| `category_mapping`        | resolved label mapping or score-axis bijection   |
 
 No temporal alignment is independently authored by this output adapter.
 

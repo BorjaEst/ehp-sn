@@ -2,6 +2,7 @@
 title: MazeHard v1
 authority: normative
 document_status: draft
+capability_status: planned
 api_stability: provisional
 ---
 
@@ -497,7 +498,7 @@ Structural route validity is aggregated per decoded record.
 
 MazeHard defines semantic topology visibility, start, goal, the stored optimal reference target, exact-reference scoring, and optional structural optimal-route validation.
 
-An `InputAdapter` (`docs/docs/framework/adapters.md`) may author:
+An `InputAdapter` (`docs/docs/framework/adapters/index.md`) may author:
 
 - token vocabulary and categorical encoding policy;
 - padding alignment and ignore-label policy.

@@ -2,6 +2,7 @@
 title: Routebind v1
 authority: normative
 document_status: draft
+capability_status: planned
 api_stability: provisional
 ---
 
@@ -677,7 +678,7 @@ Behavioral structural validity and optimality must remain separately reported.
 
 Routebind defines public spatial/observation information, hidden semantic-law semantics, targets, and validity.
 
-An `InputAdapter` (`docs/docs/framework/adapters.md`) may define:
+An `InputAdapter` (`docs/docs/framework/adapters/index.md`) may define:
 
 - dense or flattened layout representation;
 - padding tensors;

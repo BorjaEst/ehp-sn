@@ -2,20 +2,22 @@
 title: Categorical sequence to raster adapter v1
 authority: normative
 document_status: draft
+capability_status: planned
+api_stability: provisional
 adapter_role: output
-contract: categorical-sequence-to-raster/v1
+contract: RasterPredictionAdapter
 ---
 
 # Categorical sequence to raster adapter v1
 
 ## 1. Purpose and scope
 
-`categorical-sequence-to-raster/v1` transforms a categorical model-output sequence into a categorical prediction over a rectangular task-domain position space.
+`RasterPredictionAdapter` transforms a categorical model-output sequence into a categorical prediction over a rectangular task-domain position space.
 
 ```text
 categorical sequence ModelOutput
         ↓
-categorical-sequence-to-raster/v1
+RasterPredictionAdapter
         ↓
 categorical raster TaskPrediction
 ```
@@ -36,12 +38,12 @@ It does not own model-output-role selection, task scoring, oracle repair, thresh
 
 The selected model-output role must declare:
 
-| Requirement | Meaning |
-|---|---|
-| `slot_identity` | stable dense output slot identity |
+| Requirement         | Meaning                                                                                                   |
+| ------------------- | --------------------------------------------------------------------------------------------------------- |
+| `slot_identity`     | stable dense output slot identity                                                                         |
 | `slot_preservation` | explicit declaration that output slots preserve the slot identity required by the resolved correspondence |
-| `prediction_kind` | categorical labels or categorical scores |
-| `source_vocabulary` | immutable identity and finite categorical domain |
+| `prediction_kind`   | categorical labels or categorical scores                                                                  |
+| `source_vocabulary` | immutable identity and finite categorical domain                                                          |
 
 The selected model-output role is supplied by binding/experiment composition; this adapter does not decide which scientific output role should be used.
 
@@ -49,13 +51,13 @@ The selected model-output role is supplied by binding/experiment composition; th
 
 A compatible target declares:
 
-| Requirement | Meaning |
-|---|---|
-| rectangular prediction domain | finite rectangular position domain |
-| `position_count` | number `P >= 1` of required task prediction positions |
-| `position_identity` | canonical dense task-position identity |
-| `prediction_kind` | categorical labels or categorical scores |
-| `target_vocabulary` | immutable identity and finite categorical domain |
+| Requirement                   | Meaning                                                             |
+| ----------------------------- | ------------------------------------------------------------------- |
+| rectangular prediction domain | finite rectangular position domain                                  |
+| `position_count`              | number `P >= 1` of required task prediction positions               |
+| `position_identity`           | canonical dense task-position identity                              |
+| `prediction_kind`             | categorical labels or categorical scores                            |
+| `target_vocabulary`           | immutable identity and finite categorical domain                    |
 | canonical score-to-label rule | only when the target explicitly requires labels derived from scores |
 
 ## 3. Transformation semantics
@@ -111,26 +113,26 @@ No slot ordering, target position count, temporal/spatial layout, thresholds, or
 
 ### 4.2 Endpoint-owned values
 
-| Value | Authority |
-|---|---|
-| selected source role semantics | model-output interface |
-| source slot identity/preservation | model-output interface |
-| source prediction kind/vocabulary | model-output interface |
+| Value                              | Authority                 |
+| ---------------------------------- | ------------------------- |
+| selected source role semantics     | model-output interface    |
+| source slot identity/preservation  | model-output interface    |
+| source prediction kind/vocabulary  | model-output interface    |
 | target rectangular position domain | task-prediction interface |
-| target prediction kind/vocabulary | task-prediction interface |
-| canonical score-to-label rule | task-prediction interface |
+| target prediction kind/vocabulary  | task-prediction interface |
+| canonical score-to-label rule      | task-prediction interface |
 
 ### 4.3 Derived values
 
 Successful resolution validates/reuses:
 
-| Value | Meaning |
-|---|---|
+| Value              | Meaning                                          |
+| ------------------ | ------------------------------------------------ |
 | `position_to_slot` | explicit correspondence from binding composition |
-| `slot_to_position` | inverse correspondence |
-| `mapped_slots` | model slots with task-position identity |
-| `ignored_slots` | representation-only model slots |
-| `category_mapping` | resolved label mapping or score-axis bijection |
+| `slot_to_position` | inverse correspondence                           |
+| `mapped_slots`     | model slots with task-position identity          |
+| `ignored_slots`    | representation-only model slots                  |
+| `category_mapping` | resolved label mapping or score-axis bijection   |
 
 The spatial correspondence is not independently authored by this output adapter.
 
