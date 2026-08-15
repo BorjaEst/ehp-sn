@@ -38,6 +38,8 @@ For this reason, report operations may expose `--overwrite`. Authoritative data,
 ehp-sn report COMMAND [OPTIONS]
 ```
 
+The `report` command group provides these commands:
+
 | Command           | Purpose                                      |
 | ----------------- | -------------------------------------------- |
 | `plan SOURCE`     | Resolve a report build without writing       |

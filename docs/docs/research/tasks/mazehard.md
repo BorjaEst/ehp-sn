@@ -208,6 +208,8 @@ Such deduplication is a corpus representation choice and does not alter the logi
 
 ### 6.1 Parent roles
 
+MazeHard depends on this parent role, the generic contract it must satisfy, and how the task uses it:
+
 | Role       | Required | Required contract    | Task use                      |
 | ---------- | -------: | -------------------- | ----------------------------- |
 | `topology` |      yes | `raster-topology/v1` | maze passability and movement |
@@ -351,17 +353,31 @@ Validation must independently verify that $R^*$ is a valid route of cost $C^*$ a
 
 ### 9.1 Record fields
 
-One record contains or resolves at least:
+One record contains or resolves at least these fields, split across two tables by concern.
 
-| Field              | Required | Scope / semantic shape                             | Visibility          | Role             | Meaning                               |
-| ------------------ | -------: | -------------------------------------------------- | ------------------- | ---------------- | ------------------------------------- |
-| `record_id`        |      yes | scalar                                             | metadata            | identifier       | task-case identity                    |
-| `environment_id`   |      yes | scalar                                             | metadata            | identifier       | corpus-local topology context         |
-| `start_flag`       |      yes | natural raster domain                              | public              | input            | unique $g'_{\mathrm{start}}$          |
-| `goal_flag`        |      yes | natural raster domain                              | public              | input            | unique $g'_{\mathrm{goal}}$           |
-| `reference_path`   |      yes | natural raster domain or equivalent route encoding | target              | oracle/reference | one deterministic optimal route $R^*$ |
-| `reference_labels` |      yes | natural raster domain                              | target              | primary target   | path-labelled target $y^*$            |
-| `optimal_cost`     |      yes | scalar                                             | privileged/metadata | oracle truth     | $C^*$                                 |
+The following table gives each field's shape and requiredness:
+
+| Field              | Required | Shape                                              |
+| ------------------ | -------- | -------------------------------------------------- |
+| `record_id`        | yes      | scalar                                             |
+| `environment_id`   | yes      | scalar                                             |
+| `start_flag`       | yes      | natural raster domain                              |
+| `goal_flag`        | yes      | natural raster domain                              |
+| `reference_path`   | yes      | natural raster domain or equivalent route encoding |
+| `reference_labels` | yes      | natural raster domain                              |
+| `optimal_cost`     | yes      | scalar                                             |
+
+The following table gives each field's visibility, role, and meaning:
+
+| Field              | Visibility          | Role             | Meaning                               |
+| ------------------ | ------------------- | ---------------- | ------------------------------------- |
+| `record_id`        | metadata            | identifier       | task-case identity                    |
+| `environment_id`   | metadata            | identifier       | corpus-local topology context         |
+| `start_flag`       | public              | input            | unique $g'_{\mathrm{start}}$          |
+| `goal_flag`        | public              | input            | unique $g'_{\mathrm{goal}}$           |
+| `reference_path`   | target              | oracle/reference | one deterministic optimal route $R^*$ |
+| `reference_labels` | target              | primary target   | path-labelled target $y^*$            |
+| `optimal_cost`     | privileged/metadata | oracle truth     | $C^*$                                 |
 
 The public environment resource must resolve traversability over the same natural domain.
 
@@ -521,6 +537,5 @@ The resolved binding — the task, the model, and this configured `InputAdapter`
 
 - The first reference-reproduction corpus must freeze the exact 30 × 30 source/admission profile and source-solution reconstruction needed for direct HRM/Maze-Hard comparison.
 
-- The shared `raster-topology/v1` contract must be finalized.
 - The first canonical MazeHard corpus must define topology/query split policy for Maze-ND, whose normalized topology records have no intrinsic experimental splits.
 - A legacy HRM source-reproduction profile should be specified separately if exact upstream 30×30 token-label behavior is required.

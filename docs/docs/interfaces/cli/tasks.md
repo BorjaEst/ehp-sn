@@ -32,6 +32,8 @@ ehp-sn train / ehp-sn evaluate
 ehp-sn tasks COMMAND [OPTIONS]
 ```
 
+The `tasks` command group provides these commands:
+
 | Command           | Purpose                                    |
 | ----------------- | ------------------------------------------ |
 | `list`            | List available task families               |

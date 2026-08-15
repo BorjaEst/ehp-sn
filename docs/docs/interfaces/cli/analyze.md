@@ -34,6 +34,8 @@ The initial stable target is a single analysis from the installed component cata
 ehp-sn analyze COMMAND [OPTIONS]
 ```
 
+The `analyze` command group provides these commands:
+
 | Command             | Purpose                                       |
 | ------------------- | --------------------------------------------- |
 | `list`              | List available analyses                       |

@@ -294,6 +294,8 @@ The precise `<logical-id>` grammar belongs to the artifact-reference specificati
 
 The CLI distinguishes scientific identity, resolved request identity, durable artifact identity, and physical location. Identity is semantic rather than path-based; the hashing implementation belongs elsewhere.
 
+Per command, the properties that affect identity are:
+
 | Command        | Identity-affecting properties                                                                                                                                            |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `data build`   | Generator version, effective semantic configuration, generation seed, and ordered source identities                                                                      |
@@ -415,6 +417,8 @@ Interrupted commands use `status = "error"`, `code = "cli.interrupted"`, and pro
 }
 ```
 
+The `action` field takes one of these values:
+
 | Action      | Meaning                                     |
 | ----------- | ------------------------------------------- |
 | `listed`    | Catalogue entries returned                  |
@@ -445,6 +449,8 @@ Interrupted commands use `status = "error"`, `code = "cli.interrupted"`, and pro
 These codes are a proposed stable contract until verified by CLI acceptance tests.
 
 ### Classification examples
+
+Representative failures map to these exit codes:
 
 | Failure                                                     | Exit code |
 | ----------------------------------------------------------- | --------: |

@@ -272,6 +272,8 @@ These resources are required for self-contained validation but remain privileged
 
 ### 6.1 Parent roles
 
+Routebind depends on these parent roles, the generic contract each must satisfy, and how the task uses it:
+
 | Role                    |                   Required | Required contract      | Task use                                                    |
 | ----------------------- | -------------------------: | ---------------------- | ----------------------------------------------------------- |
 | `topology`              |                        yes | `raster-topology/v1`   | physical traversability and movement                        |
@@ -515,17 +517,35 @@ Validation must establish that every retained route is a simple accepting route 
 
 ### 9.1 Record fields
 
-| Field               |    Required | Scope / semantic shape | Visibility | Role              | Meaning                         |
-| ------------------- | ----------: | ---------------------- | ---------- | ----------------- | ------------------------------- |
-| `record_id`         |         yes | scalar                 | metadata   | identifier        | query identity                  |
-| `environment_id`    |         yes | scalar                 | metadata   | identifier        | composed environment reference  |
-| `start_flag`        |         yes | natural spatial domain | public     | input             | unique $g'_{\mathrm{start}}$    |
-| `goal_flag`         |         yes | natural spatial domain | public     | input             | support $C_{\mathrm{goal}}$     |
-| `target_trajectory` |         yes | natural spatial domain | target     | primary target    | $f_{\mathrm{traj}}^*$           |
-| `target_waypoint`   |         yes | natural spatial domain | target     | structural target | $f_{\mathrm{wp}}^*$             |
-| `optimal_cost`      |         yes | scalar                 | privileged | oracle metadata   | $C^*$                           |
-| `valid_route_count` |         yes | scalar                 | privileged | diagnostic        | number of retained valid routes |
-| `spatial_mask`      | when padded | storage domain         | technical  | mask              | natural-domain membership only  |
+One record contains or resolves at least these fields, split across two tables by concern.
+
+The following table gives each field's shape and requiredness:
+
+| Field               | Required    | Shape                  |
+| ------------------- | ----------- | ---------------------- |
+| `record_id`         | yes         | scalar                 |
+| `environment_id`    | yes         | scalar                 |
+| `start_flag`        | yes         | natural spatial domain |
+| `goal_flag`         | yes         | natural spatial domain |
+| `target_trajectory` | yes         | natural spatial domain |
+| `target_waypoint`   | yes         | natural spatial domain |
+| `optimal_cost`      | yes         | scalar                 |
+| `valid_route_count` | yes         | scalar                 |
+| `spatial_mask`      | when padded | storage domain         |
+
+The following table gives each field's visibility, role, and meaning:
+
+| Field               | Visibility | Role              | Meaning                         |
+| ------------------- | ---------- | ----------------- | ------------------------------- |
+| `record_id`         | metadata   | identifier        | query identity                  |
+| `environment_id`    | metadata   | identifier        | composed environment reference  |
+| `start_flag`        | public     | input             | unique $g'_{\mathrm{start}}$    |
+| `goal_flag`         | public     | input             | support $C_{\mathrm{goal}}$     |
+| `target_trajectory` | target     | primary target    | $f_{\mathrm{traj}}^*$           |
+| `target_waypoint`   | target     | structural target | $f_{\mathrm{wp}}^*$             |
+| `optimal_cost`      | privileged | oracle metadata   | $C^*$                           |
+| `valid_route_count` | privileged | diagnostic        | number of retained valid routes |
+| `spatial_mask`      | technical  | mask              | natural-domain membership only  |
 
 The referenced environment entry resolves the public traversability and observation identity needed by the task input.
 Additional route-enumeration diagnostics may be stored as privileged channels but are not additional canonical outputs.
@@ -694,7 +714,6 @@ The resolved binding must not expose the hidden graph/binding or change the prod
 
 ## 15. Open issues
 
-- The shared `raster-topology/v1` specification must be finalized.
 - The first Routebind corpus must choose one explicit graph-node-to-observation binding protocol.
 - The precise framework representation of a corpus-level semantic law sourced from an intrinsically split Dagflow artifact should be documented in the corpus/profile specification so it is not mistaken for example-level cross-split derivation.
 - Named Routebind corpus profiles must define their actual cost/depth distributions; the task specification intentionally does not freeze the previous large preset table.

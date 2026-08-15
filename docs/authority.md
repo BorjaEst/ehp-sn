@@ -65,21 +65,33 @@ Do not use CLI presence as evidence of semantic ownership.
 
 Ownership is assigned by specification root, not per component. A specification's location determines its semantic owner.
 
-| Concept category                                                     | Semantic owner          | Specification root                                                                                                                                | Implementation surface                        |
-| -------------------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| Package dependency direction, authority model                        | repository architecture | `docs/authority.md`, `docs/invariants.md`                                                                                                         | package metadata, imports, architecture tests |
-| Generic framework contracts and services                             | `ehp_sn`                | `docs/docs/framework/`                                                                                                                            | `packages/ehp-sn/src/`                        |
-| Public configuration model, resolution, and requirements             | `ehp_sn`                | `docs/docs/interfaces/configuration/`                                                                                                             | `packages/ehp-sn/src/`                        |
-| Public CLI behavior                                                  | `ehp_sn`                | `docs/docs/interfaces/cli/`                                                                                                                       | `packages/ehp-sn/src/`                        |
-| Public Python behavior                                               | `ehp_sn`                | `docs/docs/interfaces/python/`                                                                                                                    | `packages/ehp-sn/src/`                        |
-| Research substrate semantics                                         | `ehp_research`          | `docs/docs/research/substrates/`                                                                                                                  | `packages/ehp-research/src/`                  |
-| Research task semantics                                              | `ehp_research`          | `docs/docs/research/tasks/`                                                                                                                       | `packages/ehp-research/src/`                  |
-| Research model semantics and resolved experiment/binding composition | `ehp_research`          | `docs/docs/research/`, `experiments/`                                                                                                             | `packages/ehp-research/src/`, `experiments/`  |
-| Repository and package overview                                      | descriptive             | root and package READMEs                                                                                                                          | not applicable                                |
-| Published documentation orientation content                          | descriptive             | `docs/docs/index.md`, `docs/docs/architecture/`, `docs/docs/concepts/`, `docs/docs/decisions/`, `docs/docs/guides/`, `docs/docs/getting-started/` | not applicable                                |
-| Agent roles, procedures, and path scoping                            | procedural              | `.claude/`                                                                                                                                        | not applicable                                |
+| Concept category                                                     | Specification root                        | Implementation surface                       |
+| -------------------------------------------------------------------- | ----------------------------------------- | -------------------------------------------- |
+| Package dependency direction, authority model                        | `docs/authority.md`, `docs/invariants.md` | metadata, imports, tests                     |
+| Generic framework contracts and services                             | `docs/docs/framework/`                    | `packages/ehp-sn/src/`                       |
+| Public configuration model, resolution, and requirements             | `docs/docs/interfaces/configuration/`     | `packages/ehp-sn/src/`                       |
+| Public CLI behavior                                                  | `docs/docs/interfaces/cli/`               | `packages/ehp-sn/src/`                       |
+| Public Python behavior                                               | `docs/docs/interfaces/python/`            | `packages/ehp-sn/src/`                       |
+| Research substrate semantics                                         | `docs/docs/research/substrates/`          | `packages/ehp-research/src/`                 |
+| Research task semantics                                              | `docs/docs/research/tasks/`               | `packages/ehp-research/src/`                 |
+| Research model semantics and resolved experiment/binding composition | `docs/docs/research/`, `experiments/`     | `packages/ehp-research/src/`, `experiments/` |
 
 Generic `Task` and `Model` _contracts_ are framework-owned; their concrete scientific _definitions_ are research-owned. The distinction is the one drawn in "Ownership versus orchestration" above.
+
+### Descriptive and procedural content
+
+Some paths are recorded here for the closure rule below without being semantic-ownership claims: they describe or orchestrate rather than define, so they are listed rather than tabulated — none has an implementation surface to compare against the table above.
+
+- **Repository and package overview** (descriptive) — root and package READMEs.
+- **Published documentation orientation content** (descriptive):
+  - `docs/docs/index.md`
+  - `docs/docs/architecture/`
+  - `docs/docs/concepts/`
+  - `docs/docs/decisions/`
+  - `docs/docs/guides/`
+  - `docs/docs/getting-started/`
+  - `docs/docs/development/`
+- **Agent roles, procedures, and path scoping** (procedural) — `.claude/`.
 
 `Binding` is not an independently specified contract: it is the resolved, validated connection of one task and one model, formed by one configured `InputAdapter` and one configured `OutputAdapter`. `InputAdapter` and `OutputAdapter` are generic framework contracts, specified under `docs/docs/framework/` (`docs/docs/framework/adapters/index.md`); a concrete resolved binding — its adapter configuration and the composition itself — is assembled by an `ExperimentDefinition` and is research-owned, following the same generic-contract/concrete-definition split.
 
@@ -131,6 +143,8 @@ A catalogue column must state which dimension it displays (for example, a "Compo
 Presence and validity of the per-document frontmatter is required by `docs/invariants.md` DOC-006.
 
 ## Related authority
+
+Each row states a question about repository authority and which document holds the answer.
 
 | Question                                      | Document             |
 | --------------------------------------------- | -------------------- |

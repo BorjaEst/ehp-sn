@@ -54,6 +54,8 @@ This specification does not define:
 
 ## Canonical identity and conformance
 
+A conforming record declares these fixed identity values:
+
 | Property              | Required value                                                                        |
 | --------------------- | ------------------------------------------------------------------------------------- |
 | Logical record schema | `categorical-field/v1`                                                                |

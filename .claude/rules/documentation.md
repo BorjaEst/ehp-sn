@@ -77,4 +77,5 @@ Before adding or editing a table:
 - confirm the data is genuinely multi-dimensional; single-attribute data becomes a list instead;
 - add an introductory sentence unless the immediately preceding heading already names the table's exact content precisely (a generic or multi-purpose heading does not count);
 - keep a table split by concern rather than widening it further;
+- when splitting a table by concern, give each resulting table its own self-contained introductory sentence, not one shared across the split set;
 - keep row order and header casing consistent with sibling tables in the same document.

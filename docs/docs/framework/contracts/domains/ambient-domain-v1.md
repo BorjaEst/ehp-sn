@@ -40,6 +40,8 @@ This specification does not define:
 
 ## Canonical identity and conformance
 
+A conforming domain declaration declares these fixed identity values:
+
 | Property                  | Required value                                  |
 | ------------------------- | ----------------------------------------------- |
 | Domain-declaration schema | `ambient-domain/v1`                             |

@@ -38,6 +38,8 @@ Maze-ND defines:
 
 ## Canonical identity and conformance
 
+A conforming Maze-ND substrate artifact declares these fixed identity values:
+
 | Property                | Required value       |
 | ----------------------- | -------------------- |
 | Artifact kind           | `substrate`          |

@@ -24,6 +24,8 @@ Evaluation uses the experiment's declared evaluation protocol and named regimes.
 ehp-sn evaluate COMMAND [OPTIONS]
 ```
 
+The `evaluate` command group provides these commands:
+
 | Command               | Purpose                                              |
 | --------------------- | ---------------------------------------------------- |
 | `list`                | List experiments that declare evaluation regimes     |

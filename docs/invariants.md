@@ -252,6 +252,20 @@ Scope is the MkDocs source tree `docs/docs/`, where a broken link ships to reade
 
 Agent configuration under `.claude/` is out of scope. A reference there is followed by an agent, not rendered for a reader, so it fails at the point of use rather than silently.
 
+### DOC-009 — Tables serve reader comparison
+
+A table is used only for data that is genuinely multi-dimensional and comparable — rows that share the same set of attributes across two or more columns.
+
+- Data with only one substantive attribute per item uses a list, not a single-column table.
+- A table introduces itself: a sentence immediately before it states what it contains and, where not obvious from the heading, why it is a table.
+- A table too wide or multi-concerned to stay scannable is split by concern (for example: shape/requiredness in one table, visibility/role/meaning in another) rather than left as one wide table. Each resulting table keeps its own specific introductory sentence naming its concern — a sentence shared across the whole split does not satisfy the introduction requirement for its second and later tables.
+- Rows follow a stated or evident logical order (declaration order, dependency order, severity) rather than an arbitrary one.
+- Header cells are short, sentence-case, and free of trailing punctuation.
+- Cell content stays short — a value, a term, a short phrase. Elaboration that does not fit belongs in prose after the table, not packed into a cell.
+- A cell holds at most 100 characters. Content that does not fit at that length is compressed to its essential claim, with detail deferred to the surrounding prose or the definition the row points to — not wrapped or truncated with an ellipsis.
+
+This governs table content and structure. It does not restate Markdown table syntax, which `docs/mkdocs.yml` § `markdown_extensions` and CommonMark/GFM already define.
+
 ## Verification expectation
 
 A change affecting an invariant must provide an observable check showing why the invariant still holds.
@@ -268,43 +282,55 @@ The following are not sufficient verification:
 `manual` means the invariant is currently checked only by review.
 `none` means no check exists yet and one should be added when the invariant is next relied upon.
 
-| ID         | Observable check                                                                                                                                  | State  |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| ARCH-001   | dependency declarations in `packages/ehp-sn/pyproject.toml`; no `ehp_research` import under `packages/ehp-sn/src/`                                | none   |
-| ARCH-002   | no two `authority: normative` specifications declare the same component reference                                                                 | none   |
-| ARCH-003   | framework source contains no import of a concrete research package by name; duplicate registration raises                                         | none   |
-| DATA-001   | substrate schemas expose no task-only query, target, episode, reward, or metric field                                                             | manual |
-| DATA-002   | substrate identity inputs exclude downstream task composition                                                                                     | manual |
-| DATA-003   | parent selection is reproducible from resolved configuration                                                                                      | manual |
-| DATA-004   | committed corpus loads and validates with parent artifacts absent                                                                                 | none   |
-| DATA-005   | shared research contracts remain under `packages/ehp-research/src/`                                                                               | none   |
-| DATA-006   | a committed release coordinate never resolves to changed content                                                                                  | none   |
-| TASK-001   | task-owned semantics are absent from substrate specifications and implementations                                                                 | manual |
-| ADAPT-001  | adapter implementation contains no conditional keyed on concrete task or model identity                                                           | none   |
-| ADAPT-002  | InputAdapter output introduces no privileged information; OutputAdapter performs no oracle repair or scoring                                      | none   |
-| ADAPT-003  | adapter definition declares no authored field already determined by the resolved source or target interface; such values appear only as `derived` | none   |
-| BIND-001   | resolved binding output preserves public/withheld split, truth, targets, splits, and metric meaning                                               | manual |
-| CONFIG-001 | scientific definitions declare requirements; configuration binds them                                                                             | manual |
-| CONFIG-002 | public configuration surface exposes no backend-native syntax                                                                                     | none   |
-| CONFIG-003 | identity-affecting selection appears in resolved configuration or provenance                                                                      | none   |
-| CONFIG-004 | equivalent CLI and Python inputs produce equal resolved plans                                                                                     | none   |
-| CLI-001    | CLI modules define no scientific semantics                                                                                                        | manual |
-| CLI-002    | command names conform to the lifecycle vocabulary                                                                                                 | none   |
-| CLI-003    | CLI help and documented options contain no Hydra-native syntax                                                                                    | none   |
-| ART-001    | interrupted artifact production leaves no committed incomplete artifact                                                                           | none   |
-| ART-002    | normal use of a committed artifact opens no parent artifact                                                                                       | none   |
-| DOC-001    | README files introduce no `authority: normative` claim                                                                                            | manual |
-| DOC-002    | unresolved conflicts appear in `docs/decisions.md`                                                                                                | manual |
-| DOC-003    | catalogue and status metadata match specification frontmatter                                                                                     | none   |
-| DOC-004    | documented examples use current CLI, configuration, and reference syntax                                                                          | none   |
-| DOC-005    | `docs/README.md` and `docs/docs/index.md` are not cross-referenced as equivalents                                                                 | manual |
-| DOC-006    | every `authority: normative` document under a specification root carries valid frontmatter                                                        | none   |
-| DOC-007    | no file under `.claude/` declares `authority: normative` or enumerates owned or excluded domain semantics                                         | manual |
-| DOC-008    | `mkdocs build --strict` in `.github/workflows/build-docs.yml` fails on an unresolved link under `docs/docs/`                                      | test   |
+### Automated (`test`)
 
-Checks marked `none` are the intended backlog for `tests/architecture/`, per `.claude/rules/tests.md`.
+DOC-008 is the only invariant with an automated check today: `mkdocs build --strict` in `build-docs.yml` fails on an unresolved `docs/docs/` link.
 
-A `manual` entry is also backlog: promote it to `test` when a deterministic check becomes practical.
+### Manual (`manual`)
+
+These invariants are checked only by review; each is backlog to promote to an automated check when practical.
+
+| ID         | Observable check                                                                                    |
+| ---------- | --------------------------------------------------------------------------------------------------- |
+| DATA-001   | substrate schemas expose no task-only query, target, episode, reward, or metric field               |
+| DATA-002   | substrate identity inputs exclude downstream task composition                                       |
+| DATA-003   | parent selection is reproducible from resolved configuration                                        |
+| TASK-001   | task-owned semantics are absent from substrate specifications and implementations                   |
+| BIND-001   | resolved binding output preserves public/withheld split, truth, targets, splits, and metric meaning |
+| CONFIG-001 | scientific definitions declare requirements; configuration binds them                               |
+| CLI-001    | CLI modules define no scientific semantics                                                          |
+| DOC-001    | README files introduce no `authority: normative` claim                                              |
+| DOC-002    | unresolved conflicts appear in `docs/decisions.md`                                                  |
+| DOC-005    | `docs/README.md` and `docs/docs/index.md` are not cross-referenced as equivalents                   |
+| DOC-007    | no `.claude/` file declares `authority: normative` or enumerates domain semantics                   |
+| DOC-009    | every published table is multi-dimensional, self-introduced, and uses sentence-case headers         |
+
+### Not yet checked (`none`)
+
+No check exists yet for these invariants; each is backlog for `tests/architecture/`, per `.claude/rules/tests.md`, to be added when next relied upon.
+
+| ID         | Observable check                                                                                |
+| ---------- | ----------------------------------------------------------------------------------------------- |
+| ARCH-001   | no `ehp_research` import under `packages/ehp-sn/src/`; none declared in `pyproject.toml`        |
+| ARCH-002   | no two `authority: normative` specifications declare the same component reference               |
+| ARCH-003   | framework source imports no concrete research package by name; duplicate registration raises    |
+| DATA-004   | committed corpus loads and validates with parent artifacts absent                               |
+| DATA-005   | shared research contracts remain under `packages/ehp-research/src/`                             |
+| DATA-006   | a committed release coordinate never resolves to changed content                                |
+| ADAPT-001  | adapter implementation contains no conditional keyed on concrete task or model identity         |
+| ADAPT-002  | InputAdapter adds no privileged information; OutputAdapter performs no oracle repair or scoring |
+| ADAPT-003  | adapter definition declares no authored field already determined by the resolved interfaces     |
+| CONFIG-002 | public configuration surface exposes no backend-native syntax                                   |
+| CONFIG-003 | identity-affecting selection appears in resolved configuration or provenance                    |
+| CONFIG-004 | equivalent CLI and Python inputs produce equal resolved plans                                   |
+| CLI-002    | command names conform to the lifecycle vocabulary                                               |
+| CLI-003    | CLI help and documented options contain no Hydra-native syntax                                  |
+| ART-001    | interrupted artifact production leaves no committed incomplete artifact                         |
+| ART-002    | normal use of a committed artifact opens no parent artifact                                     |
+| DOC-003    | catalogue and status metadata match specification frontmatter                                   |
+| DOC-004    | documented examples use current CLI, configuration, and reference syntax                        |
+| DOC-006    | every `authority: normative` document under a specification root carries valid frontmatter      |
+
 An entry's state records the check that exists today, not the check that is intended, and is updated in the same change that adds or removes one.
 
 An invariant may be enforced over part of the repository before it can be enforced everywhere. Where coverage is partial, the enforcement row states the covered scope.

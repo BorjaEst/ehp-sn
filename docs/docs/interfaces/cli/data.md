@@ -32,6 +32,8 @@ ehp-sn tasks
 ehp-sn data COMMAND [OPTIONS]
 ```
 
+The `data` command group provides these commands:
+
 | Command             | Purpose                                               |
 | ------------------- | ----------------------------------------------------- |
 | `list`              | List available substrate generators                   |

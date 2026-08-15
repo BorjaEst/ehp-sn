@@ -272,6 +272,8 @@ Environment entries are not model-visible merely because they are corpus-local.
 
 ### 6.1 Parent roles
 
+Arena depends on these parent roles, the generic contract each must satisfy, and how the task uses it:
+
 | Role                | Required | Required contract      | Task use                                        |
 | ------------------- | -------: | ---------------------- | ----------------------------------------------- |
 | `topology`          |      yes | `raster-topology/v1`   | movement structure and physical state identity  |
@@ -416,17 +418,31 @@ Pathway-specific outputs and diagnostics belong to the applicable binding/model 
 
 ### 9.1 Episode record fields
 
-One logical episode record contains or resolves at least:
+One logical episode record contains or resolves at least these fields, split across two tables by concern.
 
-| Field                 | Required | Scope / semantic shape      | Visibility                     | Role         | Meaning                                                    |
-| --------------------- | -------: | --------------------------- | ------------------------------ | ------------ | ---------------------------------------------------------- |
-| `record_id`           |      yes | scalar                      | metadata                       | identifier   | episode identity                                           |
-| `environment_id`      |      yes | scalar                      | metadata                       | identifier   | corpus-local composed environment                          |
-| `observation`         |      yes | `(T,)`                      | public/target by temporal role | sequence     | observation encountered at each visited state              |
-| `action`              |      yes | `(T-1,)`                    | public                         | sequence     | action between consecutive visited states                  |
-| `episode_start`       |      yes | scalar or derivable         | public control                 | boundary     | episode reset condition                                    |
-| `is_revisit`          |      yes | `(T,)`                      | privileged                     | metric truth | physical-state revisit indicator                           |
-| `trajectory_position` |      yes | `(T,)` logical position IDs | privileged                     | validation   | physical trajectory in canonical ambient-position identity |
+The following table gives each field's shape and requiredness:
+
+| Field                 | Required | Shape                       |
+| --------------------- | -------- | --------------------------- |
+| `record_id`           | yes      | scalar                      |
+| `environment_id`      | yes      | scalar                      |
+| `observation`         | yes      | `(T,)`                      |
+| `action`              | yes      | `(T-1,)`                    |
+| `episode_start`       | yes      | scalar or derivable         |
+| `is_revisit`          | yes      | `(T,)`                      |
+| `trajectory_position` | yes      | `(T,)` logical position IDs |
+
+The following table gives each field's visibility, role, and meaning:
+
+| Field                 | Visibility                     | Role         | Meaning                                                    |
+| --------------------- | ------------------------------ | ------------ | ---------------------------------------------------------- |
+| `record_id`           | metadata                       | identifier   | episode identity                                           |
+| `environment_id`      | metadata                       | identifier   | corpus-local composed environment                          |
+| `observation`         | public/target by temporal role | sequence     | observation encountered at each visited state              |
+| `action`              | public                         | sequence     | action between consecutive visited states                  |
+| `episode_start`       | public control                 | boundary     | episode reset condition                                    |
+| `is_revisit`          | privileged                     | metric truth | physical-state revisit indicator                           |
+| `trajectory_position` | privileged                     | validation   | physical trajectory in canonical ambient-position identity |
 
 A physical serialization may use padded fixed-width arrays, but padding is not part of the logical episode semantics.
 
@@ -600,7 +616,6 @@ The resolved binding must not expose decoded topology or privileged spatial iden
 
 ## 15. Open issues
 
-- The shared `raster-topology/v1` contract must be finalized before Arena can become `specified`.
 - The initial named Arena corpus must choose its walk protocol, episode-length policy, and `STAY` policy.
 - The initial split/novelty policy for independent topology and ObsField pools must be declared by the concrete corpus profile.
 - Any landmark or shiny-cue semantics require a separately defined reusable observation capability or later Arena version; they are not part of Arena v1.

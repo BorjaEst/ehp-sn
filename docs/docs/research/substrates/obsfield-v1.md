@@ -44,6 +44,8 @@ They are simply unused in that composition.
 
 ## Canonical identity and conformance
 
+A conforming ObsField substrate artifact declares these fixed identity values:
+
 | Property                | Required value         |
 | ----------------------- | ---------------------- |
 | Artifact kind           | `substrate`            |

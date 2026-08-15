@@ -37,6 +37,8 @@ The public node domain, directed-edge relation, canonical edge ordering, and lab
 
 ## Canonical identity and conformance
 
+A conforming Dagflow substrate artifact declares these fixed identity values:
+
 | Property                | Required value      |
 | ----------------------- | ------------------- |
 | Artifact kind           | `substrate`         |

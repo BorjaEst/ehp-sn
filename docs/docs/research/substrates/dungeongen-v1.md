@@ -39,6 +39,8 @@ DungeonGen defines:
 
 ## Canonical identity and conformance
 
+A conforming DungeonGen substrate artifact declares these fixed identity values:
+
 | Property                | Required value       |
 | ----------------------- | -------------------- |
 | Artifact kind           | `substrate`          |

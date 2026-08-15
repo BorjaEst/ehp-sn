@@ -22,6 +22,8 @@ Training uses the experiment as its scientific identity. It does not maintain a 
 ehp-sn train COMMAND [OPTIONS]
 ```
 
+The `train` command group provides these commands:
+
 | Command               | Purpose                                          |
 | --------------------- | ------------------------------------------------ |
 | `list`                | List experiments that declare training protocols |
@@ -208,6 +210,8 @@ ehp-sn train validate EXPERIMENT [--level config|resources|build] [OPTIONS]
 | `--level config\|resources\|build` | `resources` | Validation depth |
 
 ### Behavior
+
+Each validation level performs these checks:
 
 | Level       | Checks                                                                               |
 | ----------- | ------------------------------------------------------------------------------------ |

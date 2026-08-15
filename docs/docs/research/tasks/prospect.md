@@ -262,6 +262,8 @@ Records refer to these through corpus-local identifiers.
 
 ### 6.1 Build-time parent roles
 
+Prospect depends on these parent roles, the generic contract each must satisfy, and how the task uses it:
+
 | Role                     | Required | Required contract                                  | Task use                                                 |
 | ------------------------ | -------: | -------------------------------------------------- | -------------------------------------------------------- |
 | `topology`               |      yes | `raster-topology/v1`                               | oracle physical structure and memory compatibility       |
@@ -490,17 +492,35 @@ Their scientific difference is the model-visible source of environment-specific 
 
 ### 9.1 Record fields
 
-| Field                 |                         Required | Scope / semantic shape      | Visibility | Role              | Meaning                                                              |
-| --------------------- | -------------------------------: | --------------------------- | ---------- | ----------------- | -------------------------------------------------------------------- |
-| `record_id`           |                              yes | scalar                      | metadata   | identifier        | Prospect query identity                                              |
-| `environment_id`      |                              yes | scalar                      | metadata   | identifier        | exact composed environment                                           |
-| `memory_entry_id`     |                              yes | scalar                      | metadata   | input reference   | corpus-local acquired-memory entry                                   |
-| `start_position`      |                              yes | decoded position identity   | public     | task query        | $g'_{\mathrm{start}}$; binding source for the model's start cue      |
-| `goal_observation_id` |                              yes | scalar categorical identity | public     | task query        | $o_{\mathrm{goal}}$; binding source for the model's sensory goal cue |
-| `target_trajectory`   |                              yes | decoded spatial domain      | target     | primary target    | $f_{\mathrm{traj}}^*$                                                |
-| `target_waypoint`     |                              yes | decoded spatial domain      | target     | structural target | $f_{\mathrm{wp}}^*$                                                  |
-| `optimal_cost`        |                              yes | scalar                      | privileged | oracle metadata   | $C^*$                                                                |
-| `spatial_mask`        | when fixed padded output is used | storage/output domain       | technical  | mask              | valid output slots only                                              |
+One record contains or resolves at least these fields, split across two tables by concern.
+
+The following table gives each field's shape and requiredness:
+
+| Field                 | Required                         | Shape                       |
+| --------------------- | -------------------------------- | --------------------------- |
+| `record_id`           | yes                              | scalar                      |
+| `environment_id`      | yes                              | scalar                      |
+| `memory_entry_id`     | yes                              | scalar                      |
+| `start_position`      | yes                              | decoded position identity   |
+| `goal_observation_id` | yes                              | scalar categorical identity |
+| `target_trajectory`   | yes                              | decoded spatial domain      |
+| `target_waypoint`     | yes                              | decoded spatial domain      |
+| `optimal_cost`        | yes                              | scalar                      |
+| `spatial_mask`        | when fixed padded output is used | storage/output domain       |
+
+The following table gives each field's visibility, role, and meaning:
+
+| Field                 | Visibility | Role              | Meaning                                                              |
+| --------------------- | ---------- | ----------------- | -------------------------------------------------------------------- |
+| `record_id`           | metadata   | identifier        | Prospect query identity                                              |
+| `environment_id`      | metadata   | identifier        | exact composed environment                                           |
+| `memory_entry_id`     | metadata   | input reference   | corpus-local acquired-memory entry                                   |
+| `start_position`      | public     | task query        | $g'_{\mathrm{start}}$; binding source for the model's start cue      |
+| `goal_observation_id` | public     | task query        | $o_{\mathrm{goal}}$; binding source for the model's sensory goal cue |
+| `target_trajectory`   | target     | primary target    | $f_{\mathrm{traj}}^*$                                                |
+| `target_waypoint`     | target     | structural target | $f_{\mathrm{wp}}^*$                                                  |
+| `optimal_cost`        | privileged | oracle metadata   | $C^*$                                                                |
+| `spatial_mask`        | technical  | mask              | valid output slots only                                              |
 
 `memory_entry_id` is storage metadata; the semantic input is the resolved corpus-local acquired-memory content.
 The public query fields define $q'$ and must be encoded by a binding without exposing decoded topology or physical goal support.

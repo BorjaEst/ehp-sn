@@ -53,6 +53,8 @@ This specification does not define:
 
 ## Canonical identity and conformance
 
+A conforming record declares this fixed identity value:
+
 | Property              | Required value      |
 | --------------------- | ------------------- |
 | Logical record schema | `simple-digraph/v1` |
