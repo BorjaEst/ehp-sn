@@ -503,7 +503,6 @@ A source-reproduction corpus may instead resolve the original source problem occ
 
 ## Open issues
 
-- [`raster-topology/v1`](../../framework/contracts/topology/raster-topology-v1.md) now exists but remains `draft`; Maze-ND cannot move from `draft` to `specified` until that shared schema does.
 - The authoritative source revision, fingerprint, and extraction profile must be verified and fixed for the initial release.
 - The selected source revision must be inspected to choose the initial `preserve` or `reject` connectivity policy.
 - The first release must decide and document whether selection occurs before or after topology deduplication.

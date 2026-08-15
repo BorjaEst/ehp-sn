@@ -472,7 +472,6 @@ Downstream consumers must not treat accepted-attempt indexes, generator seeds, o
 
 ## Open issues
 
-- [`raster-topology/v1`](../../framework/contracts/topology/raster-topology-v1.md) now exists but remains `draft`; DungeonGen cannot move from `draft` to `specified` until that shared schema does.
 - Stable reusable room, corridor, and door region semantics remain unverified; `region_id` therefore remains optional.
 - Exact generator dependency and reference protocol must be fixed against the implementation selected for the first release.
 

@@ -35,18 +35,6 @@ Identifiers are permanent. A resolved entry is deleted and its identifier is nev
 
 **Until decided:** do not treat "registration must use canonical references / be deterministic / avoid import-order dependence beyond duplicate resolution / avoid expensive scientific execution" as settled authority beyond what ARCH-003 already states. Do not reject or require a registration implementation on the basis of these properties alone.
 
-## DEC-013 — Whether `experiments/` is tracked in version control
-
-- `docs/authority.md` § "Authority map" lists `experiments/` as a specification root for research model, binding, and experiment-family semantics.
-- `experiments/arena-tem/v1/plan.md` (formerly `README.md`; renamed because DOC-001 forbids a README carrying `authority: normative`, applied without exemption for specification-root READMEs) is the authoritative plan for the Arena–TEM reproduction asset.
-- The `experiments/` directory is untracked, so nothing under it is recoverable from version control.
-
-**Consequence of each interpretation:** if `experiments/` stays untracked, a document declared as a specification root's normative content is not actually reproducible or recoverable, undercutting the point of it being normative; if it is tracked, ordinary git workflow applies to it like any other specification root.
-
-**Decision required:** whether `experiments/` should be added to version control.
-
-**Until decided:** do not treat content under `experiments/` as recoverable authority, and do not run any enforcement check that assumes it is tracked.
-
 ## DEC-022 — No canonical field for `--hardware-profile`'s distributed-launch semantics
 
 - `docs/docs/interfaces/index.md` and `docs/invariants.md` CONFIG-004 now require that an interface-specific convenience such as `--hardware-profile` resolve into the same framework-owned canonical request/configuration fields the other interface would use, and must not introduce semantics that exist on only one interface.

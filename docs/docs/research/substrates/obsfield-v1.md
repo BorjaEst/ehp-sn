@@ -373,10 +373,9 @@ A new specification version is required for incompatible changes such as changin
 
 ObsField v1 remains `draft` until the following are finalized:
 
-1. `categorical-field/v1` and `ambient-domain/v1` themselves (currently `draft`);
-2. the exact canonical hex coordinate, finite-shape, and enumeration contract;
-3. the topology-to-ambient-position mapping contract used by topology substrates;
-4. the immutable vocabulary-reference and vocabulary-identity contract.
+1. the exact canonical hex coordinate, finite-shape, and enumeration contract;
+2. the topology-to-ambient-position mapping contract used by topology substrates;
+3. the immutable vocabulary-reference and vocabulary-identity contract.
 
 ## Related specifications
 

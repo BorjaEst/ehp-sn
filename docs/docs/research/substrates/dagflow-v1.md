@@ -268,19 +268,36 @@ Record content must also remain stable across worker counts.
 
 ### Semantic configuration
 
-| Key                                 | Type                           | Requiredness/default              | Meaning                                       | Family-specific build input |
-| ----------------------------------- | ------------------------------ | --------------------------------- | --------------------------------------------- | --------------------------: |
-| `substrate.variant`                 | enum                           | required: `single-terminal`       | Consumer-visible graph class                  |                         Yes |
-| `generation.protocol`               | specification reference        | required                          | Graph sampling protocol                       |                         Yes |
-| `generation.seed`                   | integer                        | required                          | Base deterministic seed                       |                         Yes |
-| `graph.node_count`                  | integer `>= 1`                 | required for fixed policy         | Fixed node count                              |                         Yes |
-| `graph.node_count.minimum`          | integer `>= 1`                 | required for bounded policy       | Minimum node count                            |                         Yes |
-| `graph.node_count.maximum`          | integer `>= minimum`           | required for bounded policy       | Maximum node count                            |                         Yes |
-| `graph.node_count.distribution`     | protocol-supported enum/schema | required for bounded policy       | Deterministic node-count distribution         |                         Yes |
-| `graph.additional_edge_probability` | real in `[0, 1]`               | required for the initial protocol | Probability for admissible non-required edges |                         Yes |
-| `splits.train.count`                | non-negative integer           | required                          | Number of training graph records              |                         Yes |
-| `splits.validation.count`           | non-negative integer           | required                          | Number of validation graph records            |                         Yes |
-| `splits.test.count`                 | non-negative integer           | required                          | Number of test graph records                  |                         Yes |
+One logical configuration key set contains these fields (split across two tables for readability —
+type and requiredness, then meaning and build-input scope):
+
+| Key                                 | Type                           | Requiredness/default              |
+| ----------------------------------- | ------------------------------ | --------------------------------- |
+| `substrate.variant`                 | enum                           | required: `single-terminal`       |
+| `generation.protocol`               | specification reference        | required                          |
+| `generation.seed`                   | integer                        | required                          |
+| `graph.node_count`                  | integer `>= 1`                 | required for fixed policy         |
+| `graph.node_count.minimum`          | integer `>= 1`                 | required for bounded policy       |
+| `graph.node_count.maximum`          | integer `>= minimum`           | required for bounded policy       |
+| `graph.node_count.distribution`     | protocol-supported enum/schema | required for bounded policy       |
+| `graph.additional_edge_probability` | real in `[0, 1]`               | required for the initial protocol |
+| `splits.train.count`                | non-negative integer           | required                          |
+| `splits.validation.count`           | non-negative integer           | required                          |
+| `splits.test.count`                 | non-negative integer           | required                          |
+
+| Key                                 | Meaning                                       | Family-specific build input |
+| ----------------------------------- | --------------------------------------------- | --------------------------- |
+| `substrate.variant`                 | Consumer-visible graph class                  | Yes                         |
+| `generation.protocol`               | Graph sampling protocol                       | Yes                         |
+| `generation.seed`                   | Base deterministic seed                       | Yes                         |
+| `graph.node_count`                  | Fixed node count                              | Yes                         |
+| `graph.node_count.minimum`          | Minimum node count                            | Yes                         |
+| `graph.node_count.maximum`          | Maximum node count                            | Yes                         |
+| `graph.node_count.distribution`     | Deterministic node-count distribution         | Yes                         |
+| `graph.additional_edge_probability` | Probability for admissible non-required edges | Yes                         |
+| `splits.train.count`                | Number of training graph records              | Yes                         |
+| `splits.validation.count`           | Number of validation graph records            | Yes                         |
+| `splits.test.count`                 | Number of test graph records                  | Yes                         |
 
 Exactly one node-count policy is valid: `graph.node_count`, or the complete bounded-policy triple.
 The fixed and bounded policy fields are mutually exclusive.

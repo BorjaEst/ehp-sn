@@ -29,9 +29,9 @@ If not, it normally does not belong to the substrate.
 
 ## Shared research contracts
 
-When several research substrate producers and task consumers require the same task-facing structure, define one research-owned shared contract rather than duplicating semantics.
+When several research substrate producers and task consumers require the same task-facing structure, first check `docs/docs/framework/contracts/index.md` § "Registered contracts" for an existing framework contract — a shared structure does not become research-owned merely because research components currently produce and consume it (DATA-005). Only a structure with no fitting framework contract, and no demonstrated framework-generic requirement, stays research-owned.
 
-`docs/docs/research/tasks/index.md` § "Raster topology" establishes DungeonGen and Maze-ND as producers of the shared `raster-topology/v1` task-facing contract; `docs/invariants.md` DATA-005 governs why such a shared contract stays research-owned rather than moving into `ehp_sn`. Consult those rather than re-deriving the example here.
+`docs/docs/research/substrates/index.md` § "Shared logical record schemas" lists the framework contracts substrates currently apply. Consult it, and `docs/docs/framework/contracts/index.md`, rather than re-deriving or restating which shared schemas are framework- versus research-owned here.
 
 ## Identity independence
 
