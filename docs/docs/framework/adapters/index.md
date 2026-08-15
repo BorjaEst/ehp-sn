@@ -194,11 +194,13 @@ Concrete adapter specifications use a common section structure:
 
 Current adapter specifications:
 
-| File                           | Contract                       | Role          | Source                                  | Target                               |
-| ------------------------------ | ------------------------------ | ------------- | --------------------------------------- | ------------------------------------ |
-| `raster-sequence-v1.md`        | `RasterSequenceAdapter`        | InputAdapter  | categorical rectangular position domain | categorical sequence                 |
-| `raster-prediction-v1.md`      | `RasterPredictionAdapter`      | OutputAdapter | categorical sequence                    | categorical rectangular prediction   |
-| `relational-sequence-v1.md`    | `RelationalSequenceAdapter`    | InputAdapter  | observation/relation task sequence      | sensory/relation model sequence      |
-| `observation-prediction-v1.md` | `ObservationPredictionAdapter` | OutputAdapter | sensory-prediction model sequence       | observation-prediction task sequence |
+| File                            | Contract                       | Role          | Source                                                   | Target                                  |
+| ------------------------------- | ------------------------------ | ------------- | -------------------------------------------------------- | --------------------------------------- |
+| `raster-sequence-v1.md`         | `RasterSequenceAdapter`        | InputAdapter  | categorical rectangular position domain                  | categorical sequence                    |
+| `raster-prediction-v1.md`       | `RasterPredictionAdapter`      | OutputAdapter | categorical sequence                                     | categorical rectangular prediction      |
+| `relational-sequence-v1.md`     | `RelationalSequenceAdapter`    | InputAdapter  | observation/relation task sequence                       | sensory/relation model sequence         |
+| `observation-prediction-v1.md`  | `ObservationPredictionAdapter` | OutputAdapter | sensory-prediction model sequence                        | observation-prediction task sequence    |
+| `raster-overlay-sequence-v1.md` | `RasterOverlaySequenceAdapter` | InputAdapter  | several categorical/binary rectangular position channels | categorical sequence                    |
+| `raster-field-prediction-v1.md` | `RasterFieldPredictionAdapter` | OutputAdapter | continuous sequence                                      | continuous rectangular field prediction |
 
 Filenames are intentionally concise. Canonical contract identities describe the full source-to-target transformation.
