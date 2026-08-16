@@ -10,53 +10,30 @@ api_stability: provisional
 
 An `ExperimentDefinition` is the semantically immutable scientific composition consumed by training and evaluation.
 
-This page defines public construction, identity, equality, canonicalization, and reuse behavior. Internal class layout belongs to implementation and generated API reference.
+This page defines public construction, identity, equality, canonicalization, and reuse behavior.
+Internal class layout belongs to implementation and generated API reference.
 
-## Established use
+## Canonical construction: reference resolution
 
-```python
-from ehp_research.experiments.arena_tem import arena_tem_v1
-
-experiment = arena_tem_v1()
-```
-
-A package-owned factory supplies the standard task, model, binding, protocols, objectives, metrics, traces, and declared data requirements for the experiment family.
-
-## Supported scientific specialization
-
-```python
-from ehp_sn.protocols import TrainingProtocol
-
-experiment = arena_tem_v1(
-    training=TrainingProtocol(max_steps=100_000),
-)
-```
-
-A factory exposes only supported scientific specialization points. Arbitrary mutation of a constructed experiment is not public API.
-
-## Nominal reference and construction
+The public construction path resolves a canonical experiment reference through the framework:
 
 ```python
 ref = ExperimentRef.parse("experiment:arena-tem/v1")
 experiment = resolve_experiment(ref)
 ```
 
-| Capability                               | Canonical or candidate expression | Descriptive label                                      |
-| ---------------------------------------- | --------------------------------- | ------------------------------------------------------ |
-| Parse a canonical experiment reference   | `ExperimentRef.parse(text)`       | Required capability; exact parser location provisional |
-| Resolve a canonical experiment reference | `resolve_experiment(ref)`         | Proposed helper symbol                                 |
-| Construct Arena–TEM                      | `arena_tem_v1(...)`               | Established target                                     |
-| Access canonical identity                | `experiment.ref`                  | Stable public attribute                                |
-| Access resolved scientific digest        | `experiment.digest`               | Stable public attribute                                |
-| Convert portable metadata                | `experiment.to_record()`          | Stable public capability                               |
+The experiment itself is owned by the repository-level `experiments/<experiment>/vN/` specification and its concrete composition.
+The generic Python interface takes a canonical reference and resolves it; it does not import a concrete package-owned factory such as `ehp_research.experiments.arena_tem`.
+There is no `ehp_research.experiments` or `ehp_research.bindings` (`ARCH-005`/`ARCH-006`).
 
-Direct factory construction and reference resolution use the same package-owned constructors and compatibility checks.
+> `resolve_experiment()` is a documented target.
+> The experiment discovery and resolution contract is not yet specified; until it exists this interface must not be implemented against an invented storage representation (`ARCH-014`).
 
 ## Identity model
 
 ```text
 ExperimentRef
-    canonical identity of the package-owned experiment specification
+    canonical identity of the experiment specification (owned at experiments/<experiment>/vN/)
 
 ResolvedExperiment
     complete effective scientific definition after specialization
@@ -65,18 +42,19 @@ ResolvedExperimentDigest
     canonical digest of that effective scientific definition
 ```
 
-For example, both definitions retain `experiment:arena-tem/v1`:
+For example, both definitions retain `experiment:arena-tem/v1` (obtained by reference resolution
+with different specialization):
 
 ```python
-baseline = arena_tem_v1()
-long_run = arena_tem_v1(
-    training=TrainingProtocol(max_steps=100_000),
-)
+baseline = resolve_experiment(ExperimentRef.parse("experiment:arena-tem/v1"))
+long_run = resolve_experiment(ExperimentRef.parse("experiment:arena-tem/v1"),
+                              training=TrainingProtocol(max_steps=100_000))
 ```
 
 They have different resolved digests because their effective scientific definitions differ.
 
-A canonical experiment version changes when the public scientific meaning or contract changes. Supported parameter specialization does not require a new canonical version, but it changes the resolved digest and is recorded in provenance.
+A canonical experiment version changes when the public scientific meaning or contract changes.
+Supported parameter specialization does not require a new canonical version, but it changes the resolved digest and is recorded in provenance.
 
 ## Semantic immutability
 
@@ -145,14 +123,15 @@ Request resolution converts that requirement into one exact committed `ArtifactR
 
 The resolver never selects automatically among arbitrary compatible local artifacts.
 
-The resolved request records the corpus reference, artifact fingerprint, resolution source, schema compatibility, and any permitted override. Execution never searches for a different corpus implicitly.
+The resolved request records the corpus reference, artifact fingerprint, resolution source, schema compatibility, and any permitted override.
+Execution never searches for a different corpus implicitly.
 
 ## Construction behavior
 
 Construction must:
 
-1. invoke package-owned constructors;
-2. resolve referenced scientific components;
+1. resolve the experiment's components through the framework discovery/resolution mechanism;
+2. assemble the resolved scientific components into a definition;
 3. apply supported specialization;
 4. canonicalize nested scientific values;
 5. validate definition-level compatibility;

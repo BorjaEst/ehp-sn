@@ -17,9 +17,11 @@ It provides the contracts and services used to compose, configure, execute, vali
 ehp_research → ehp_sn
 ```
 
-Concrete scientific substrates, tasks, models, bindings, metrics, analyses, and experiment families belong to `ehp_research`.
+Concrete scientific substrates, tasks, and models belong to `ehp_research`.
+Concrete experiment compositions and concrete task-model Bindings belong to repository-level `experiments/`, not to `ehp_research` or `ehp_sn` (`docs/invariants.md` ARCH-005/006).
 
-This README provides the framework mental model and entry points. Exact semantics live in the framework and interface specifications under `docs/docs/`.
+This README provides the framework mental model and entry points.
+Exact semantics live in the framework and interface specifications under `docs/docs/`.
 
 ## Contents
 
@@ -97,7 +99,8 @@ An Adapter transforms between a task's interfaces and a model's interfaces:
 - an `InputAdapter` transforms a task's task-data interface into a model's model-input interface;
 - an `OutputAdapter` transforms a model's model-output interface into a task's prediction interface.
 
-An adapter must be expressible entirely in terms of its declared source interface, target interface, and resolved configuration — it must not branch on concrete task or model identity. This is what makes `ehp_sn` the right owner for a generic adapter implementation, distinct from any one task or model.
+An adapter must be expressible entirely in terms of its declared source interface, target interface, and resolved configuration — it must not branch on concrete task or model identity.
+This is what makes `ehp_sn` the right owner for a generic adapter implementation, distinct from any one task or model.
 
 ### Binding
 
@@ -105,7 +108,8 @@ A Binding is the resolved, validated connection of one task and one model, forme
 
 A Binding is not an independently implemented component; it is assembled by an experiment from the task, the model, and their configured adapters.
 
-Bindings do not redefine task truth or model architecture. Adapters composing a binding do not perform oracle repair or task scoring, and do not introduce privileged information.
+Bindings do not redefine task truth or model architecture.
+Adapters composing a binding do not perform oracle repair or task scoring, and do not introduce privileged information.
 
 ### Experiment
 
@@ -155,7 +159,8 @@ execution
 
 This keeps scientific definitions independent of deployment-specific artifact coordinates while preserving reproducibility.
 
-The public configuration model is EHP-SN-owned. Hydra or another library may be used as an implementation backend without becoming the public semantic authority.
+The public configuration model is EHP-SN-owned.
+Hydra or another library may be used as an implementation backend without becoming the public semantic authority.
 
 See [`../../docs/docs/interfaces/configuration/`](../../docs/docs/interfaces/configuration/) for the configuration specification.
 
@@ -240,16 +245,16 @@ Infrastructure libraries sit below EHP-SN semantics.
 
 Typical integrations include:
 
-| Integration | Framework role |
-| --- | --- |
-| PyTorch | Tensor and model foundation |
-| Lightning Fabric | Runtime execution backend |
-| Hydra | Internal configuration/composition backend |
-| Pydantic | External and serialized-boundary validation |
-| Typer | CLI frontend |
-| MLflow | Optional tracking/persistence integration |
-| TorchMetrics | Optional metric integration |
-| Optuna | Optional study backend |
+| Integration      | Framework role                              |
+| ---------------- | ------------------------------------------- |
+| PyTorch          | Tensor and model foundation                 |
+| Lightning Fabric | Runtime execution backend                   |
+| Hydra            | Internal configuration/composition backend  |
+| Pydantic         | External and serialized-boundary validation |
+| Typer            | CLI frontend                                |
+| MLflow           | Optional tracking/persistence integration   |
+| TorchMetrics     | Optional metric integration                 |
+| Optuna           | Optional study backend                      |
 
 Using an infrastructure library does not transfer semantic ownership to that library.
 
@@ -257,7 +262,8 @@ Using an infrastructure library does not transfer semantic ownership to that lib
 
 EHP-SN is under specification-first development.
 
-This README summarizes the intended framework architecture. It is not the normative home for exact framework contracts.
+This README summarizes the intended framework architecture.
+It is not the normative home for exact framework contracts.
 
 `Specified` means that semantics and responsibilities are documented; implementation and validation status are separate concerns.
 
@@ -297,4 +303,5 @@ See:
 
 ## License
 
-`ehp_sn` is distributed under the GNU General Public License v3.0. See [`LICENSE`](../../LICENSE).
+`ehp_sn` is distributed under the GNU General Public License v3.0.
+See [`LICENSE`](../../LICENSE).

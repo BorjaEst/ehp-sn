@@ -31,6 +31,7 @@ component and resource references
 | --------------------------------- | ---------------------------------------------------------------------------- |
 | [References](references.md)       | Canonical reference grammar, version semantics, resource reference kinds     |
 | [Compatibility](compatibility.md) | Component compatibility declarations, support levels, maturity               |
+| [Components](components/index.md) | Framework component abstractions: task, model, adapter, binding, experiment  |
 | [Contracts](contracts/index.md)   | Standard data-schema contracts and the producer/consumer compatibility model |
 | [Identity](identity.md)           | Identity categories, scientific vs operational identity, identity inputs     |
 | [Digests](digests.md)             | Content digest semantics, algorithms, integrity verification                 |

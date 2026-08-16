@@ -32,6 +32,72 @@ Installed research definitions may register with framework-owned registries.
 The framework must not import concrete research packages by name to populate its catalogue.
 Duplicate canonical registrations must fail rather than depend on import order.
 
+### ARCH-004 — Research package holds reusable scientific components only
+
+`ehp_research` contains reusable scientific building blocks (substrates, tasks, models, objectives, controllers, metrics, analyses, configuration, registration).
+
+It must not contain repository-level concrete experiment compositions.
+
+### ARCH-005 — Concrete experiment compositions belong to `experiments/`
+
+A concrete scientific experiment — a resolved composition of selected task, model, binding, adapters, objectives, controllers, metrics, analyses, and protocols — belongs under repository-level `experiments/<experiment>/vN/`.
+
+An experiment is not a reusable scientific building block and must not live in `ehp_research`.
+
+### ARCH-006 — Concrete task-model Bindings belong to `experiments/`
+
+A concrete Binding exists because an experiment selected a particular task, model, adapters, objectives, controllers, and integration behavior.
+
+It belongs under `experiments/<experiment>/vN/`, not in `ehp_research`.
+
+### ARCH-007 — Generic Adapter implementations belong to `ehp_sn`
+
+Generic `InputAdapter`/`OutputAdapter` implementations — reusable pre/post-transformation primitives expressed in terms of source/target interfaces and resolved configuration — belong to `ehp_sn`.
+
+`ehp_sn` must not contain experiment-specific adapters.
+
+### ARCH-008 — Experiment-specific adapter selection belongs to `experiments/`
+
+The experiment-specific choice and configuration of generic adapters (the adapter composition of a concrete Binding) belongs under `experiments/<experiment>/vN/`.
+
+### ARCH-009 — Tasks do not depend on concrete models
+
+A task must remain independent of concrete models. It must not contain model-native tensor/slot layouts or model-specific decoders.
+
+### ARCH-010 — Models do not depend on concrete tasks
+
+A model must remain independent of concrete tasks. Task-specific input preparation and output interpretation belong to experiment-local binding composition.
+
+### ARCH-011 — Normalized logical contracts belong to `ehp_sn`
+
+Generic producer-neutral and consumer-neutral logical data contracts (for example `ambient-domain/v1`, `raster-topology/v1`, `categorical-field/v1`, `simple-digraph/v1`) belong to `ehp_sn`.
+
+A task consumes the contract, not the producer identity.
+
+### ARCH-012 — Concrete substrate producers belong to `ehp_research`
+
+Reusable scientific substrate producers (for example DungeonGen, Maze-ND, ObsField, Dagflow) belong to `ehp_research`.
+
+They produce records conforming to framework-owned logical contracts.
+
+### ARCH-013 — Scientific composition is not duplicated in execution or operation configuration
+
+A resolved scientific composition (task, model, binding) must not be reconstructed in `run.py` or in operation configuration (`train.toml`, `evaluate.toml`, `analyze.toml`).
+
+Operation configuration configures one operation over an already-defined experiment; it must not redefine task, model, or binding.
+
+### ARCH-014 — Missing framework contracts are not invented by implementations
+
+Implementation must not invent serialization, discovery, catalogue, or adapter-composition formats when the framework-owned contract is missing.
+
+The missing contract is reported to its owner (`ehp_sn`); it is not filled by a de-facto private format.
+
+### ARCH-015 — Existing historical placement is not architectural precedent
+
+Existing file locations and documentation that conflict with these invariants and `docs/authority.md` are migration targets, not precedent.
+
+Where the target architecture is explicitly established, conflicting normative material is realigned in place and obsolete competing semantics are removed rather than preserved.
+
 ## Data and substrates
 
 ### DATA-001 — Substrate neutrality
@@ -238,11 +304,12 @@ Each maturity/stability dimension listed there has exactly one canonical vocabul
 
 ### DOC-007 — Agent configuration is not semantic authority
 
-Files under `.claude/` define agent roles, procedures, and path scoping.
+Files under `.github/instructions/` (and `.github/copilot-instructions.md`) define agent
+instructions: how an agent works with the authorities, and path scoping.
 
 They must not define EHP-SN domain semantics, including ownership enumerations, excluded-semantics enumerations, contracts, or scientific vocabulary.
 
-A domain claim an agent must apply belongs in the specification that owns it, and is referenced from `.claude/` by invariant ID or specification path rather than restated.
+A domain claim an agent must apply belongs in the specification that owns it, and is referenced from `.github/instructions/` by invariant ID or specification path rather than restated.
 
 ### DOC-008 — Published documentation links resolve
 
@@ -250,7 +317,7 @@ A relative link between published documentation files must resolve to an existin
 
 Scope is the MkDocs source tree `docs/docs/`, where a broken link ships to readers as a dead page.
 
-Agent configuration under `.claude/` is out of scope. A reference there is followed by an agent, not rendered for a reader, so it fails at the point of use rather than silently.
+Agent instructions under `.github/instructions/` are out of scope. A reference there is followed by an agent, not rendered for a reader, so it fails at the point of use rather than silently.
 
 ### DOC-009 — Tables serve reader comparison
 
@@ -302,18 +369,30 @@ These invariants are checked only by review; each is backlog to promote to an au
 | DOC-001    | README files introduce no `authority: normative` claim                                              |
 | DOC-002    | unresolved conflicts appear in `docs/decisions.md`                                                  |
 | DOC-005    | `docs/README.md` and `docs/docs/index.md` are not cross-referenced as equivalents                   |
-| DOC-007    | no `.claude/` file declares `authority: normative` or enumerates domain semantics                   |
+| DOC-007    | no `.github/instructions/` file declares `authority: normative` or enumerates domain semantics      |
 | DOC-009    | every published table is multi-dimensional, self-introduced, and uses sentence-case headers         |
 
 ### Not yet checked (`none`)
 
-No check exists yet for these invariants; each is backlog for `tests/architecture/`, per `.claude/rules/tests.md`, to be added when next relied upon.
+No check exists yet for these invariants; each is backlog for `tests/architecture/`, per `.github/instructions/testing.instructions.md`, to be added when next relied upon.
 
 | ID         | Observable check                                                                                |
 | ---------- | ----------------------------------------------------------------------------------------------- |
 | ARCH-001   | no `ehp_research` import under `packages/ehp-sn/src/`; none declared in `pyproject.toml`        |
 | ARCH-002   | no two `authority: normative` specifications declare the same component reference               |
 | ARCH-003   | framework source imports no concrete research package by name; duplicate registration raises    |
+| ARCH-004   | no `ehp_research` package constructs concrete experiments; they live under `experiments/`       |
+| ARCH-005   | no concrete task-model Binding specification under `ehp_research`                               |
+| ARCH-006   | generic adapters under `ehp_sn` contain no concrete task/model identity branch                  |
+| ARCH-007   | `ehp_sn` adapters import no experiment-specific adapter                                         |
+| ARCH-008   | experiment adapter selection/configuration lives under `experiments/<experiment>/vN/`           |
+| ARCH-009   | task source imports no concrete model module                                                    |
+| ARCH-010   | model source imports no concrete task module                                                    |
+| ARCH-011   | logical-contract specs (raster-topology/v1, etc.) live under framework contracts, not research  |
+| ARCH-012   | concrete substrate producers live under `ehp_research`; consume framework contracts only        |
+| ARCH-013   | `run.py` and operation configs reconstruct no task/model/binding composition                    |
+| ARCH-014   | no private serialization/discovery format assumes a missing framework contract                  |
+| ARCH-015   | no doc/README asserts historical placement as authoritative                                     |
 | DATA-004   | committed corpus loads and validates with parent artifacts absent                               |
 | DATA-005   | shared research contracts remain under `packages/ehp-research/src/`                             |
 | DATA-006   | a committed release coordinate never resolves to changed content                                |

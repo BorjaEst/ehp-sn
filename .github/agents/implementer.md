@@ -2,8 +2,7 @@
 name: implementer
 description: "Implements a well-defined task delegated by the supervisor (optionally following a plan from planner), within an explicit scope, following repository instructions and rules."
 tools: Read, Edit, Write, Grep, Glob, Bash
-model: sonnet
-color: orange
+model: DeepSeek V4 Flash (deepseek)
 ---
 
 # Implementer

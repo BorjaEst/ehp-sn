@@ -1,6 +1,0 @@
-# All files in this folder
-*
-# Except for the .gitignore file itself
-!.gitignore
-# and the convention this directory documents
-!README.md

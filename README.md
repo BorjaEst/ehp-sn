@@ -18,7 +18,7 @@ ehp_research → ehp_sn
 ```
 
 - [`ehp_sn`](packages/ehp-sn/README.md) provides the reusable framework.
-- [`ehp_research`](packages/ehp-research/README.md) provides the concrete research programme.
+- [`ehp_research`](packages/ehp-research/README.md) provides reusable scientific building blocks.
 
 EHP-SN is developed specification-first. READMEs provide orientation and examples; normative semantics live in the detailed specifications referenced from [`docs/authority.md`](docs/authority.md).
 
@@ -57,17 +57,17 @@ See [`packages/ehp-sn/README.md`](packages/ehp-sn/README.md).
 
 ### `ehp_research`
 
-`packages/ehp-research/` contains concrete scientific definitions.
+`packages/ehp-research/` contains reusable scientific definitions.
 
 It includes:
 
 - task-neutral substrates;
 - navigation and structural-reasoning tasks;
-- TEM, HRM, and integrated EHP model families;
-- resolved task–model bindings, composed from framework adapters;
-- objectives, metrics, and analyses;
-- reusable experiment definitions;
-- research-specific study definitions.
+- TEM, HRM, and related reusable model families;
+- objectives, controllers, metrics, and analyses.
+
+Concrete experiments and concrete task-model Bindings are not packaged in `ehp_research`; they
+belong to repository-level `experiments/` (see `docs/invariants.md` ARCH-005/006).
 
 See [`packages/ehp-research/README.md`](packages/ehp-research/README.md).
 
@@ -169,15 +169,22 @@ flowchart TB
         substrates["Substrates"] ~~~
         tasks["Tasks"] ~~~
         models["Models"] ~~~
-        bindings["Bindings"] ~~~
-        experiments["Experiments"] ~~~
+        objectives["Objectives"] ~~~
+        metrics["Metrics"] ~~~
         analyses["Analyses"]
     end
 
+    subgraph Experiments["experiments/"]
+        compositions["Concrete experiment compositions and Bindings"]
+    end
+
     Research -->|depends on| Framework
+    Experiments -->|compose| Research
 ```
 
-The framework defines reusable contracts and lifecycle mechanics while the research package implements concrete scientific definitions against those contracts.
+The framework defines reusable contracts and lifecycle mechanics, the research package provides
+reusable scientific building blocks, and repository-level `experiments/` selects and composes
+those blocks into concrete experiments and Bindings.
 
 Semantic ownership is documented in [`docs/authority.md`](docs/authority.md).
 

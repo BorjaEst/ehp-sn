@@ -36,7 +36,8 @@ ehp_research → ehp_sn
 
 `ehp_sn` owns reusable framework contracts and services.
 
-`ehp_research` owns concrete scientific definitions and research-owned shared domain contracts.
+`ehp_research` owns reusable scientific definitions (substrates, tasks, models, objectives, controllers, metrics, analyses) and research-owned shared domain contracts.
+Concrete repository-level experiments and Bindings belong to `experiments/` (ARCH-005/006).
 
 The dependency direction is normative and enforced by `docs/invariants.md` ARCH-001.
 
@@ -78,6 +79,31 @@ Ownership is assigned by specification root, not per component. A specification'
 
 Generic `Task` and `Model` _contracts_ are framework-owned; their concrete scientific _definitions_ are research-owned. The distinction is the one drawn in "Ownership versus orchestration" above.
 
+### Target ownership: abstraction versus concrete
+
+The architecture distinguishes the generic framework abstraction from the concrete composition. Each has one authoritative home.
+
+```text
+Binding abstraction
+    normative semantics → docs/docs/framework/ (components/binding.md)
+    implementation abstraction → ehp_sn
+
+Concrete Binding
+    scientific authority → experiments/<experiment>/vN/plan.md
+    concrete composition → experiments/<experiment>/vN/
+
+ExperimentDefinition abstraction
+    normative semantics → docs/docs/framework/ (components/experiment.md)
+    implementation abstraction → ehp_sn
+
+Concrete ExperimentDefinition
+    scientific authority → experiments/<experiment>/vN/plan.md
+    concrete composition → experiments/<experiment>/vN/
+```
+
+There is no `ehp_research.experiments` and no `ehp_research.bindings`.
+Concrete experiments and concrete task-model Bindings belong to repository-level `experiments/`.
+
 ### Descriptive and procedural content
 
 Some paths are recorded here for the closure rule below without being semantic-ownership claims: they describe or orchestrate rather than define, so they are listed rather than tabulated — none has an implementation surface to compare against the table above.
@@ -91,7 +117,7 @@ Some paths are recorded here for the closure rule below without being semantic-o
   - `docs/docs/guides/`
   - `docs/docs/getting-started/`
   - `docs/docs/development/`
-- **Agent roles, procedures, and path scoping** (procedural) — `.claude/`.
+- **Agent procedures and path scoping** (procedural) — `.github/instructions/`, `.github/copilot-instructions.md`.
 
 `Binding` is not an independently specified contract: it is the resolved, validated connection of one task and one model, formed by one configured `InputAdapter` and one configured `OutputAdapter`. `InputAdapter` and `OutputAdapter` are generic framework contracts, specified under `docs/docs/framework/` (`docs/docs/framework/adapters/index.md`); a concrete resolved binding — its adapter configuration and the composition itself — is assembled by an `ExperimentDefinition` and is research-owned, following the same generic-contract/concrete-definition split.
 
@@ -102,7 +128,7 @@ A normative path not covered by a specification root above has **no recorded own
 For such a path:
 
 - do not treat it as normative for any concept owned elsewhere;
-- do not assert ownership of it from a lower-authority location, including `.claude/rules/` path scoping, a README, or an `index.md`;
+- do not assert ownership of it from a lower-authority location, including `.github/instructions/` path scoping, a README, or an `index.md`;
 - record the gap in `docs/decisions.md`.
 
 ## Component index
@@ -146,12 +172,17 @@ Presence and validity of the per-document frontmatter is required by `docs/invar
 
 Each row states a question about repository authority and which document holds the answer.
 
-| Question                                      | Document             |
-| --------------------------------------------- | -------------------- |
-| Where is a concept owned and specified?       | this document        |
-| What must always hold, and how is it checked? | `docs/invariants.md` |
-| What is not yet decided?                      | `docs/decisions.md`  |
-| How should an agent act on a given path?      | `.claude/rules/*.md` |
+| Question                                        | Document                              |
+| ----------------------------------------------- | ------------------------------------- |
+| Where is a concept owned and specified?         | this document                         |
+| What must always hold, and how is it checked?   | `docs/invariants.md`                  |
+| What is not yet decided?                        | `docs/decisions.md`                   |
+| How should an agent act on a given path?        | `.github/instructions/`               |
+| Why is ownership shaped this way? (explanatory) | `docs/docs/architecture/ownership.md` |
+
+`docs/architecture/ownership.md` is `authority: descriptive`.
+It explains the three layers, Adapter versus Binding, and the placement algorithm with worked examples.
+It defines no semantics; it points to the normative specifications this document maps.
 
 Rules previously restated here are owned as invariants:
 
@@ -159,4 +190,4 @@ Rules previously restated here are owned as invariants:
 - READMEs are projections, not authorities — DOC-001;
 - conflicting specifications are reported, not silently reconciled — DOC-002;
 - derivable metadata is generated or validated, not duplicated — DOC-003;
-- agent configuration under `.claude/` is procedural and never semantic authority — DOC-007.
+- agent instructions under `.github/instructions/` are procedural and never semantic authority — DOC-007.

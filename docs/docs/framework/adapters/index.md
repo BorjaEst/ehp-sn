@@ -171,7 +171,7 @@ Any incompatibility decidable from endpoint interfaces and adapter configuration
 
 Input-side resolution may establish composition facts that an output adapter later validates and reuses, such as position-slot or task-step/model-step correspondence. Such facts are derived once and must not be independently re-authored in the reverse direction.
 
-The complete representation and lifecycle of a task-model binding are defined by the framework component responsible for bindings; this document defines only the adapter contribution to that composition.
+The complete representation and lifecycle of a task-model binding are defined by the framework [Binding](../components/binding.md) component; this document defines only the adapter contribution to that composition.
 
 ## Adapter specifications
 

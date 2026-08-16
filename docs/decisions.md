@@ -25,7 +25,7 @@ Identifiers are permanent. A resolved entry is deleted and its identifier is nev
 
 ## DEC-006 — Research registration contract beyond duplicate resolution
 
-- `.claude/rules/research.md` § "Registration and discovery" (prior to synchronization with DOC-007) asserted that registration must: use canonical references; be deterministic; avoid import-order-dependent semantics; reject conflicting duplicate canonical registrations; and avoid expensive scientific execution during registration.
+- `.github/instructions/research.instructions.md` § "Registration and discovery" (prior to synchronization with DOC-007) asserted that registration must: use canonical references; be deterministic; avoid import-order-dependent semantics; reject conflicting duplicate canonical registrations; and avoid expensive scientific execution during registration.
 - `docs/invariants.md` ARCH-003 covers only "duplicate canonical registrations must fail rather than depend on import order" — the duplicate-resolution case, not general import-order independence for all registration behavior.
 - `docs/docs/research/index.md` states only that model, binding, and experiment-family specifications will be added to this section as they are written, and no specification under a root in `docs/authority.md` § "Authority map" states that registration must use canonical references, must be deterministic in general, must avoid import-order dependence beyond resolving duplicates, or must avoid expensive scientific execution during registration.
 
@@ -46,4 +46,3 @@ Identifiers are permanent. A resolved entry is deleted and its identifier is nev
 **Decision required:** the canonical request/configuration field(s) for distributed strategy, process topology, and environment-specific resource coordination, or an explicit statement that `--hardware-profile` must not affect them until such fields exist.
 
 **Until decided:** `--hardware-profile` must not be relied on for any effect beyond the `device`/`precision`-equivalent fields it shares with the direct runtime options.
-

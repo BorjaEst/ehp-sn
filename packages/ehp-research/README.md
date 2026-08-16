@@ -9,7 +9,7 @@
 
 </div>
 
-`ehp_research` contains the concrete scientific components and experiment families developed by the EHP research programme.
+`ehp_research` provides reusable scientific building blocks developed by the EHP research programme: substrates, tasks, models, objectives, controllers, metrics, and analyses.
 
 It implements research definitions against the reusable `ehp_sn` framework:
 
@@ -17,17 +17,18 @@ It implements research definitions against the reusable `ehp_sn` framework:
 ehp_research → ehp_sn
 ```
 
-The package owns scientific/domain semantics. Generic artifact, configuration, resource, request, execution, identity, and lifecycle mechanics remain framework responsibilities.
+The package owns reusable scientific/domain semantics.
+Generic artifact, configuration, resource, request, execution, identity, and lifecycle mechanics remain framework responsibilities.
+Concrete experiments and concrete task-model Bindings do **not** belong to `ehp_research`; they belong to repository-level `experiments/` (`docs/invariants.md` ARCH-005/006).
+Bindings are resolved compositions of generic `ehp_sn` adapters assembled by an experiment definition, not independent package artifacts.
 
-This README provides package orientation and a catalogue overview. Exact scientific semantics and component status live in the corresponding research specifications.
+This README provides package orientation and a catalogue overview.
+Exact scientific semantics and component status live in the corresponding research specifications.
 
 ## Contents
 
 - [Research areas](#research-areas)
 - [Data architecture](#data-architecture)
-- [Component catalogue](#component-catalogue)
-- [Models and bindings](#models-and-bindings)
-- [Experiments](#experiments)
 - [Registration and discovery](#registration-and-discovery)
 - [Package structure](#package-structure)
 - [Specification status](#specification-status)
@@ -42,12 +43,9 @@ This README provides package orientation and a catalogue overview. Exact scienti
 
 - reusable spatial and relational substrates;
 - navigation and structural-reasoning tasks;
-- TEM, HRM, and integrated EHP model families;
-- resolved task–model bindings, composed from `ehp_sn` adapters;
-- objectives and research metrics;
-- scientific analyses;
-- reusable experiment definitions;
-- research-specific study definitions.
+- TEM, HRM, and related reusable model families;
+- reusable objectives, controllers, and research metrics;
+- reusable scientific analyses.
 
 Semantics are placed at the narrowest reusable scientific owner:
 
@@ -127,43 +125,28 @@ For exact parent roles, information regimes, oracle semantics, targets, metrics,
 
 Catalogue status should be derived or mechanically validated from the authoritative specifications rather than maintained independently here.
 
-## Models and bindings
+## Models
 
 Models define model-native architecture, state, memory, and inference semantics.
+Reusable model families belong to `ehp_research`.
 
-A binding is the resolved, validated connection of one task and one model, formed by one configured `InputAdapter` and one configured `OutputAdapter`. The generic adapter contracts live in `ehp_sn`; a concrete resolved binding is assembled by an experiment.
-
-Typical research families include:
+Typical families include:
 
 - TEM;
 - HRM;
-- integrated EHP models.
+- related integrated EHP models.
 
-Resolved bindings may cover combinations such as Arena–TEM or Routebind–EHP as those specifications are defined.
+A binding is the resolved, validated connection of one task and one model, formed by one configured `InputAdapter` and one configured `OutputAdapter`.
+The generic adapter contracts live in `ehp_sn`; a concrete resolved binding is assembled by an experiment and belongs to that experiment under repository-level `experiments/` (`ARCH-006`).
+`ehp_research` does not own a package-level `bindings/` directory.
 
 Exact model, adapter, binding, compatibility, and maturity information belongs in the corresponding research and framework specifications rather than this README.
 
 ## Experiments
 
-Reusable experiment families compose scientific definitions such as:
-
-```text
-task
-+ model
-+ binding
-+ training protocol
-+ evaluation protocol
-+ objectives
-+ metrics
-+ traces
-+ resource requirements
-```
-
-An experiment family defines reusable scientific composition.
-
-Exact replaceable resources such as corpus artifacts are resolved through framework configuration rather than hidden in deployment-specific repository state.
-
-Repository-local reproduction assets, when present, are separate from the installed package’s reusable experiment definitions.
+Concrete scientific experiments — composed of a task, a model, a binding, protocols, objectives, metrics, traces, and resource requirements — belong to repository-level `experiments/`, not to `ehp_research` (`ARCH-005`).
+Each experiment's `plan.md` is the normative scientific authority for that composition.
+`ehp_research` provides the reusable building blocks the experiment selects and connects; it does not package concrete experiment definitions.
 
 ## Registration and discovery
 
@@ -176,8 +159,10 @@ ehp_sn
     owns catalogue / registry contracts
 
 ehp_research
-    provides concrete definitions
+    provides concrete reusable definitions
 ```
+
+Concrete workspace experiments under `experiments/` are discovered through workspace experiment discovery, not through `ehp_research.registration`.
 
 This preserves the dependency direction and allows the framework to remain independent of concrete research packages.
 
@@ -196,10 +181,10 @@ ehp_research/
 ├── objectives/
 ├── metrics/
 ├── analyses/
-├── experiments/
-├── studies/
 └── configuration/
 ```
+
+There is deliberately no `experiments/` and no `bindings/` under `ehp_research` (`ARCH-005`/`ARCH-006`).
 
 This is a responsibility map rather than a guarantee that every directory already exists or that the physical package layout is fixed.
 
@@ -252,4 +237,5 @@ See:
 
 ## License
 
-`ehp_research` is distributed under the GNU General Public License v3.0. See [`LICENSE`](../../LICENSE).
+`ehp_research` is distributed under the GNU General Public License v3.0.
+See [`LICENSE`](../../LICENSE).

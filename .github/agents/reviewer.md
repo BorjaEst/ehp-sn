@@ -2,8 +2,7 @@
 name: reviewer
 description: "Independently verifies a substantive implementation (from implementer or fast-worker) against the stated requirements, repository instructions, and architectural boundaries. Read-only — does not modify files and does not delegate."
 tools: Read, Grep, Glob, Bash
-model: sonnet
-color: cyan
+model: DeepSeek V4 Pro (deepseek)
 ---
 
 # Reviewer

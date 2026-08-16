@@ -1,18 +1,12 @@
 ---
-paths:
-  - "README.md"
-  - "docs/README.md"
-  - "packages/*/README.md"
-  - "config/README.md"
-  - "experiments/**/README.md"
-  - ".github/README.md"
+description: "Use when writing or editing README files across the repository: keep them as orientation and summaries, not normative authorities."
+applyTo: "README.md, docs/README.md, packages/*/README.md, config/README.md, experiments/**/README.md, .github/README.md"
 ---
 
 # README instructions
 
 README files are descriptive entry points.
-
-They summarize authoritative specifications and current implementation status; they are not independent semantic authorities.
+They summarize authoritative specifications and current implementation status; they are not independent semantic authorities (DOC-001).
 
 ## Root README
 
@@ -43,54 +37,35 @@ It should not reproduce complete framework or research contracts.
 
 `packages/ehp-research/README.md` should:
 
-- explain concrete scientific ownership;
+- explain reusable scientific ownership;
 - summarize the current substrate/task/model/binding/experiment catalogue;
 - explain the dependency on `ehp_sn`;
 - explain registration/discovery;
 - keep substrate descriptions aligned with current research specifications;
 - document how to run the package's tests.
 
+It must not present concrete experiments or Bindings as package-owned; those belong to `experiments/`.
+
 ## Documentation README
 
 `docs/README.md` is the contributor/development entry point for the MkDocs documentation project.
-
-It should explain:
-
-```text
-docs/
-├── README.md
-├── authority.md
-├── invariants.md
-├── decisions.md
-├── mkdocs.yml
-└── docs/          # published MkDocs source
-```
-
-It must distinguish `docs/README.md` from `docs/docs/index.md`.
+It must distinguish `docs/README.md` from `docs/docs/index.md` (DOC-005).
 
 ## GitHub README
 
 `.github/README.md` is the entry point for the `.github/` directory.
-
 It should explain:
 
-- that agent configuration (agents, rules, skills, hooks, handoffs) lives under `.claude/`, not `.github/`;
-- that `.github/` holds CI workflows only.
-
-It must not restate `.claude/` agent configuration or introduce normative semantics of its own.
+- that `.github/` holds CI workflows and Copilot agent instructions (`.github/instructions/`, `copilot-instructions.md`);
+- that these agent instructions are procedural, not semantic authority.
 
 ## Synchronization
 
-DOC-001 governs this. When a README conflicts with a normative specification, update the README.
-
+DOC-001 governs this.
+When a README conflicts with a normative specification, update the README.
 Check especially:
 
 - component references;
 - component status/maturity;
 - package ownership;
-- CLI syntax;
-- configuration examples;
-- implementation status;
-- substrate/task descriptions.
-
-Prefer generated or mechanically validated catalogues when practical.
+- concrete-experiment ownership.

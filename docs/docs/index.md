@@ -14,11 +14,11 @@ The documentation is organized by semantic responsibility.
 
 ### Framework
 
-[`framework/`](framework/) defines reusable `ehp_sn` contracts such as generated data artifacts and task corpora.
+[`framework/`](framework/index.md) defines reusable `ehp_sn` contracts such as generated data artifacts and task corpora.
 
 ### Interfaces
 
-[`interfaces/`](interfaces/) defines public operational interfaces:
+[`interfaces/`](interfaces/index.md) defines public operational interfaces:
 
 - CLI;
 - configuration;
@@ -26,15 +26,15 @@ The documentation is organized by semantic responsibility.
 
 ### Research
 
-[`research/`](research/) defines concrete `ehp_research` scientific components:
+[`research/`](research/index.md) defines reusable `ehp_research` scientific building blocks:
 
 - substrates;
 - tasks;
-- models and bindings as their specifications are added.
+- models, and objectives/controllers/metrics/analyses as their specifications are added.
 
 ### Development
 
-[`development/`](development/) contains repository/development contracts such as data layout.
+[`development/`](development/index.md) contains repository/development contracts such as data layout.
 
 ## Core architecture
 
@@ -44,7 +44,9 @@ ehp_research → ehp_sn
 
 The framework owns reusable contracts and services.
 
-The research package owns concrete scientific/domain definitions.
+The research package owns reusable scientific building blocks.
+
+Repository-level `experiments/` owns concrete experiment compositions and Bindings (ARCH-005/006).
 
 ## Data lifecycle
 

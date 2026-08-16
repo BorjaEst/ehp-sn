@@ -2,8 +2,7 @@
 name: planner
 description: "Converts an already agreed design or sufficiently defined objective into an ordered implementation plan through repository analysis. Read-only — does not modify files and does not delegate."
 tools: Read, Grep, Glob, Bash
-model: sonnet
-color: blue
+model: DeepSeek V4 Pro (deepseek)
 ---
 
 # Planner

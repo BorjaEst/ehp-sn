@@ -10,19 +10,19 @@ api_stability: provisional
 
 The EHP-SN Python interface exposes supported scientific workflows to notebooks, scripts, tests, and research applications.
 
-It defines the public programming model: the objects callers construct, how requests are resolved into immutable plans, how plans are validated and executed, what operations return, and how committed artifacts are passed downstream. Exact implementation signatures beyond the contracts fixed here belong to the generated API reference.
+It defines the public programming model: the objects callers construct, how requests are resolved into immutable plans, how plans are validated and executed, what operations return, and how committed artifacts are passed downstream.
+Exact implementation signatures beyond the contracts fixed here belong to the generated API reference.
 
 ## Primary workflow
 
 ```python
 from ehp_sn import evaluate, train
+from ehp_sn.experiments import ExperimentRef, resolve_experiment
 from ehp_sn.protocols import TrainingProtocol
 from ehp_sn.reproducibility import SeedConfiguration
-from ehp_research.experiments.arena_tem import arena_tem_v1
 
-experiment = arena_tem_v1(
-    training=TrainingProtocol(max_steps=50_000),
-)
+ref = ExperimentRef.parse("experiment:arena-tem/v1")
+experiment = resolve_experiment(ref, training=TrainingProtocol(max_steps=50_000))
 
 training = train(
     experiment,
@@ -45,9 +45,11 @@ metrics = evaluation.metrics
 print(metrics)
 ```
 
-`runtime="cuda"` normalizes to a runtime configuration with `device="cuda"`. It does not select a named hardware profile.
+`runtime="cuda"` normalizes to a runtime configuration with `device="cuda"`.
+It does not select a named hardware profile.
 
-The training request resolves the experiment's task-corpus requirement to one exact corpus artifact before execution. The resolved corpus identity is recorded in the plan, result metadata, and committed run manifest.
+The training request resolves the experiment's task-corpus requirement to one exact corpus artifact before execution.
+The resolved corpus identity is recorded in the plan, result metadata, and committed run manifest.
 
 ## Canonical analysis contract
 
@@ -62,7 +64,11 @@ analysis = analyze(
 )
 ```
 
-The first argument is an `AnalysisRef` or its canonical string form. `inputs` is an ordered sequence whose cardinality and accepted artifact kinds are declared by the analysis definition. One call returns one `AnalysisResult` and commits at most one analysis artifact. The initial interface does not accept an `analyses=[...]` batch argument. Multiple analyses are orchestrated with ordinary Python iteration.
+The first argument is an `AnalysisRef` or its canonical string form.
+`inputs` is an ordered sequence whose cardinality and accepted artifact kinds are declared by the analysis definition.
+One call returns one `AnalysisResult` and commits at most one analysis artifact.
+The initial interface does not accept an `analyses=[...]` batch argument.
+Multiple analyses are orchestrated with ordinary Python iteration.
 
 ## Programming model
 
@@ -86,18 +92,23 @@ ArtifactManifest
     authoritative durable record
 ```
 
-An `ExperimentRef` identifies a package-owned experiment specification. A resolved experiment retains that reference and also has a digest of its complete effective scientific definition. Supported scientific specialization changes the resolved digest even when the canonical experiment reference remains unchanged.
+An `ExperimentRef` identifies an experiment specification owned at
+`experiments/<experiment>/vN/`.
+A resolved experiment retains that reference and also has a digest of its complete effective scientific definition.
+Supported scientific specialization changes the resolved digest even when the canonical experiment reference remains unchanged.
 
 ## Canonical request construction
 
-Each operation has one canonical request type. Convenience calls are syntax for constructing that request and then following the same resolution, validation, execution, and publication path.
+Each operation has one canonical request type.
+Convenience calls are syntax for constructing that request and then following the same resolution, validation, execution, and publication path.
 
 ```text
 train(experiment, **options)
     ≡ train(TrainingRequest(experiment=experiment, **options))
 ```
 
-Passing a request or plan together with additional operation fields is invalid. The interface never merges duplicate values from two sources or applies different semantics based on call spelling.
+Passing a request or plan together with additional operation fields is invalid.
+The interface never merges duplicate values from two sources or applies different semantics based on call spelling.
 
 ## Plan, validate, execute
 
@@ -153,40 +164,51 @@ if checkpoint is not None:
 artifact = evaluation.artifact
 ```
 
-Checkpoint references identify checkpoint resources owned by committed training-run artifacts. They preserve the parent run identity and checkpoint resource identity.
+Checkpoint references identify checkpoint resources owned by committed training-run artifacts.
+They preserve the parent run identity and checkpoint resource identity.
 
 ## Result and artifact authority
 
-A normal result object is returned only after authoritative artifact commitment succeeds. Result objects are immutable, contain portable metadata and logical references, and may expose lazy artifact-backed collections. Large predictions, traces, arrays, and per-case values are not embedded in serialized result metadata.
+A normal result object is returned only after authoritative artifact commitment succeeds.
+Result objects are immutable, contain portable metadata and logical references, and may expose lazy artifact-backed collections.
+Large predictions, traces, arrays, and per-case values are not embedded in serialized result metadata.
 
-Result objects may be converted to a JSON-compatible metadata record through the operation's documented serialization capability. Pickle compatibility is not part of the stable interface. The committed artifact manifest remains authoritative if in-memory result metadata and durable state are compared.
+Result objects may be converted to a JSON-compatible metadata record through the operation's documented serialization capability.
+Pickle compatibility is not part of the stable interface.
+The committed artifact manifest remains authoritative if in-memory result metadata and durable state are compared.
 
 ## Interruption and publication
 
-`KeyboardInterrupt` remains distinguishable and is re-raised after deterministic cleanup. It is not wrapped as an ordinary execution failure.
+`KeyboardInterrupt` remains distinguishable and is re-raised after deterministic cleanup.
+It is not wrapped as an ordinary execution failure.
 
-An interrupted operation never returns a successful result or presents uncommitted staging output as a committed artifact. Only checkpoints already committed before interruption are eligible for resume. Automatic checkpoint-on-interrupt is not part of the initial contract.
+An interrupted operation never returns a successful result or presents uncommitted staging output as a committed artifact.
+Only checkpoints already committed before interruption are eligible for resume.
+Automatic checkpoint-on-interrupt is not part of the initial contract.
 
-If scientific computation completes but artifact publication fails, the operation raises `PublicationError` and returns no successful result. Recoverable diagnostic or staging information exposed by the exception is explicitly non-authoritative.
+If scientific computation completes but artifact publication fails, the operation raises `PublicationError` and returns no successful result.
+Recoverable diagnostic or staging information exposed by the exception is explicitly non-authoritative.
 
 ## Public-interface status
 
 The following symbols are established interface targets:
 
-| Symbol              | Descriptive label                                  |
-| ------------------- | -------------------------------------------------- |
-| `train`             | Established target                                 |
-| `evaluate`          | Established target                                 |
-| `analyze`           | Established target; one-analysis-per-call contract |
-| `TrainingProtocol`  | Established target                                 |
-| `SeedConfiguration` | Established target                                 |
-| `arena_tem_v1`      | Established target                                 |
+| Symbol               | Descriptive label                                  |
+| -------------------- | -------------------------------------------------- |
+| `train`              | Established target                                 |
+| `evaluate`           | Established target                                 |
+| `analyze`            | Established target; one-analysis-per-call contract |
+| `TrainingProtocol`   | Established target                                 |
+| `SeedConfiguration`  | Established target                                 |
+| `ExperimentRef`      | Established target                                 |
+| `resolve_experiment` | Documented target (contract not yet specified)     |
 
 Planning, validation, and artifact-loading helper names remain provisional unless marked otherwise in their owning pages.
 
 ## Per-symbol descriptive labels
 
-The labels below are descriptive narrative, not a formal maturity vocabulary: they describe where one public symbol currently sits on the path toward this page's single `api_stability` value, at finer grain than that one page-level field expresses. They do not constitute a second canonical dimension, and a symbol's normative status is `authority: normative` plus this page's `api_stability`, not the label itself.
+The labels below are descriptive narrative, not a formal maturity vocabulary: they describe where one public symbol currently sits on the path toward this page's single `api_stability` value, at finer grain than that one page-level field expresses.
+They do not constitute a second canonical dimension, and a symbol's normative status is `authority: normative` plus this page's `api_stability`, not the label itself.
 
 | Descriptive label       | Meaning                                                                                                |
 | ----------------------- | ------------------------------------------------------------------------------------------------------ |
@@ -197,15 +219,20 @@ The labels below are descriptive narrative, not a formal maturity vocabulary: th
 | **Implemented**         | Code exists for the documented capability.                                                             |
 | **Validated**           | Acceptance tests confirm the implementation against this contract.                                     |
 
-`authority: normative` applies to behavior, stable public fields fixed by these pages, and ownership boundaries. `api_stability: provisional` permits changes to explicitly provisional helpers during implementation; it does not permit changing the canonical request, result, interruption, publication, or one-analysis-per-call semantics without revising this specification.
+`authority: normative` applies to behavior, stable public fields fixed by these pages, and ownership boundaries.
+`api_stability: provisional` permits changes to explicitly provisional helpers during implementation; it does not permit changing the canonical request, result, interruption, publication, or one-analysis-per-call semantics without revising this specification.
 
 ## Extension scope
 
-EHP-SN is intended to support custom tasks, models, adapters, bindings, metrics, analyses, and experiment factories. Public registration, plugin, resolver, inheritance, and custom-component protocols remain provisional until at least two independently defined task–model–adapter compositions demonstrate the shared contract. No stable extension base classes are defined here.
+EHP-SN is intended to support custom tasks, models, adapters, bindings, metrics, analyses, and experiment factories.
+Public registration, plugin, resolver, inheritance, and custom-component protocols remain provisional until at least two independently defined task–model–adapter compositions demonstrate the shared contract.
+No stable extension base classes are defined here.
 
 ## Current execution scope
 
-The public workflow API is synchronous. Study orchestration remains reducible to ordinary requests. The initial interface does not define asynchronous job handles, remote futures, callback protocols, generic bulk operations, or backend-specific study objects.
+The public workflow API is synchronous.
+Study orchestration remains reducible to ordinary requests.
+The initial interface does not define asynchronous job handles, remote futures, callback protocols, generic bulk operations, or backend-specific study objects.
 
 ## Documentation boundaries
 
@@ -226,7 +253,8 @@ The public workflow API is synchronous. Study orchestration remains reducible to
 
 ## Python and CLI equivalence
 
-Equivalent Python and CLI invocations produce scientifically and operationally equivalent resolved requests and plans, excluding documented frontend metadata. Backend or frontend differences must not alter experiment, data, checkpoint, seed, regime, validation, or artifact-policy semantics.
+Equivalent Python and CLI invocations produce scientifically and operationally equivalent resolved requests and plans, excluding documented frontend metadata.
+Backend or frontend differences must not alter experiment, data, checkpoint, seed, regime, validation, or artifact-policy semantics.
 
 ## Non-goals
 

@@ -12,7 +12,7 @@ This page defines the semantic objects involved in configuration and the ownersh
 
 ## Definition defaults
 
-Definition defaults are package-owned scientific values supplied by experiments, analyses, tasks, models, bindings, and protocols.
+Definition defaults are specification-defined scientific values supplied by experiments, analyses, tasks, models, bindings, and protocols.
 
 Resources associated with a definition are classified by [Resource requirements](resource-requirements.md) as fixed, replaceable defaults, or absent.
 
@@ -147,10 +147,16 @@ request construction
 - [Resource requirements](resource-requirements.md)
 - [Identities and provenance](identities-and-provenance.md)
 - [Resolution](resolution.md)
+- [Python experiments](../python/experiments.md)
+- [Python conventions](../python/conventions.md)
+- [Python artifacts](../python/artifacts.md)
+- [Python training](../python/training.md)
+- [Python evaluation](../python/evaluation.md)
+- [Python analysis](../python/analysis.md)
 
 ## Non-goals
 
-This page does not define artifact commit semantics, storage races, or runtime allocation.
+This page does not define resource states, digest algorithms, storage validation, runtime scheduling, execution-time revalidation, artifact commit semantics, storage races, or runtime allocation.
 
 A request must never contain pending experiment or analysis mutations.
 
@@ -164,19 +170,6 @@ corpus = "artifact:arena-corpus/default/v1"
 ```
 
 Resolved records are owned by `resource-requirements.md` and the plan/provenance schema. This page does not redefine their states or serialized fields.
-
-## Related interfaces
-
-- [Python experiments](../python/experiments.md)
-- [Python conventions](../python/conventions.md)
-- [Python artifacts](../python/artifacts.md)
-- [Python training](../python/training.md)
-- [Python evaluation](../python/evaluation.md)
-- [Python analysis](../python/analysis.md)
-
-## Non-goals
-
-This page does not define resource states, digest algorithms, storage validation, runtime scheduling, or execution-time revalidation.
 
 ## Foundational dependencies
 
