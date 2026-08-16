@@ -39,7 +39,8 @@ When reviewing a change for coupling or responsibility-isolation defects, grade 
 
 Report each finding as: location, concept, correct owner, classification, invariant, correction.
 Do not modify a higher-authority specification merely to relieve coupling found in a lower-authority one.
-If two normative specs disagree or the boundary has no recorded owner, record it in `docs/decisions.md` (DOC-002) rather than correcting it.
+If two normative specs disagree or the boundary has no recorded owner and no target architecture has been established, record it in `docs/decisions.md` (DOC-002) rather than correcting it.
+When the target architecture is explicitly established, realign the conflicting normative material in place and remove obsolete competing semantics instead of re-logging it (DOC-002/ARCH-015).
 
 ## Authority
 

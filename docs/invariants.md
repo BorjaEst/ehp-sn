@@ -28,9 +28,15 @@ Lower-authority code comments, READMEs, examples, and overview pages may summari
 
 ### ARCH-003 — Registration does not reverse dependencies
 
-Installed research definitions may register with framework-owned registries.
-The framework must not import concrete research packages by name to populate its catalogue.
-Duplicate canonical registrations must fail rather than depend on import order.
+Installed research components register with framework-owned registries.
+
+Registration:
+
+- uses canonical component references;
+- must not make catalogue semantics depend on registration/import order;
+- rejects conflicting duplicate canonical references.
+
+`ehp_sn` must not import concrete research packages by name to populate its catalogue.
 
 ### ARCH-004 — Research package holds reusable scientific components only
 
@@ -276,9 +282,11 @@ Provenance may reference parent/build inputs without requiring those resources f
 
 README files summarize existing specifications and must not introduce new normative semantics.
 
-### DOC-002 — No silent authority repair
+### DOC-002 — Report conflicts; realign an established target in place
 
-When two normative specifications conflict, an agent or implementation change must report the conflict rather than silently reconcile them.
+When normative specifications conflict and **no authoritative target has been established**, the conflict must be reported and recorded as unresolved rather than silently reconciled.
+
+When the **target architecture has been explicitly established**, conflicting normative material is a migration target: update the authoritative specifications in place and remove obsolete competing semantics rather than preserving parallel authority (ARCH-015).
 
 ### DOC-003 — Derived metadata is not manually duplicated unnecessarily
 
@@ -367,7 +375,7 @@ These invariants are checked only by review; each is backlog to promote to an au
 | CONFIG-001 | scientific definitions declare requirements; configuration binds them                               |
 | CLI-001    | CLI modules define no scientific semantics                                                          |
 | DOC-001    | README files introduce no `authority: normative` claim                                              |
-| DOC-002    | unresolved conflicts appear in `docs/decisions.md`                                                  |
+| DOC-002    | target undecided: record unresolved in `docs/decisions.md`; target established: realign in place    |
 | DOC-005    | `docs/README.md` and `docs/docs/index.md` are not cross-referenced as equivalents                   |
 | DOC-007    | no `.github/instructions/` file declares `authority: normative` or enumerates domain semantics      |
 | DOC-009    | every published table is multi-dimensional, self-introduced, and uses sentence-case headers         |
@@ -380,7 +388,7 @@ No check exists yet for these invariants; each is backlog for `tests/architectur
 | ---------- | ----------------------------------------------------------------------------------------------- |
 | ARCH-001   | no `ehp_research` import under `packages/ehp-sn/src/`; none declared in `pyproject.toml`        |
 | ARCH-002   | no two `authority: normative` specifications declare the same component reference               |
-| ARCH-003   | framework source imports no concrete research package by name; duplicate registration raises    |
+| ARCH-003   | framework imports no concrete research package by name; canonical refs; order-independent       |
 | ARCH-004   | no `ehp_research` package constructs concrete experiments; they live under `experiments/`       |
 | ARCH-005   | no concrete task-model Binding specification under `ehp_research`                               |
 | ARCH-006   | generic adapters under `ehp_sn` contain no concrete task/model identity branch                  |

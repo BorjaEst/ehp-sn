@@ -26,7 +26,8 @@ When reviewing documentation consistency: resolve the concept, its owner and nor
 Classify each finding as `consistent`, `stale`, `contradictory`, `underspecified`, or `missing authority`.
 For every non-consistent finding state the claim, the authority, the evidence of mismatch, why it matters, and which file should change.
 Do not modify a higher-authority specification merely to make it agree with a README or overview.
-If two authoritative specs disagree, record it in `docs/decisions.md` (DOC-002).
+If two authoritative specs disagree and no target architecture has been established, record the conflict in `docs/decisions.md` as unresolved (DOC-002).
+When the target architecture is explicitly established, realign the conflicting normative material in place and remove obsolete competing semantics instead of re-logging it (DOC-002/ARCH-015).
 
 ## Before changing a normative claim
 

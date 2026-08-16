@@ -228,10 +228,12 @@ This document records, rather than resolves, the following blockers:
   batch size, and training duration are not yet fixed anywhere in the authority chain for this
   pairing. They should be fixed once an implementation exists to validate them against, not
   invented in this specification.
-- **`docs/decisions.md` DEC-006** (open, indirectly relevant): general research-registration
-  properties (determinism, import-order independence beyond duplicate resolution) are not settled
-  authority. Registering this experiment's task/model/adapter components with framework discovery
-  must not rely on those properties beyond what `ARCH-003` already guarantees.
+- **Research-registration guarantees**: `ARCH-003` requires registration to use canonical
+  references and not make catalogue semantics depend on registration/import order. Registering this
+  experiment's task/model/adapter components with framework discovery must not rely on any
+  registration property beyond what `ARCH-003` guarantees; registration hygiene (lightweight
+  imports, no expensive work at registration time) is implementation practice, not an architectural
+  invariant.
 
 ## Related specifications
 

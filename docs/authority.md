@@ -66,16 +66,17 @@ Do not use CLI presence as evidence of semantic ownership.
 
 Ownership is assigned by specification root, not per component. A specification's location determines its semantic owner.
 
-| Concept category                                                     | Specification root                        | Implementation surface                       |
-| -------------------------------------------------------------------- | ----------------------------------------- | -------------------------------------------- |
-| Package dependency direction, authority model                        | `docs/authority.md`, `docs/invariants.md` | metadata, imports, tests                     |
-| Generic framework contracts and services                             | `docs/docs/framework/`                    | `packages/ehp-sn/src/`                       |
-| Public configuration model, resolution, and requirements             | `docs/docs/interfaces/configuration/`     | `packages/ehp-sn/src/`                       |
-| Public CLI behavior                                                  | `docs/docs/interfaces/cli/`               | `packages/ehp-sn/src/`                       |
-| Public Python behavior                                               | `docs/docs/interfaces/python/`            | `packages/ehp-sn/src/`                       |
-| Research substrate semantics                                         | `docs/docs/research/substrates/`          | `packages/ehp-research/src/`                 |
-| Research task semantics                                              | `docs/docs/research/tasks/`               | `packages/ehp-research/src/`                 |
-| Research model semantics and resolved experiment/binding composition | `docs/docs/research/`, `experiments/`     | `packages/ehp-research/src/`, `experiments/` |
+| Concept category                                         | Specification root                        | Implementation surface         |
+| -------------------------------------------------------- | ----------------------------------------- | ------------------------------ |
+| Package dependency direction, authority model            | `docs/authority.md`, `docs/invariants.md` | metadata, imports, tests       |
+| Generic framework contracts and services                 | `docs/docs/framework/`                    | `packages/ehp-sn/src/`         |
+| Public configuration model, resolution, and requirements | `docs/docs/interfaces/configuration/`     | `packages/ehp-sn/src/`         |
+| Public CLI behavior                                      | `docs/docs/interfaces/cli/`               | `packages/ehp-sn/src/`         |
+| Public Python behavior                                   | `docs/docs/interfaces/python/`            | `packages/ehp-sn/src/`         |
+| Research substrate semantics                             | `docs/docs/research/substrates/`          | `packages/ehp-research/src/`   |
+| Research task semantics                                  | `docs/docs/research/tasks/`               | `packages/ehp-research/src/`   |
+| Research model semantics                                 | `docs/docs/research/models/`              | `packages/ehp-research/src/`   |
+| Concrete experiment and Binding composition              | `experiments/<experiment>/vN/plan.md`     | `experiments/<experiment>/vN/` |
 
 Generic `Task` and `Model` _contracts_ are framework-owned; their concrete scientific _definitions_ are research-owned. The distinction is the one drawn in "Ownership versus orchestration" above.
 
@@ -119,7 +120,8 @@ Some paths are recorded here for the closure rule below without being semantic-o
   - `docs/docs/development/`
 - **Agent procedures and path scoping** (procedural) — `.github/instructions/`, `.github/copilot-instructions.md`.
 
-`Binding` is not an independently specified contract: it is the resolved, validated connection of one task and one model, formed by one configured `InputAdapter` and one configured `OutputAdapter`. `InputAdapter` and `OutputAdapter` are generic framework contracts, specified under `docs/docs/framework/` (`docs/docs/framework/adapters/index.md`); a concrete resolved binding — its adapter configuration and the composition itself — is assembled by an `ExperimentDefinition` and is research-owned, following the same generic-contract/concrete-definition split.
+`Binding` is not an independently specified contract: it is the resolved, validated connection of one task and one model, formed by one configured `InputAdapter` and one configured `OutputAdapter`. `InputAdapter` and `OutputAdapter` are generic framework contracts, specified under `docs/docs/framework/` (`docs/docs/framework/adapters/index.md`).
+A concrete resolved Binding is assembled as part of a concrete experiment composition; its scientific semantics and adapter configuration are experiment-owned under `experiments/<experiment>/vN/`.
 
 ### Closure rule
 
@@ -188,6 +190,6 @@ Rules previously restated here are owned as invariants:
 
 - one normative home per semantic contract — ARCH-002;
 - READMEs are projections, not authorities — DOC-001;
-- conflicting specifications are reported, not silently reconciled — DOC-002;
+- unresolved conflicts are reported, not silently reconciled, while an established target is realigned in place — DOC-002;
 - derivable metadata is generated or validated, not duplicated — DOC-003;
 - agent instructions under `.github/instructions/` are procedural and never semantic authority — DOC-007.

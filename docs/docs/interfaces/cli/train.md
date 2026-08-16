@@ -147,7 +147,9 @@ ehp-sn train plan EXPERIMENT [OPTIONS]
 
 A hardware profile is a CLI-only convenience: it must expand into the same canonical runtime request fields (such as `device` and `precision`) that `--device` and `--precision` set directly, per [Interfaces](../index.md). Explicit options such as `--device` and `--precision` override corresponding profile values and do not modify the scientific experiment.
 
-`--hardware-profile` is training-only in the initial CLI because training may require distributed launch, process topology, and environment-specific resource coordination. Evaluation and analysis use direct runtime options until a concrete workflow demonstrates the need for shared profiles. The distributed-launch and process-topology aspects of a profile are not yet backed by a canonical request/configuration field; until a canonical field exists for them, a hardware profile must not be relied on for any effect beyond the `device`/`precision`-equivalent fields it shares with the direct runtime options.
+`--hardware-profile` is training-only in the initial CLI.
+It may supply defaults only for canonical runtime fields already defined by EHP-SN (such as `device` and `precision`); it does not define distributed-launch, process-topology, launcher, or coordination semantics unless those semantics are first represented by canonical framework-owned configuration fields.
+Evaluation and analysis use direct runtime options until a concrete workflow demonstrates the need for shared profiles.
 
 ### Behavior
 

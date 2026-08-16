@@ -31,9 +31,9 @@ sequential experience and use it to predict observations at revisited positions
 that acquired state versus the current sensory observation (§1.1, §14).
 
 This is the experiment `docs/docs/interfaces/python/experiments.md`, `docs/docs/framework/references.md`,
-and the CLI docs already use pervasively as their worked example (`arena_tem_v1()`,
-`experiment:arena-tem/v1`) — this document is the first time its actual scientific content is
-specified; none of those interface docs define it.
+and the CLI docs already use pervasively as their worked example (`experiment:arena-tem/v1`,
+resolved through `ExperimentRef.parse`/`resolve_experiment`) — this document is the first time its
+actual scientific content is specified; none of those interface docs define it.
 
 ## 2. Scope and ownership
 
@@ -163,8 +163,8 @@ authority — see "Status and prerequisites."
 
 For each of the three §5.2 pathways, independently:
 
-- source role: the named pathway's declared sensory-prediction output, `prediction_kind: categorical
-  scores` over TEM's sensory vocabulary;
+- source role: the named pathway's declared sensory-prediction output,
+  `prediction_kind: categorical scores` over TEM's sensory vocabulary;
 - `task_step_to_model_step` / `model_step_to_task_step`: reused unchanged from §5.1 (`t ↦ t`);
 - `category_mapping`: identity or explicit injective mapping from TEM's sensory-prediction indices
   back to Arena's observation vocabulary, mirroring §5.1's input-side mapping;

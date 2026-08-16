@@ -22,9 +22,8 @@ ARCH-001 and ARCH-003 govern this.
 
 Research definitions are exposed through the framework-owned registration/discovery interface.
 Research registration may depend on `ehp_sn`.
-ARCH-003 requires that conflicting duplicate canonical registrations fail rather than depend on import order; consult it rather than re-stating that requirement here.
-
-`docs/decisions.md` DEC-006 records that broader registration properties beyond ARCH-003's duplicate-registration rule have no recorded specification owner yet; do not treat any such property as settled authority until DEC-006 is resolved.
+ARCH-003 requires registration to use canonical references, not make catalogue semantics depend on registration/import order, and reject conflicting duplicate canonical references; consult it rather than re-stating that requirement here.
+Python-engineering hygiene (avoiding expensive work at import time, keeping imports lightweight) is implementation practice, not an architectural invariant.
 
 Import-time convenience registration may exist only if the authoritative discovery contract explicitly permits it; automatic CLI discovery must not rely on a framework import of `ehp_research` by name.
 
