@@ -1,7 +1,7 @@
 ---
 name: supervisor
 description: "Main orchestrating agent for EHP-SN implementation work. Reads the design handoff and authoritative documentation, then delegates implementation, optional planning, and independent review to specialized subagents."
-tools: Agent(planner, implementer, fast-worker, reviewer), Read, Grep, Glob, Bash, Edit, Write
+tools: execute, agent, web
 model: DeepSeek V4 Pro (deepseek)
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: implementer
 description: "Implements a well-defined task delegated by the supervisor (optionally following a plan from planner), within an explicit scope, following repository instructions and rules."
-tools: Read, Edit, Write, Grep, Glob, Bash
+tools: vscode, execute, read, ms-python.python/getPythonEnvironmentInfo, ms-python.python/getPythonExecutableCommand, ms-python.python/installPythonPackage, ms-python.python/configurePythonEnvironment, edit, search, web, browser
 model: DeepSeek V4 Flash (deepseek)
 ---
 

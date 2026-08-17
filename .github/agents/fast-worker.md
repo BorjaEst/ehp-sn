@@ -1,7 +1,7 @@
 ---
 name: fast-worker
 description: "Restricted worker for deterministic, mechanical transformations delegated by the supervisor. Must not make design decisions; escalates anything requiring semantic judgment to implementer."
-tools: Read, Edit, Write, Grep, Glob, Bash
+tools: vscode, read, ms-toolsai.jupyter/configureNotebook, ms-toolsai.jupyter/listNotebookPackages, ms-toolsai.jupyter/installNotebookPackages, edit, browser
 model: DeepSeek V4 Flash (deepseek)
 ---
 
