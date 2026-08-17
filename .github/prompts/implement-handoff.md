@@ -14,16 +14,16 @@ This skill consumes a design. It does not produce one. If the handoff is missing
 
 ## 1. Resolve
 
-The requested identifier is `$handoff`. The handoff file is `.claude/handoffs/<identifier>.md`.
+The requested identifier is `$handoff`. The handoff file is `.github/handoffs/<identifier>.md`.
 
-- If the identifier is empty, list `.claude/handoffs/*.md` excluding `README.md`, with each file's `status`, and ask which one to implement.
+- If the identifier is empty, list `.github/handoffs/*.md` excluding `README.md`, with each file's `status`, and ask which one to implement.
 - If the identifier does not match `[a-z0-9][a-z0-9-]*`, stop and report.
-- If the file does not exist, list the available identifiers and stop. Do not guess a near match, and do not reconstruct the design from repository state — handoffs are untracked, so absence is a normal case.
+- If the file does not exist, list the available identifiers and stop. Do not guess a near match, and do not reconstruct the design from repository state — if no handoff exists for the concern, that is a normal case and a new design phase is required.
 - If its `status` is already `implemented`, say so and ask whether to proceed.
 
 ## 2. Validate
 
-Read the handoff and check it against `.claude/handoffs/README.md` — § "Structure", § "When a handoff may be written", and § "Rules":
+Read the handoff and check it against `.github/handoffs/README.md` — § "Structure", § "When a handoff may be written", and § "Rules":
 
 - the required sections are present;
 - the objective and agreed design are stated as decisions, not options;
@@ -46,10 +46,10 @@ Do not redesign, do not fill a gap in the agreed design, and do not reinterpret 
 Then read, in order:
 
 1. the authoritative repository documentation the handoff references;
-2. `CLAUDE.md`;
-3. applicable `.claude/rules/*.md` for the paths in scope.
+2. `.github/copilot-instructions.md`;
+3. applicable `.github/instructions/*.instructions.md` for the paths in scope.
 
-Apply `CLAUDE.md`'s "Authority first" procedure for anything the handoff leaves to implementation judgment.
+Apply `copilot-instructions.md` § "Architectural source of truth" for anything the handoff leaves to implementation judgment.
 
 ## 5. Report before starting
 

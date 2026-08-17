@@ -8,6 +8,7 @@ This directory holds GitHub-related CI configuration and the Copilot agent-instr
 ├── copilot-instructions.md   # Global Copilot agent instructions (procedural)
 ├── prompts/              # Reusable Copilot prompts (`.prompt.md`)
 ├── instructions/         # Path-scoped procedural instructions (`.instructions.md`)
+├── handoffs/             # Design-handoff mechanism (`.github/handoffs/README.md`)
 └── workflows/            # CI workflow definitions
 ```
 

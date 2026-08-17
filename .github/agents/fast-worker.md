@@ -19,7 +19,7 @@ Perform only the deterministic, explicitly specified transformation given in you
 
 ## Before editing
 
-Path-scoped rules under `.claude/rules/` load automatically when you read a file they match, so editing an existing file already brings its rule into context.
+Path-scoped rules under `.github/instructions/*.instructions.md` load automatically when you read a file they match, so editing an existing file already brings its rule into context.
 Creating a new file does not.
 Before writing the first version of a new file, read the rule governing that path yourself.
 

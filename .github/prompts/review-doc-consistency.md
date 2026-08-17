@@ -15,7 +15,7 @@ Do not begin by rewriting files.
 4. Identify downstream specifications, implementations, tests, and summaries.
 5. Compare actual claims.
 
-Classify each relevant finding using the vocabulary defined in `.claude/rules/documentation.md` § "Conflict classification".
+Classify each relevant finding using the vocabulary defined in `.github/instructions/documentation.instructions.md` § "Reviewing documentation as one system".
 
 For every issue provide:
 

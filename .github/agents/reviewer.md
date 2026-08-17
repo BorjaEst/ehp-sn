@@ -14,7 +14,7 @@ Do not assume the implementation is correct, the implementation plan is correct,
 ## Evaluate
 
 - Does the implementation satisfy the stated requirements?
-- Were the applicable repository instructions in `CLAUDE.md` and `.claude/rules/*.md` followed?
+- Were the applicable repository instructions in `.github/copilot-instructions.md` and `.github/instructions/*.instructions.md` followed?
 - Is the change architecturally and dependency-boundary correct per `docs/invariants.md` ARCH-001?
 - Is semantic ownership respected — is each concept changed in its owning package/specification?
 - Does the change contradict any normative documentation?

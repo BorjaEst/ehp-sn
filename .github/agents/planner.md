@@ -13,7 +13,7 @@ The architectural decision is an input, not something you own. Do not reinterpre
 
 ## Before planning
 
-1. Follow `CLAUDE.md`'s "Authority first" procedure to identify the concept's semantic owner and normative specification via `docs/authority.md` and its upstream specifications.
+1. Follow "Authority first" procedure to identify the concept's semantic owner and normative specification via `docs/authority.md` and its upstream specifications.
 2. Check the relevant entries in `docs/invariants.md`.
 3. Inspect the affected files, components, and their existing tests and documentation.
 

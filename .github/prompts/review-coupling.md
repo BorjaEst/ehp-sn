@@ -22,7 +22,7 @@ Grade every finding against a named, external standard, not prose intuition:
 
 ## Evaluate
 
-1. Identify the concept or components under review and which boundary they sit near: framework/research, substrate/task, task/model, public/backend, or resource selection (`CLAUDE.md` § "Authority first").
+1. Identify the concept or components under review and which boundary they sit near: framework/research, substrate/task, task/model, public/backend, or resource selection (`copilot-instructions.md` § "Architectural source of truth").
 2. Resolve semantic ownership for each side of the boundary using `docs/authority.md` § "Authority map".
 3. Identify the invariants that boundary must satisfy in `docs/invariants.md` — select only the ones the concept actually touches from ARCH-001..003, DATA-001..006, TASK-001, ADAPT-001..003, BIND-001, CONFIG-001..004, CLI-001..003, ART-001..002.
 4. For each candidate finding, classify it under both frameworks above, then tag the repository invariant it also violates (the invariant says which repo rule; the framework says why it is a defect at all):
@@ -41,14 +41,14 @@ If two normative specifications disagree, or the boundary has no recorded owner 
 
 For every finding that has one clear owner and no open disagreement:
 
-- apply the smallest coherent change that removes the coupling (`CLAUDE.md` § "Change discipline") — do not introduce a new abstraction, registry, or protocol to do it;
+- apply the smallest coherent change that removes the coupling (`copilot-instructions.md` § "Before changing architectural code or documentation") — do not introduce a new abstraction, registry, or protocol to do it;
 - move or restate the semantics into their owning specification rather than duplicating them;
 - keep a shared contract meaningful without naming any concrete producer, consumer, task, substrate family, or research package;
-- follow the edit order in `CLAUDE.md` § "Authority first": authority → implementation and tests → interface documentation → READMEs and summaries;
+- follow the edit order in `copilot-instructions.md` § "Before changing architectural code or documentation": authority → implementation and tests → interface documentation → READMEs and summaries;
 - re-run the checks in `docs/invariants.md` § "Enforcement" relevant to the changed invariant(s) after editing.
 
 ## Finish
 
 - Confirm every finding is either corrected or recorded as undecided in `docs/decisions.md`.
-- Identify any invariant relied on in this review that is still `manual` or `none` in `docs/invariants.md` § "Enforcement", as a candidate deterministic check under `tests/architecture/` (`.claude/rules/tests.md`).
+- Identify any invariant relied on in this review that is still `manual` or `none` in `docs/invariants.md` § "Enforcement", as a candidate deterministic check under `tests/architecture/` (`.github/instructions/testing.instructions.md`).
 - Report what changed, what was recorded as undecided, and what was left untouched and why.

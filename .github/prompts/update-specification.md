@@ -7,7 +7,7 @@ description: "Update a normative specification without changing unrelated semant
 
 Update the selected normative specification without changing unrelated semantic ownership.
 
-Before editing, identify the requirement motivating the change, then follow `CLAUDE.md` § "Authority first" and `.claude/rules/documentation.md` § "Before changing a claim" to identify the concept, its owner and normative specification, the upstream specifications it must obey, and the downstream specifications, code, tests, interfaces, and summaries that may become stale.
+Before editing, identify the requirement motivating the change, then follow `copilot-instructions.md` § "Before changing architectural code or documentation" and `.github/instructions/documentation.instructions.md` § "Before changing a normative claim" to identify the concept, its owner and normative specification, the upstream specifications it must obey, and the downstream specifications, code, tests, interfaces, and summaries that may become stale.
 
 During editing:
 

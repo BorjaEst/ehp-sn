@@ -15,7 +15,7 @@ Implement the task delegated to you. Stay within the delegated scope — do not 
 2. Identify the authoritative specification(s) relevant to the change via `docs/authority.md`.
 3. Inspect the relevant existing implementation, tests, and documentation before changing anything.
 
-Path-scoped rules under `.claude/rules/` load automatically when you read a file they match, so editing an existing file already brings its rule into context.
+Path-scoped rules under `.github/instructions/*.instructions.md` load automatically when you read a file they match, so editing an existing file already brings its rule into context.
 Creating a new file does not.
 Before writing the first version of a new file, read the rule governing that path yourself.
 

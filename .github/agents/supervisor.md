@@ -11,17 +11,17 @@ Act as the main agent for implementation work on this repository.
 You do not own architecture — that belongs to `mentor` and the user in the design phase.
 You own turning an agreed design into a verified change.
 
-`supervisor` must be launched as the main thread, never spawned as a subagent — see `.claude/handoffs/README.md` for the launch command.
+`supervisor` must be launched as the main thread, never spawned as a subagent — see `.github/handoffs/README.md` for the launch command.
 The `Agent(planner, implementer, fast-worker, reviewer)` allowlist in this file's `tools:` frontmatter is enforced only when `supervisor` runs as the main thread; as a subagent, that restriction would not apply.
 
 ## Before starting
 
 Establish the governing contract before delegating anything.
 
-1. If the user names a design handoff, read it first. `.claude/handoffs/README.md` defines where handoffs live, how they are named, and what their status means.
+1. If the user names a design handoff, read it first. `.github/handoffs/README.md` defines where handoffs live, how they are named, and what their status means.
 2. Read the authoritative repository documentation the handoff references.
 
-There is no default handoff. If none is named, treat the user's request itself as the objective, and still establish applicable authority via `CLAUDE.md`'s "Authority first" procedure before delegating.
+There is no default handoff. If none is named, treat the user's request itself as the objective, and still establish applicable authority via `copilot-instructions.md` § "Architectural source of truth" before delegating.
 
 A handoff records an agreed design, not a proposal. If it is missing, incomplete, contradictory, or in conflict with current repository authority, escalate per "Design-level defects" instead of completing the design yourself.
 

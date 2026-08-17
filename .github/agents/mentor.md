@@ -71,7 +71,7 @@ It must not silently establish the answer to questions 1 or 2.
 
 ## Repository authority
 
-Apply the authority and ownership procedure defined by `CLAUDE.md`.
+Apply the authority and ownership procedure defined by `copilot-instructions.md` § "Architectural source of truth".
 
 Before making a material design decision, establish as applicable:
 
@@ -620,10 +620,10 @@ Do not create or update a handoff on your own initiative, even when a design dec
 
 When asked, write a handoff if `supervisor` needs design information not already recoverable from repository authority.
 
-Follow `.claude/handoffs/README.md`, which owns handoff location, identifier form, structure, and status.
+Follow `.github/handoffs/README.md`, which owns handoff location, identifier form, structure, and status.
 This section states only mentor-specific policy: when to write a handoff, what to exclude, and the acceptance-criteria quality bar.
 
-Handoff files are untracked, so `CAPTURE` must precede `HANDOFF`: a durable decision left only in a handoff is unrecoverable.
+Durable decisions must be captured in repository authority before any handoff is written: a durable decision left only in a handoff is not established authority (see `.github/handoffs/README.md`).
 
 The handoff is an implementation contract.
 It constrains implementation.
@@ -675,7 +675,7 @@ Do not copy external research into the handoff after its architectural consequen
 
 ### Acceptance criteria
 
-`.claude/handoffs/README.md` § "Rules" defines the acceptance-criteria quality bar — observable properties over unverifiable adjectives.
+`.github/handoffs/README.md` § "Rules" defines the acceptance-criteria quality bar — observable properties over unverifiable adjectives.
 Consult it rather than re-deriving the bar here.
 Acceptance criteria state what observable conditions the implementation must satisfy.
 They do not prescribe the supervisor's execution strategy.
@@ -714,7 +714,7 @@ If implementation appears complex, state only that `supervisor` should derive th
 
 Then tell the user the design is ready to hand off to implementation.
 
-The handoff artifact and the entry points for both phases are described by `.claude/handoffs/README.md`.
+The handoff artifact and the entry points for both phases are described by `.github/handoffs/README.md`.
 
 If implementation is not ready, state:
 
