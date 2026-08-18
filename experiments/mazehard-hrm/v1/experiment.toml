@@ -1,0 +1,96 @@
+# MazeHard–HRM v1 — canonical concrete declaration
+#
+# This declaration instantiates the EHP-SN `ExperimentDefinition` specification
+# (schema "ehp-sn/experiment/v1"). It selects and configures reusable components;
+# it does not redefine any of their semantics. Scientific rationale and motivation
+# live in README.md; unresolved design reasoning lives in design/.
+
+schema = "ehp-sn/experiment/v1"
+
+ref = "experiment:mazehard-hrm/v1"
+
+task  = "task:mazehard/v1"
+model = "model:hrm/v1"
+
+# Compatibility declaration (compatibility.md "Support levels"):
+#   task: task:mazehard/v1
+#   model: model:hrm/v1
+#   support: supported
+#   compatibility_maturity: declared
+# (maturity advances to implemented/validated/reference as evidence accrues.)
+
+[binding.input]
+    adapter = "adapter:raster-sequence/v1"
+    # sequence_capacity selected = S = P = 900 for the canonical reference-reproduction
+    # profile (mazehard.md §1.1/§9.2), so RIN-CMP-001 (P <= S) holds with zero padding.
+    #   position_to_slot: p -> p
+    #   category_mapping: injective MazeHard public per-position category domain
+    #                     (traversable/blocked, start, goal; mazehard.md §4.1) -> HRM
+    #                     model-owned categorical input vocabulary; exact IDs are an
+    #                     HRM implementation/vocabulary choice (RIN-MAP-002).
+    #   sequence_mask: none for the reference profile (padding_count = 0); a profile
+    #                  with P < S would require one (raster-sequence-v1.md §3).
+
+[binding.output]
+    adapter = "adapter:raster-prediction/v1"
+    # source role: the binding-owned decoder over HRM's model-native `schema_slots`
+    # (hrm.md §3/§8: a binding may attach a task-specific decoder to a supported native
+    # representation; HRM itself does not define a task-specific prediction).
+    #   decoder reads: schema_slots (per-slot native representation), not theta_summary
+    #                  (see design/output-decoding.md for the candidate rationale)
+    #   schema-slot count: set to S (= sequence_capacity), one schema slot per input slot
+    #   decoder projects each schema slot to a categorical distribution over MazeHard's
+    #                  target vocabulary {wall, free, start, goal, path} (mazehard.md §8.3)
+    #   slot_preservation: declared guarantee that output slot s corresponds to the same
+    #                  task position as input slot s (satisfies raster-prediction-v1.md
+    #                  ROUT-IF-002; equal cardinality alone is not sufficient, ROUT-CMP-001)
+    #   position_to_slot / slot_to_position: p -> p (reused unchanged from binding.input)
+    #   category_mapping: identity / injective decoder label indices -> MazeHard 5-class
+    #   score-to-label: argmax over the 5-class distribution at each position (target y*
+    #                  is a single mutually-exclusive categorical label; mazehard.md §8.3,
+    #                  supported condition for raster-prediction-v1.md "Scores to labels")
+    #
+    # NOTE: the decoder is binding-owned (hrm.md §8) and is assembled by this binding per
+    # authority.md ("Authority map": a concrete resolved binding is assembled here). Whether
+    # `slot_preservation` should additionally be declared as a general model-native output-role
+    # property in hrm.md, or is purely this binding's decoder guarantee, is an open review point;
+    # see design/output-decoding.md. This experiment declares it as its binding decoder contract.
+    #
+    # Guardrail (raster-sequence-v1.md §7 / raster-prediction-v1.md §7, ADAPT-002): no part of
+    # this binding consumes optimal_cost / reference_path / reference_labels as model input, and
+    # no route repair, connectivity correction, or threshold tuning is performed here; scoring
+    # against y* happens entirely in evaluation.
+
+[objective]
+    # supervised cross-entropy over the 5-class target vocabulary at every supervised output
+    # position (mazehard.md §13.1 exact-reference target). Padding/ignore positions: none for
+    # the reference profile; a non-reference profile with P < S must exclude padding slots
+    # from the loss (raster-sequence-v1.md RIN-MAP-003).
+    #
+    # HRM's supervised ACT halt/continue contributes its own supervised halting loss term,
+    # composed with the route-prediction cross-entropy; the exact composition weighting is
+    # unresolved (see design/output-decoding.md) and is not fixed here.
+
+[metrics]
+    # Named evaluation regimes/metrics are taken directly from mazehard.md §13 and are NOT
+    # redefined here (BIND-001); the only addition is the decoded representation that feeds them
+    # (the binding.output product: per-position labels in {wall, free, start, goal, path}, in
+    # canonical task-position order), evaluated against the corpus's stored reference_labels /
+    # reference_path / optimal_cost (mazehard.md §9.1).
+    exact_accuracy         = "task:mazehard/v1#exact-solution-accuracy"
+    token_accuracy         = "task:mazehard/v1#token-accuracy"
+    any_valid_optimal_rate = "task:mazehard/v1#any-valid-optimal-path-rate"
+
+[corpus]
+    requirement = "task:mazehard/v1"
+    # One committed task:mazehard/v1 corpus built over one maze-nd/v1 source-topology release,
+    # at the canonical reference-reproduction profile (30 x 30, P = 900; mazehard.md §9.2).
+    # The exact corpus reference resolves at request time through the framework's declared
+    # precedence; the concrete local artifact is not selected here.
+    topology_parent = "substrate:maze-nd/v1#source-topology"
+    # NOTE: the maze-nd source revision/fingerprint, connectivity policy, and selection-or-
+    # deduplication order are maze-nd/v1's own unresolved issues (mazehard.md §15) and are not
+    # invented here.
+
+[resources]
+    # resource requirements declared here (framework CONFIG-001)

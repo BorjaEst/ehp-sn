@@ -1,0 +1,126 @@
+# Routebind–HRM v1 — canonical concrete declaration
+#
+# This declaration instantiates the EHP-SN `ExperimentDefinition` specification
+# (schema "ehp-sn/experiment/v1"). It selects and configures reusable components;
+# it does not redefine any of their semantics. Scientific rationale and motivation
+# live in README.md; unresolved design reasoning lives in design/.
+
+schema = "ehp-sn/experiment/v1"
+
+ref = "experiment:routebind-hrm/v1"
+
+task  = "task:routebind/v1"
+model = "model:hrm/v1"
+
+# Compatibility declaration (compatibility.md "Support levels"):
+#   task: task:routebind/v1
+#   model: model:hrm/v1
+#   support: supported
+#   compatibility_maturity: declared
+# (maturity advances to implemented/validated/reference as evidence accrues.)
+#
+# model:hrm-rl/v1 (hrm-rl.md) is a distinct model and is out of scope for this
+# binding; it governs a different (reinforcement-learned) deliberation control.
+
+[binding.input]
+    adapter = "adapter:raster-overlay-sequence/v1"
+    # sequence_capacity selected = S = P for the canonical reference-reproduction
+    # profile, so ROV-CMP-001 (P <= S) holds with zero representation-only padding.
+    #   position_to_slot: p -> p
+    #   four declared public channels over P positions (routebind.md §4.1/§9.1):
+    #       traversability     (wall / free)
+    #       observation identity (cardinality = corpus observation vocabulary size)
+    #       start_flag         (binary; unique g'_start)
+    #       goal_flag          (binary; marks occurrences in C_goal)
+    #   channel_combination_mapping: explicit INJECTIVE mapping from the four-channel
+    #       tuple to HRM's model-owned categorical input vocabulary; exact channel IDs
+    #       are an HRM implementation/vocabulary choice (ROV-MAP-002 information
+    #       preservation requires injectivity).
+    #   sequence_mask: none when a profile needs no representation-only slots; a
+    #       profile requiring padding would need one (ROV-MAP-003 padding isolation).
+    #   reset: emitted at problem start so independent Routebind problems do not
+    #       share problem-scoped reasoning state (hrm.md §3/§4, "reset").
+
+[binding.output]
+    adapter = "adapter:raster-field-prediction/v1"
+    # TWO independent adapter instances, one per continuous Routebind target field
+    # (routebind.md §8.5), matching this adapter's single-channel-per-instance design
+    # (§1; "a binding needing two independent fields ... configures two independent
+    # instances"), here both under one adapter selection.
+    #
+    # source role (shared by both instances): the binding-owned decoder over HRM's
+    # model-native `schema_slots` (hrm.md §3/§8: task-specific decoding is binding-owned;
+    # HRM itself does not define a task-specific prediction).
+    #   decoder reads: schema_slots (per-slot native representation), not theta_summary,
+    #                  since per-position field prediction needs P independent outputs
+    #                  (see design/adapters.md for the candidate rationale)
+    #   schema-slot count: set to S (= sequence_capacity), one schema slot per input slot
+    #   slot_preservation: declared guarantee that output slot s corresponds to the same
+    #                  task position as input slot s (satisfies RFP-IF-002; equal
+    #                  cardinality alone is not sufficient, RFP-CMP-001)
+    #   position_to_slot / slot_to_position: p -> p (reused unchanged from binding.input)
+    #   decoder network architecture (projection width, [0,1]-bounding activation) is an
+    #   HRM model-owned implementation choice, not fixed here (hrm.md §5).
+    #
+    # trajectory instance:
+    #   source role: trajectory-field  (reads schema slots, bounded projection)
+    #   prediction_kind: continuous scores; value_range: [0, 1]
+    #   target: routebind.md §8.5 target_trajectory field, same value_range [0, 1]
+    # waypoint instance:
+    #   source role: waypoint-field    (reads schema slots, bounded projection)
+    #   prediction_kind: continuous scores; value_range: [0, 1]
+    #   target: routebind.md §8.5 target_waypoint field, same value_range [0, 1]
+    # Value adaptation is the identity copy over the shared [0,1] value_range
+    # (RFP-MAP-002 value identity; RFP-CMP-002 range identity; neither instance
+    # rescales, thresholds, or otherwise transforms values).
+    #
+    # NOTE: the decoder is binding-owned (hrm.md §8) and assembled by this binding.
+    # Whether `slot_preservation` should additionally be declared as a general
+    # model-native output-role property in hrm.md, or is purely this binding's decoder
+    # guarantee, is an open review point; see design/adapters.md.
+    #
+    # Guardrail (raster-overlay-sequence-v1.md §7 / raster-field-prediction-v1.md §7,
+    # ADAPT-002): no part of this binding consumes the hidden semantic graph, its
+    # binding, optimal_cost, valid_route_count, or any other privileged/withheld field
+    # (routebind.md §4.3–§4.5, §9.1) as model input. Scoring against the oracle route
+    # set happens entirely in evaluation ([metrics]), not inside either adapter.
+
+[objective]
+    # supervised regression between each predicted field (f_traj, f_wp, routebind.md
+    # §8.5) and its stored target (target_trajectory, target_waypoint) at every
+    # position. Loss family (e.g. weighted MSE or BCE-style) is an implementation
+    # choice, not fixed here; composition across the two field losses and HRM's
+    # supervised ACT halting loss term (hrm.md §1/§3) is unresolved
+    # (see design/adapters.md) and is not invented here.
+    # Padding/ignore positions: none when a profile needs no representation-only
+    # slots; a padded profile must exclude padding slots from the loss.
+
+[metrics]
+    # Named evaluation regimes/metrics are taken directly from routebind.md §13 and are
+    # NOT redefined here (BIND-001); the only addition is the decoded representation
+    # that feeds them: the [binding.output] product (two continuous fields in canonical
+    # position order, §8.5), evaluated against the corpus's stored targets. NOTE: the
+    # field-to-route decoding rule the primary metric presumes is not yet fixed
+    # (routebind.md §13.1 defines route validity over a decoded route, not a raw field);
+    # see design/adapters.md — this is a genuine gap surfaced, not resolved, here.
+    valid_semantic_spatial_route_rate = "task:routebind/v1#valid-semantic-spatial-route-rate"
+    optimality_ratio_rho_cost         = "task:routebind/v1#optimality-ratio-rho-cost"
+    # representational field-error diagnostics (routebind.md §13.3, secondary — low
+    # field error does not by itself establish route validity, §13.4):
+    field_error_diagnostics = "task:routebind/v1#representational-field-error"
+
+[corpus]
+    requirement = "task:routebind/v1"
+    # One committed task:routebind/v1 corpus release built over:
+    #   topology parent:         substrate:dungeongen/v1#general        (procedural, no external source)
+    #   observation-field parent: substrate:obsfield/v1#categorical-complete
+    #   assignment protocol:     obsfield:categorical-random/v1
+    #   semantic-graph parent:   dagflow/v1  (the only non-draft substrate in the
+    #                            catalogue; already document_status: specified)
+    # The explicit graph-node-to-observation binding protocol (routebind.md §6.5) and
+    # concrete corpus profiles/distributions are corpus-profile choices that
+    # routebind.md §15 itself leaves open; requirement declared here, concrete local
+    # artifact not selected.
+
+[resources]
+    # resource requirements declared here (framework CONFIG-001)

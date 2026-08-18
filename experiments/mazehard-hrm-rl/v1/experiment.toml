@@ -1,0 +1,135 @@
+# MazeHard–HRM-rl v1 — canonical concrete declaration
+#
+# This declaration instantiates the EHP-SN `ExperimentDefinition` specification
+# (schema "ehp-sn/experiment/v1"). It selects and configures reusable components;
+# it does not redefine any of their semantics. Scientific rationale and motivation
+# live in README.md; unresolved design reasoning (incl. the spec-pending controller
+# and RL objective) lives in design/.
+
+schema = "ehp-sn/experiment/v1"
+
+ref = "experiment:mazehard-hrm-rl/v1"
+
+task  = "task:mazehard/v1"
+model = "model:hrm-rl/v1"
+
+# Compatibility declaration (compatibility.md "Support levels"):
+#   task: task:mazehard/v1
+#   model: model:hrm-rl/v1
+#   support: supported
+#   compatibility_maturity: declared
+# (maturity advances to implemented/validated/reference as evidence accrues.)
+
+[binding.input]
+    adapter = "adapter:raster-sequence/v1"
+    # sequence_capacity selected = S = P = 900 for the canonical reference-reproduction
+    # profile (mazehard.md §9.2), so RIN-CMP-001 (P <= S) holds with zero padding.
+    #   position_to_slot: p -> p
+    #   category_mapping: injective MazeHard public per-position category domain
+    #                     (traversable/blocked, start, goal; mazehard.md §4.1) -> HRM-rl
+    #                     model-owned categorical input vocabulary; exact IDs are an
+    #                     HRM-rl implementation/vocabulary choice (RIN-MAP-002).
+    #   sequence_mask: none for the reference profile (padding_count = 0); a profile
+    #                  with P < S would require one (raster-sequence-v1.md §3).
+    #   reset: emitted at problem start so independent MazeHard problems do not share
+    #          problem-scoped reasoning state (hrm-rl.md §3/§4, "starts a new problem").
+
+[binding.output]
+    adapter = "adapter:raster-prediction/v1"
+    # source role: the binding-owned decoder over HRM-rl's model-native `schema_slots`
+    # (hrm-rl.md §3/§8: task-specific decoding from HRM-rl native representations is
+    # binding-owned and decoded from supported native representations). This experiment's
+    # route decoder reads `schema_slots`, not `theta_summary`, `q_values`, or
+    # `state_value`; the latter two feed the controller, not route prediction
+    # (hrm-rl.md §3/§6; see design/controller-and-rl.md for the candidate rationale).
+    #   decoder reads: schema_slots (per-slot native representation), not theta_summary
+    #   schema-slot count: set to S (= sequence_capacity, §binding.input), one schema
+    #                  slot per input slot (model-owned parameter fixed by this binding)
+    #   decoder projects each schema slot to a categorical distribution over MazeHard's
+    #                  target vocabulary {wall, free, start, goal, path} (mazehard.md §8.3)
+    #   slot_preservation: declared guarantee that output slot s corresponds to the same
+    #                  task position as input slot s (satisfies raster-prediction-v1.md
+    #                  ROUT-IF-002; equal cardinality alone is not sufficient, ROUT-CMP-001)
+    #   position_to_slot / slot_to_position: p -> p (reused unchanged from binding.input)
+    #   category_mapping: identity / injective decoder label indices -> MazeHard 5-class
+    #   score-to-label: argmax over the 5-class distribution at each position (target y*
+    #                  is a single mutually-exclusive categorical label; mazehard.md §8.3,
+    #                  supported condition for raster-prediction-v1.md "Scores to labels")
+    #
+    # NOTE: the decoder is binding-owned (hrm-rl.md §8) and assembled by this binding.
+    # Whether `slot_preservation` should additionally be declared as a general model-native
+    # output-role property in hrm-rl.md, or is purely this binding's decoder guarantee, is
+    # an open review point; see design/controller-and-rl.md. This experiment declares it as
+    # its binding decoder contract.
+    #
+    # Guardrail (raster-sequence-v1.md §7 / raster-prediction-v1.md §7, ADAPT-002): no part of
+    # this binding consumes optimal_cost / reference_path / reference_labels as model input,
+    # and no route repair, connectivity correction, or threshold tuning is performed here;
+    # scoring against y* happens entirely in evaluation.
+
+[controller]
+    # SELECTION ONLY. This experiment selects the reusable deliberation controller that
+    # governs HRM-rl's halt/continue (hrm-rl.md §8: policy/action selection, execution of
+    # `halt` and `continue`, interaction with the task runtime, resumable-state lineage).
+    # The controller consumes the model's q_values/state_value, not task oracle fields.
+    #
+    # The deliberation controller is a REQUIRED REUSABLE research building block whose
+    # specification does not yet exist (hrm-rl.md §8 lists it as a neighboring document;
+    # docs/docs/research/index.md reserves controllers/ "as written"). Per ARCH-014 this
+    # experiment does NOT invent its canonical contract; it records the requirement and
+    # selects by reference. Its contract and any configuration are spec-pending; see
+    # design/controller-and-rl.md. The framework shape (controller orthogonal to Binding)
+    # is an open framework-review point (COMPARISON.md; design/matrix.md).
+
+[objective]
+    # HYBRID objective composition (this experiment's central scientific addition).
+    #
+    # 1) Route outcome (supervised): cross-entropy over the 5-class target vocabulary at
+    #    every supervised output position (mazehard.md §13.1 exact-reference target),
+    #    trained against reference_labels / reference_path (mazehard.md §9.1). Padding/
+    #    ignore positions: none for the reference profile.
+    # 2) Deliberation control (RL): the selected reusable RL objective owns reward
+    #    interpretation, discounting, TD targets, Q/value losses, warm-up, and optimizer
+    #    policy (hrm-rl.md §8), interpreted under the resolved deliberation-control return
+    #    specification (hrm-rl.md §1). This experiment composes it by reference only.
+    #
+    # The RL objective is a REQUIRED REUSABLE research building block whose specification
+    # does not yet exist (hrm-rl.md §8 lists it as a neighboring document; docs/docs/
+    # research/index.md reserves objectives/ "as written"). Per ARCH-014 this experiment
+    # does NOT invent its canonical contract; see design/controller-and-rl.md.
+    #
+    # Numeric defaults (route-loss vs RL-return composition weighting, discounting, TD
+    # algorithm, optimizer, learning rate, batch size, training duration) are not fixed
+    # anywhere in the authority chain for this pairing and are NOT fixed here; they are
+    # experiment-level scientific defaults still to be decided once an implementation
+    # exists to validate them against (hrm-rl.md §5; mazehard.md §2.2).
+
+[metrics]
+    # Named evaluation regimes/metrics are taken directly from mazehard.md §13 and are NOT
+    # redefined here (BIND-001); the only addition is the decoded representation that feeds
+    # them: the binding.output product (per-position labels in {wall, free, start, goal,
+    # path}, in canonical task-position order), evaluated against the corpus's stored
+    # reference_labels / reference_path / optimal_cost (mazehard.md §9.1).
+    exact_accuracy         = "task:mazehard/v1#exact-solution-accuracy"
+    token_accuracy         = "task:mazehard/v1#token-accuracy"
+    any_valid_optimal_rate = "task:mazehard/v1#any-valid-optimal-path-rate"
+    #
+    # Composition-level diagnostics (NOT task-level metrics redefined from mazehard.md):
+    # the learned deliberation policy is additionally observed via the distribution of
+    # reasoning steps (halt step) and the value estimates the controller attains, as
+    # diagnostics distinct from route accuracy (hrm-rl.md §6 lists these as controller/
+    # training observables, not model observables; spec-pending with the controller).
+
+[corpus]
+    requirement = "task:mazehard/v1"
+    # One committed task:mazehard/v1 corpus built over one maze-nd/v1 source-topology release,
+    # at the canonical reference-reproduction profile (30 x 30, P = 900; mazehard.md §9.2).
+    # The exact corpus reference resolves at request time through the framework's declared
+    # precedence; the concrete local artifact is not selected here.
+    topology_parent = "substrate:maze-nd/v1#source-topology"
+    # NOTE: the maze-nd source revision/fingerprint, connectivity policy, and selection-or-
+    # deduplication order are maze-nd/v1's own unresolved issues (mazehard.md §15) and are
+    # not invented here.
+
+[resources]
+    # resource requirements declared here (framework CONFIG-001)

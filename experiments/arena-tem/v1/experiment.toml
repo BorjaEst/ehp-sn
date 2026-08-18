@@ -1,0 +1,52 @@
+# Arena–TEM v1 — canonical concrete declaration
+#
+# This declaration instantiates the EHP-SN `ExperimentDefinition` specification
+# (schema "ehp-sn/experiment/v1"). It selects and configures reusable components;
+# it does not redefine any of their semantics. Scientific rationale and motivation
+# live in README.md; unresolved design reasoning lives in design/.
+
+schema = "ehp-sn/experiment/v1"
+
+ref = "experiment:arena-tem/v1"
+
+task  = "task:arena/v1"
+model = "model:tem/v1"
+
+[binding.input]
+    adapter = "adapter:relational-sequence/v1"
+    # task_step_to_model_step: t -> t (Arena temporal-canonicalization, arena.md §7.4)
+    # observation_mapping: injective Arena public observation vocabulary -> TEM sensory_id
+    # relation_mapping: injective Arena grid4 (+ optional STAY) -> TEM relation_id
+    # reset: emitted at task step 0 (satisfies SIN-CMP-002); carries Arena episode_start
+    # sequence_mask: none when fixed episode length T
+
+[binding.output]
+    adapter = "adapter:observation-prediction/v1"
+    # per pathway, independently:
+    #   source role: the selected declared sensory-prediction output (see note below)
+    #   task_step_to_model_step / model_step_to_task_step: t -> t
+    #   category_mapping: identity / injective TEM sensory vocabulary -> Arena observation vocab
+    #   score-to-label: argmax (target y_t* = o_t is a single categorical label)
+    #
+    # NOTE: the sensory-prediction output roles used here (posterior, sensory-recall,
+    # structural-prior/path-integration) must be declared by TEM (see docs/docs/research/models/tem.md);
+    # this experiment selects roles; it does not define how TEM computes them.
+
+[objective]
+    # supervised cross-entropy between each selected pathway's predicted observation
+    # distribution and y_t* = o_t at every valid replay step.
+
+[metrics]
+    A_obs_rev         = "task:arena/v1#revisit-conditioned-observation-accuracy"
+    A_obs_rev_overall = "task:arena/v1#overall-first-visit-accuracy"
+    # per-pathway specializations A_post, A_rec_rev, A_PI_rev reuse A_obs^rev definition
+    # over the selected posterior / sensory-recall / structural-prior roles.
+
+[corpus]
+    requirement              = "task:arena/v1"
+    topology_parent          = "substrate:dungeongen/v1#general"
+    observation_field_parent = "substrate:obsfield/v1#categorical-complete"
+    assignment_protocol      = "obsfield:categorical-random/v1"
+
+[resources]
+    # resource requirements declared here (framework CONFIG-001)
