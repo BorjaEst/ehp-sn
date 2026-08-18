@@ -30,18 +30,28 @@ interfaces and READMEs
 
 Implementation must not silently become a competing semantic authority (`docs/invariants.md` ARCH-002).
 
-## Package ownership
+## Semantic ownership
 
 ```text
+ehp_sn
+    reusable framework contracts and services
+
+ehp_research
+    reusable scientific definitions
+
+experiments/
+    concrete scientific compositions and Bindings
+```
+
+Dependency direction:
+
+```text
+experiments → ehp_research
+experiments → ehp_sn
 ehp_research → ehp_sn
 ```
 
-`ehp_sn` owns reusable framework contracts and services.
-
-`ehp_research` owns reusable scientific definitions (substrates, tasks, models, objectives, controllers, metrics, analyses) and research-owned shared domain contracts.
-Concrete repository-level experiments and Bindings belong to `experiments/` (ARCH-005/006).
-
-The dependency direction is normative and enforced by `docs/invariants.md` ARCH-001.
+The dependency direction is normative; ARCH-001 enforces `ehp_research → ehp_sn`, and `experiments/` may depend on both (ARCH-005/006).
 
 ## Ownership versus orchestration
 
@@ -80,7 +90,6 @@ A specification's location determines its semantic owner.
 | Research task semantics                                  | `docs/docs/research/tasks/`               | `packages/ehp-research/src/` |
 | Research model semantics                                 | `docs/docs/research/models/`              | `packages/ehp-research/src/` |
 | Concrete experiment declaration                          | `experiments/<name>/vN/experiment.toml`   | `experiments/<name>/vN/`     |
-| Experiment narrative and rationale                       | `experiments/<name>/vN/README.md`         | `experiments/<name>/vN/`     |
 
 Generic `Task` and `Model` _contracts_ are framework-owned; their concrete scientific _definitions_ are research-owned.
 The distinction is the one drawn in "Ownership versus orchestration" above.
@@ -105,7 +114,7 @@ Binding abstraction
 
 Concrete Binding
     declaration → experiments/<experiment>/vN/experiment.toml
-    concrete composition → experiments/<experiment>/vN/
+    embedded in the declaration, not independently registered or discovered (ARCH-006)
 
 ExperimentDefinition abstraction
     normative semantics → docs/docs/framework/ (components/experiment.md)
@@ -120,7 +129,8 @@ A concrete experiment's composition is declared in `experiments/<experiment>/vN/
 The declaration is not a second semantic specification (`ARCH-002`); a concept too substantial to express as declaration belongs in the owning task, model, or adapter specification.
 Any experimental narrative (motivation, rationale, reproducibility) is carried by an optional descriptive `README.md`; temporary design reasoning lives in informal `design/` notes.
 
-The concrete Binding is embedded in that declaration and is not independently registered or discovered (`ARCH-006`).
+A Binding is one task, one model, one configured `InputAdapter`, and one configured `OutputAdapter`, defined in `components/binding.md`.
+The concrete Binding is embedded in the experiment declaration and is not independently registered or discovered (`ARCH-006`).
 
 There is no `ehp_research.experiments` and no `ehp_research.bindings`.
 Concrete experiments and concrete task-model Bindings belong to repository-level `experiments/`.
@@ -139,10 +149,6 @@ Some paths are recorded here for the closure rule below without being semantic-o
   - `docs/docs/getting-started/`
   - `docs/docs/development/`
 - **Agent procedures and path scoping** (procedural) — `.github/instructions/`, `.github/copilot-instructions.md`.
-
-`Binding` is not an independently specified contract: it is the resolved, validated connection of one task and one model, formed by one configured `InputAdapter` and one configured `OutputAdapter`.
-`InputAdapter` and `OutputAdapter` are generic framework contracts, specified under `docs/docs/framework/` (`docs/docs/framework/adapters/index.md`).
-A concrete resolved Binding is assembled as part of a concrete experiment composition; its scientific semantics and adapter configuration are experiment-owned under `experiments/<experiment>/vN/`.
 
 ### Closure rule
 
