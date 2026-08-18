@@ -201,7 +201,7 @@ The following symbols are established interface targets:
 | `TrainingProtocol`   | Established target                                 |
 | `SeedConfiguration`  | Established target                                 |
 | `ExperimentRef`      | Established target                                 |
-| `resolve_experiment` | Documented target (contract not yet specified)     |
+| `resolve_experiment` | Documented target                                  |
 
 Planning, validation, and artifact-loading helper names remain provisional unless marked otherwise in their owning pages.
 

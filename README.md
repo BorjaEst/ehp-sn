@@ -298,7 +298,7 @@ Start with:
 - [`docs/docs/index.md`](docs/docs/index.md) — published documentation entry point;
 - [`docs/authority.md`](docs/authority.md) — semantic ownership and normative authority;
 - [`docs/invariants.md`](docs/invariants.md) — repository-wide invariants and their checks;
-- [`docs/decisions.md`](docs/decisions.md) — open architectural decisions;
+- [`docs/decisions.md`](docs/decisions.md) — open design register (unresolved questions);
 - [`docs/README.md`](docs/README.md) — documentation contributor guide;
 - [`packages/ehp-sn/README.md`](packages/ehp-sn/README.md) — framework orientation;
 - [`packages/ehp-research/README.md`](packages/ehp-research/README.md) — research-package orientation.

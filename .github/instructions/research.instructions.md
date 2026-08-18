@@ -32,5 +32,5 @@ Concrete workspace experiments under `experiments/` are discovered through works
 ## Authority
 
 Reusable scientific semantics live in the corresponding `docs/docs/research/` specifications.
-Concrete experiment composition belongs to repository-level `experiments/`, whose authority is `experiments/<experiment>/vN/plan.md`.
+Concrete experiment composition belongs to repository-level `experiments/`, declared canonically in `experiments/<experiment>/vN/experiment.toml` over those reusable specifications.
 This file is procedural and never defines semantics.

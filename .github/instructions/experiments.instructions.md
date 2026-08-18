@@ -7,18 +7,19 @@ applyTo: "experiments/**"
 
 ## Ownership
 
-`experiments/<experiment>/vN/` owns concrete scientific composition:
+`experiments/<experiment>/vN/` owns the concrete scientific composition as a **declaration** (`experiment.toml`) over reusable component specifications:
 
-- concrete Binding semantics for the selected task–model pair;
-- concrete `ExperimentDefinition`;
+- concrete Binding selection/configuration for the selected task–model pair;
+- the concrete `ExperimentDefinition` it instantiates;
 - adapter selection and configuration;
 - protocol composition (training, evaluation, analysis);
 - objective/controller/metric selection;
 - traces and resource requirements.
 
-`plan.md` is the normative human-readable scientific authority for the experiment (`authority: normative`).
-It references reusable component specifications but does not redefine them.
-A `README.md` in the same directory is explanatory only.
+`experiments/<name>/vN/experiment.toml` is the canonical concrete declaration.
+It references reusable component specifications but does not redefine them; it adds no semantics of its own.
+An optional `README.md` in the same directory is explanatory only (motivation, rationale, reproducibility).
+Informal, disposable design reasoning lives in a `design/` subdirectory while designing and is not a permanent authority.
 
 ## Do not
 

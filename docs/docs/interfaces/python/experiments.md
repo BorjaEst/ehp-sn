@@ -22,12 +22,13 @@ ref = ExperimentRef.parse("experiment:arena-tem/v1")
 experiment = resolve_experiment(ref)
 ```
 
-The experiment itself is owned by the repository-level `experiments/<experiment>/vN/` specification and its concrete composition.
+The experiment itself is owned by the repository-level `experiments/<experiment>/vN/` declaration and its concrete composition.
 The generic Python interface takes a canonical reference and resolves it; it does not import a concrete package-owned factory such as `ehp_research.experiments.arena_tem`.
 There is no `ehp_research.experiments` or `ehp_research.bindings` (`ARCH-005`/`ARCH-006`).
 
 > `resolve_experiment()` is a documented target.
-> The experiment discovery and resolution contract is not yet specified; until it exists this interface must not be implemented against an invented storage representation (`ARCH-014`).
+> The discovery and resolution contract is specified in [the framework experiment specification](../../framework/components/experiment.md): `experiment:<name>/vN` resolves to the workspace declaration `experiments/<name>/vN/experiment.toml`, a canonical TOML declaration instantiating the framework `ExperimentDefinition` specification.
+> The per-endpoint field catalogue and the resolve-side loader internals are not yet fully specified (`ARCH-014`); this interface must not be implemented against an unfinished endpoint contract.
 
 ## Identity model
 

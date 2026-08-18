@@ -49,12 +49,15 @@ Many concepts exist at two levels: a generic framework abstraction and a concret
 - The **`Binding` abstraction** — one task, one model, one configured `InputAdapter`, one configured `OutputAdapter` — is a framework contract.
   Its implementation abstraction lives in `ehp_sn`.
 - A **concrete Binding** — the experiment-specific choice and configuration of those adapters for a particular task–model pair — is scientific composition.
-  Its authority is `experiments/<experiment>/vN/plan.md`, and its composition lives under `experiments/<experiment>/vN/`.
+  It is declared in `experiments/<experiment>/vN/experiment.toml`, and its composition lives under `experiments/<experiment>/vN/`.
 - The **`ExperimentDefinition` abstraction** is a framework contract (what a resolved experiment composition contains).
-  A **concrete `ExperimentDefinition`** is an instance under `experiments/<experiment>/vN/`.
+  A **concrete `ExperimentDefinition`** is an instance declared in `experiments/<experiment>/vN/experiment.toml`.
 
-The point of the split: the framework defines what these mechanics mean, `ehp_research` provides the reusable scientific blocks, and the experiment selects and connects concrete blocks.
+The point of the split: the framework defines what these mechanics mean, `ehp_research` provides the reusable scientific blocks, and the experiment declares which concrete blocks it selects and connects.
 No layer redefines the other's semantics.
+
+`experiments/<name>/vN/experiment.toml` is a **concrete declaration** instantiating the framework specification, not another specification of its own.
+An experiment's scientific narrative (if any) is carried by an optional descriptive `README.md`, and temporary design reasoning lives in informal `design/` notes.
 
 ## 3. Adapter versus Binding
 
@@ -87,8 +90,8 @@ Arena prediction representation
 ```
 
 The generic adapters belong to `ehp_sn`.
-The experience-specific choice and configuration of those adapters — how Arena observations map to TEM `sensory_id` values, how Arena actions map to `relation_id` values, which TEM output role is interpreted as an Arena prediction — constitutes the **Arena ↔ TEM Binding** and belongs to `experiments/arena-tem/v1/`.
-Such binding semantics may be scientific and exist only for this selected composition; that is legitimate experiment-local material (`experiments/arena-tem/v1/plan.md`), not framework or `ehp_research` content.
+The experience-specific choice and configuration of those adapters — how Arena observations map to TEM `sensory_id` values, how Arena actions map to `relation_id` values, which TEM output role is interpreted as an Arena prediction — is declared in `experiments/arena-tem/v1/experiment.toml`.
+Such binding semantics are scientific and may exist only for this selected composition; that is legitimate experiment-local declaration content (`experiments/arena-tem/v1/`), not framework or `ehp_research` content.
 
 ## 5. Placement algorithm
 

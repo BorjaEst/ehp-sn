@@ -145,7 +145,7 @@ Exact model, adapter, binding, compatibility, and maturity information belongs i
 ## Experiments
 
 Concrete scientific experiments — composed of a task, a model, a binding, protocols, objectives, metrics, traces, and resource requirements — belong to repository-level `experiments/`, not to `ehp_research` (`ARCH-005`).
-Each experiment's `plan.md` is the normative scientific authority for that composition.
+Each experiment's composition is declared canonically in `experiments/<name>/vN/experiment.toml`, instantiating the framework `ExperimentDefinition` specification.
 `ehp_research` provides the reusable building blocks the experiment selects and connects; it does not package concrete experiment definitions.
 
 ## Registration and discovery

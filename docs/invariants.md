@@ -8,7 +8,8 @@ document_status: specified
 
 This document answers one question: **what must always hold, and how is it checked?**
 These invariants define cross-cutting conditions that architectural, implementation, configuration, interface, and documentation changes must preserve.
-Ownership and specification locations are in `docs/authority.md`. Undecided questions are in `docs/decisions.md`.
+Ownership and specification locations are in `docs/authority.md`.
+Undecided questions are in `docs/decisions.md`.
 Every invariant has an entry in "Enforcement" below stating its observable check, or recording that it has none yet.
 
 ## Architecture
@@ -68,11 +69,13 @@ The experiment-specific choice and configuration of generic adapters (the adapte
 
 ### ARCH-009 — Tasks do not depend on concrete models
 
-A task must remain independent of concrete models. It must not contain model-native tensor/slot layouts or model-specific decoders.
+A task must remain independent of concrete models.
+It must not contain model-native tensor/slot layouts or model-specific decoders.
 
 ### ARCH-010 — Models do not depend on concrete tasks
 
-A model must remain independent of concrete tasks. Task-specific input preparation and output interpretation belong to experiment-local binding composition.
+A model must remain independent of concrete tasks.
+Task-specific input preparation and output interpretation belong to experiment-local binding composition.
 
 ### ARCH-011 — Normalized logical contracts belong to `ehp_sn`
 
@@ -92,17 +95,31 @@ A resolved scientific composition (task, model, binding) must not be reconstruct
 
 Operation configuration configures one operation over an already-defined experiment; it must not redefine task, model, or binding.
 
-### ARCH-014 — Missing framework contracts are not invented by implementations
+### ARCH-014 — Missing framework contracts are not established implicitly by production implementations
 
-Implementation must not invent serialization, discovery, catalogue, or adapter-composition formats when the framework-owned contract is missing.
+A missing framework contract must not be established implicitly by a production implementation:
+production code must not invent serialization, discovery, catalogue, or adapter-composition formats when the framework-owned contract is missing.
 
 The missing contract is reported to its owner (`ehp_sn`); it is not filled by a de-facto private format.
+
+Provisional design exemplars are not production implementations.
+An explicitly marked, non-discoverable design exemplar — concrete authoring/composition material kept outside canonical discovery and execution paths, never imported by production code, and never registered with a framework catalogue — may explore candidate APIs, representations, and compositions in order to derive the missing contract.
+Such an exemplar is non-authoritative and must not become a parallel semantic authority (`ARCH-002`).
 
 ### ARCH-015 — Existing historical placement is not architectural precedent
 
 Existing file locations and documentation that conflict with these invariants and `docs/authority.md` are migration targets, not precedent.
 
 Where the target architecture is explicitly established, conflicting normative material is realigned in place and obsolete competing semantics are removed rather than preserved.
+
+### ARCH-016 — API-first contract discovery
+
+Public framework abstractions that govern experiments, Bindings, adapters, or configuration should be derived from, and validated against, representative concrete workflows before stabilization.
+
+Before stabilizing an abstraction, the intended design should be exercised against multiple concrete experiment exemplars sufficiently different to expose required variation.
+A `draft` framework contract is the authoritative current proposal but is a testable hypothesis, not a constraint that exemplars must conform to; the exemplars are allowed to reveal that the draft is insufficient and to motivate revising or replacing it.
+
+Design-exemplar work must not, by itself, establish a canonical discovery serialization, a resolver, or a stability promise for any candidate shape (`ARCH-014`).
 
 ## Data and substrates
 
@@ -192,13 +209,10 @@ An `OutputAdapter` must not perform oracle repair or task-level scoring.
 
 ### ADAPT-003 — Single parameter ownership
 
-A semantic parameter has one authoritative owner: the task, the model, or an adapter's own
-authored configuration. Another component may constrain or derive a value from that owner but
-must not independently author the same fact.
+A semantic parameter has one authoritative owner: the task, the model, or an adapter's own authored configuration.
+Another component may constrain or derive a value from that owner but must not independently author the same fact.
 
-An `AdapterDefinition` must not declare authored configuration for a value already determined by
-the resolved task-data, task-prediction, model-input, or model-output interface; such a value
-must be declared derived and computed from those interfaces during resolution.
+An `AdapterDefinition` must not declare authored configuration for a value already determined by the resolved task-data, task-prediction, model-input, or model-output interface; such a value must be declared derived and computed from those interfaces during resolution.
 
 ### BIND-001 — Binding boundary
 
@@ -238,7 +252,8 @@ For every operation exposed through both the CLI and Python interfaces, equivale
 - derived values;
 - identity-relevant plan fields.
 
-The CLI and Python are not required to expose identical operation surfaces or identical convenience syntax. An interface-specific convenience (such as a CLI-only flag) is permitted only when it resolves into the same framework-owned canonical request/configuration fields the other interface would use; it must not introduce semantics that exist on only one interface.
+The CLI and Python are not required to expose identical operation surfaces or identical convenience syntax.
+An interface-specific convenience (such as a CLI-only flag) is permitted only when it resolves into the same framework-owned canonical request/configuration fields the other interface would use; it must not introduce semantics that exist on only one interface.
 
 ## CLI
 
@@ -308,12 +323,12 @@ They must not be treated as interchangeable authorities.
 
 Every normative specification carries the frontmatter contract defined in `docs/authority.md` § "Specification frontmatter".
 
-Each maturity/stability dimension listed there has exactly one canonical vocabulary and one canonical home. A dimension must not reuse or conflate another dimension's field name or values, and a new dimension must not be introduced outside that section.
+Each maturity/stability dimension listed there has exactly one canonical vocabulary and one canonical home.
+A dimension must not reuse or conflate another dimension's field name or values, and a new dimension must not be introduced outside that section.
 
 ### DOC-007 — Agent configuration is not semantic authority
 
-Files under `.github/instructions/` (and `.github/copilot-instructions.md`) define agent
-instructions: how an agent works with the authorities, and path scoping.
+Files under `.github/instructions/` (and `.github/copilot-instructions.md`) define agent instructions: how an agent works with the authorities, and path scoping.
 
 They must not define EHP-SN domain semantics, including ownership enumerations, excluded-semantics enumerations, contracts, or scientific vocabulary.
 
@@ -325,7 +340,8 @@ A relative link between published documentation files must resolve to an existin
 
 Scope is the MkDocs source tree `docs/docs/`, where a broken link ships to readers as a dead page.
 
-Agent instructions under `.github/instructions/` are out of scope. A reference there is followed by an agent, not rendered for a reader, so it fails at the point of use rather than silently.
+Agent instructions under `.github/instructions/` are out of scope.
+A reference there is followed by an agent, not rendered for a reader, so it fails at the point of use rather than silently.
 
 ### DOC-009 — Tables serve reader comparison
 
@@ -333,13 +349,17 @@ A table is used only for data that is genuinely multi-dimensional and comparable
 
 - Data with only one substantive attribute per item uses a list, not a single-column table.
 - A table introduces itself: a sentence immediately before it states what it contains and, where not obvious from the heading, why it is a table.
-- A table too wide or multi-concerned to stay scannable is split by concern (for example: shape/requiredness in one table, visibility/role/meaning in another) rather than left as one wide table. Each resulting table keeps its own specific introductory sentence naming its concern — a sentence shared across the whole split does not satisfy the introduction requirement for its second and later tables.
+- A table too wide or multi-concerned to stay scannable is split by concern (for example: shape/requiredness in one table, visibility/role/meaning in another) rather than left as one wide table.
+  Each resulting table keeps its own specific introductory sentence naming its concern — a sentence shared across the whole split does not satisfy the introduction requirement for its second and later tables.
 - Rows follow a stated or evident logical order (declaration order, dependency order, severity) rather than an arbitrary one.
 - Header cells are short, sentence-case, and free of trailing punctuation.
-- Cell content stays short — a value, a term, a short phrase. Elaboration that does not fit belongs in prose after the table, not packed into a cell.
-- A cell holds at most 100 characters. Content that does not fit at that length is compressed to its essential claim, with detail deferred to the surrounding prose or the definition the row points to — not wrapped or truncated with an ellipsis.
+- Cell content stays short — a value, a term, a short phrase.
+  Elaboration that does not fit belongs in prose after the table, not packed into a cell.
+- A cell holds at most 100 characters.
+  Content that does not fit at that length is compressed to its essential claim, with detail deferred to the surrounding prose or the definition the row points to — not wrapped or truncated with an ellipsis.
 
-This governs table content and structure. It does not restate Markdown table syntax, which `docs/mkdocs.yml` § `markdown_extensions` and CommonMark/GFM already define.
+This governs table content and structure.
+It does not restate Markdown table syntax, which `docs/mkdocs.yml` § `markdown_extensions` and CommonMark/GFM already define.
 
 ## Verification expectation
 
@@ -399,8 +419,9 @@ No check exists yet for these invariants; each is backlog for `tests/architectur
 | ARCH-011   | logical-contract specs (raster-topology/v1, etc.) live under framework contracts, not research  |
 | ARCH-012   | concrete substrate producers live under `ehp_research`; consume framework contracts only        |
 | ARCH-013   | `run.py` and operation configs reconstruct no task/model/binding composition                    |
-| ARCH-014   | no private serialization/discovery format assumes a missing framework contract                  |
+| ARCH-014   | no production serialization/discovery format assumes a missing framework contract               |
 | ARCH-015   | no doc/README asserts historical placement as authoritative                                     |
+| ARCH-016   | design exemplars are non-discoverable, non-imported, and explicitly marked non-authoritative    |
 | DATA-004   | committed corpus loads and validates with parent artifacts absent                               |
 | DATA-005   | shared research contracts remain under `packages/ehp-research/src/`                             |
 | DATA-006   | a committed release coordinate never resolves to changed content                                |
@@ -420,7 +441,8 @@ No check exists yet for these invariants; each is backlog for `tests/architectur
 
 An entry's state records the check that exists today, not the check that is intended, and is updated in the same change that adds or removes one.
 
-An invariant may be enforced over part of the repository before it can be enforced everywhere. Where coverage is partial, the enforcement row states the covered scope.
+An invariant may be enforced over part of the repository before it can be enforced everywhere.
+Where coverage is partial, the enforcement row states the covered scope.
 
 The same applies within an invariant.
 The check description states what the existing check actually verifies, not what the invariant requires.

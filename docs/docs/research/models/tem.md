@@ -52,9 +52,11 @@ Core variables are:
 | `M_t`  | environment-specific associative-memory state              |
 | `a_t`  | relation/transition input associated with the current step |
 
-`g_t` is a latent structural representation. It is not a decoded physical position supplied by a task.
+`g_t` is a latent structural representation.
+It is not a decoded physical position supplied by a task.
 
-The model follows the TEM architecture introduced by Whittington et al. (2020). Any EHP-SN deviation that changes the model computation must be documented at the affected rule rather than in a separate compatibility/versioning layer.
+The model follows the TEM architecture introduced by Whittington et al. (2020).
+Any EHP-SN deviation that changes the model computation must be documented at the affected rule rather than in a separate compatibility/versioning layer.
 
 ## 2. Architecture
 
@@ -110,7 +112,8 @@ The conjunction is model-owned because it defines how structural and sensory inf
 
 TEM maintains environment-specific associative memory over its internal representations.
 
-The memory supports retrieval of previously associated information from the current model state. Its representation and update rule are part of the TEM implementation and must preserve the adopted TEM semantics.
+The memory supports retrieval of previously associated information from the current model state.
+Its representation and update rule are part of the TEM implementation and must preserve the adopted TEM semantics.
 
 ## 3. Native interface
 
@@ -131,6 +134,10 @@ At the first valid step after reset, no ordinary relation from a preceding task 
 
 The stable task-facing model output is the declared sensory-prediction role.
 
+TEM may declare one or more named sensory-prediction roles, each with its own temporal meaning and prediction scope.
+A binding selects among the declared roles and maps the selected role to the task-prediction interface; a binding must not construct new sensory-prediction roles or define how TEM computes a role (`ADAPT-002`; see §8).
+The semantics of each declared role — what it is conditioned on and when it is emitted — are model-owned and belong to this specification, not to the experiment.
+
 The following are model-native observables rather than task predictions:
 
 - `x_t`;
@@ -139,6 +146,18 @@ The following are model-native observables rather than task predictions:
 - associative-memory diagnostics.
 
 Every sensory-prediction role must state its temporal meaning explicitly, for example whether it predicts the current sensory identity or another declared step.
+
+## Candidate sensory-prediction roles
+
+The reference Arena–TEM evaluation anticipates sensory-prediction roles that differ in how much they rely on acquired memory versus the current sensory observation.
+The candidate set exercised by the Arena–TEM exemplar is:
+
+- a **structural-prior / path-integration**-style role emitted before the current sensory identity is encoded;
+- a **posterior**-style role emitted after the full conjunctive and memory/inference computation using the current sensory identity;
+- a **sensory-recall**-style role emitted from content retrieved from associative memory keyed by structural state.
+
+These are candidate names for model-owned roles.
+Their exact conditioning, timing, and vocabulary must be finalized as part of this model specification before they are relied on as stable TEM semantics; until then a binding or experiment must not treat the candidate split as established TEM authority (see experiment `design/` notes for the working interpretation).
 
 ## 4. State and computation
 
@@ -171,7 +190,8 @@ A model step follows the adopted TEM inference schedule:
 7. update environment-specific associative memory;
 8. retain recurrent state for the next valid step.
 
-The precise read/inference/write equations are implementation-level details only to the extent that alternative implementations preserve this adopted TEM computation. A binding must never own or reorder these operations.
+The precise read/inference/write equations are implementation-level details only to the extent that alternative implementations preserve this adopted TEM computation.
+A binding must never own or reorder these operations.
 
 ## 5. Model parameters
 
@@ -218,7 +238,8 @@ A conforming TEM implementation must satisfy:
 
 Bindings own transformation between task semantics and the TEM native interface.
 
-They may map task categorical identities to the model's declared categorical domains and preserve sequence/reset alignment. They must not implement TEM embeddings, structural-state updates, conjunctive computation, memory retrieval, or memory updates.
+They may map task categorical identities to the model's declared categorical domains and preserve sequence/reset alignment.
+They must not implement TEM embeddings, structural-state updates, conjunctive computation, memory retrieval, or memory updates.
 
 Experiments own training/evaluation composition, objective weighting, resource selection, and protocol choices.
 
@@ -230,4 +251,6 @@ Relevant neighboring documents include:
 
 ## References
 
-- Whittington, J. C. R. et al. (2020). _The Tolman–Eichenbaum Machine: Unifying Space and Relational Memory through Generalization in the Hippocampal Formation_. Cell 183, 1249–1263.e23.
+- Whittington, J. C. R. et al. (2020).
+  _The Tolman–Eichenbaum Machine: Unifying Space and Relational Memory through Generalization in the Hippocampal Formation_.
+  Cell 183, 1249–1263.e23.
