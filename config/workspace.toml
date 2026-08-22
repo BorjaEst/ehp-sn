@@ -1,0 +1,25 @@
+# EHP-SN workspace configuration (schema: ehp-sn/workspace/v1)
+#
+# Workspace-level deployment defaults and exact resource bindings.
+# See docs/docs/interfaces/configuration/model.md (Workspace) for the normative model.
+# These fields must NOT redefine scientific task, model, binding, protocol, metric, regime,
+# or analysis semantics (ARCH-002). Scientific composition lives in experiments/<name>/vN/.
+
+schema = "ehp-sn/workspace/v1"
+
+[artifact_store]
+root = "artifacts"
+
+[cache]
+root = ".cache/ehp-sn"
+
+[runtime]
+device = "auto"
+
+[tracking]
+backend = "local"
+
+# Exact resource bindings: requirement -> artifact.
+# A scientific definition declares a REQUIREMENT (CONFIG-001); the workspace binds that
+# requirement to one exact artifact here. Leave empty until concrete bound artifacts exist.
+[bindings]
