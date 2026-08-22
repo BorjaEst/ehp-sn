@@ -51,4 +51,3 @@ def _main(
 
 
 app.add_typer(data_app, name="data")
-
