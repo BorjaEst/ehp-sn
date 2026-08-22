@@ -29,6 +29,8 @@
         "gymnasium~=1.2.0",
         "torch~=2.12.1",
         "torchrl~=0.11.0",
+        "rich~=15.0.0",
+        "typer~=0.27.0",
     ]
 
 [project.urls]
@@ -40,7 +42,7 @@
     package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
-    where   = ["src"]
+    where = ["src"]
 
 [project.scripts]
     ehp-sn = "ehp_sn.cli:app"
