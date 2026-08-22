@@ -43,6 +43,13 @@ A committed `task:arena/v1` corpus over `dungeongen/v1` (variant `general`) with
 `obsfield/v1#categorical-complete` and assignment `categorical-random/v1` — held identical to
 `arena-tem/v1`.
 
+This is the shared scientific data-preparation control for the arena-tem / arena-tem-t model swap:
+`arena-tem-t/v1` deliberately selects the same Arena corpus as `arena-tem/v1` so the TEM/TEM-t
+comparison is not confounded by a corpus difference. The `[corpus]` block here records that the
+D1 / D2 / T1 preparation selection is identical to `experiments/arena-tem/v1/experiment.toml`, and
+refers to that block as the full preparation specification. The equality is a scientific control
+made visible in each experiment's own declaration, not a separate semantic owner.
+
 ## Status
 
 `experiment.toml` declares the composition. No construction or execution exists yet; component

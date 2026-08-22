@@ -34,6 +34,24 @@ sensory observation.
 A committed `task:arena/v1` corpus over `dungeongen/v1` (variant `general`) with
 `obsfield/v1#categorical-complete` and assignment `categorical-random/v1`.
 
+This is the **shared scientific data-preparation control** for the arena-tem / arena-tem-t model
+swap. `arena-tem-t/v1` selects the same Arena corpus definition intentionally, so the TEM/TEM-t
+comparison is not confounded by a corpus difference. The model swap is the _only_ scientific
+difference between the two.
+
+The upstream preparation DAG is:
+
+```text
+D1 dungeongen/v1#general   ─┐
+                            ├→ T1 task:arena/v1 corpus → [arena-tem, arena-tem-t]
+D2 obsfield/v1#categorical ─┘
+```
+
+The `[corpus]` block in `experiment.toml` records the exact selection-level build requirements each
+preparation target needs (D1 DungeonGen, D2 ObsField, T1 Arena corpus), referencing research-owned
+definitions by canonical reference and identifying the unresolved research/framework gaps that must
+be fixed before Phase 2. It does not redefine substrate, task, or framework semantics (`ARCH-002`).
+
 ## Status
 
 `experiment.toml` declares the composition. No construction or execution exists yet; component

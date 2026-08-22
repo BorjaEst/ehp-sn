@@ -56,6 +56,14 @@ semantics; neither is a specialization of the other. This document does not spea
 A committed `task:mazehard/v1` corpus over one `maze-nd/v1` source-topology release, at the
 canonical reference-reproduction profile (`30 × 30`, `P = 900`; `mazehard.md` § 9.2).
 
+This is the shared scientific data-preparation control for the mazehard-hrm / mazehard-hrm-rl
+control-semantics swap: `mazehard-hrm-rl/v1` deliberately selects the same MazeHard corpus as
+`mazehard-hrm/v1` so the HRM/HRM-rl comparison (supervised vs RL deliberation control) is not
+confounded by a corpus difference. The `[corpus]` block here records that the D3 / T2 preparation
+selection is identical to `experiments/mazehard-hrm/v1/experiment.toml`, and refers to that block
+as the full preparation specification. The equality is a scientific control made visible in each
+experiment's own declaration, not a separate semantic owner.
+
 ## Status
 
 `experiment.toml` declares the composition and the hybrid (supervised route + RL-control) objective.

@@ -20,13 +20,20 @@ A canonical reference has the form:
 
 Where:
 
-- `kind` identifies the component or resource category (`task`, `model`, `input-adapter`, `output-adapter`, `binding`, `experiment`, `artifact`, `requirement`, `analysis`);
+- `kind` identifies the component or resource category (`task`, `model`, `input-adapter`, `output-adapter`, `binding`, `experiment`, `substrate`, `artifact`, `requirement`, `analysis`);
 - `name` is a unique identifier within the kind namespace and may contain internal path separators (for example, a release coordinate such as `arena-corpus/default`);
-- `v<N>` is the specification version for component kinds (`task`, `model`, `input-adapter`, `output-adapter`, `binding`, `experiment`, `analysis`), or the release number for release-coordinate kinds (`artifact`, `requirement`) whose targets are substrates or task corpora.
+- `v<N>` is the specification version for component kinds (`task`, `model`, `input-adapter`, `output-adapter`, `binding`, `experiment`, `substrate`, `analysis`), or the release number for release-coordinate kinds (`artifact`, `requirement`) whose targets are substrates or task corpora.
 
 A `binding` reference denotes a resolved composition — one task, one model, and their configured
 `input-adapter`/`output-adapter` pair — rather than an independently specified component; see
 [Adapters](adapters/index.md).
+
+A `substrate` reference (`substrate:<name>/vN`) denotes a registered scientific substrate producer definition
+— the generic, producer-neutral capability that can emit a normalized contract (such as `raster-topology/v1` or `categorical-field/v1`).
+The `<name>` slot is the producer family.
+It is a component-like kind: `v<N>` is the producer-definition specification version.
+It names the _definition_, not a committed `substrate` artifact (a committed substrate is an `artifact:` release-coordinate reference).
+See [Data artifacts](data-artifacts.md) and the [`ehp-sn data`](../interfaces/cli/data.md) command.
 
 Examples:
 
@@ -37,6 +44,7 @@ input-adapter:RelationalSequenceAdapter
 output-adapter:ObservationPredictionAdapter
 binding:arena-tem/v1
 experiment:arena-tem/v1
+substrate:obsfield/v1
 artifact:arena-corpus/default/v1
 requirement:corpus/arena-training/v1
 analysis:memory-diagnostics/v1

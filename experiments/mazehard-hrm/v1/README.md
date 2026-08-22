@@ -42,6 +42,25 @@ neighboring binding; this document does not speak to it.
 A committed `task:mazehard/v1` corpus over one `maze-nd/v1` source-topology release, at the
 canonical reference-reproduction profile (`30 × 30`, `P = 900`; `mazehard.md` § 9.2).
 
+This is the **shared scientific data-preparation control** for the mazehard-hrm / mazehard-hrm-rl
+control-semantics swap. `mazehard-hrm-rl/v1` selects the same MazeHard corpus definition
+intentionally, so the HRM/HRM-rl comparison (supervised vs RL deliberation control) is not
+confounded by a corpus difference. The control-semantics swap is the _only_ scientific difference
+between the two.
+
+The upstream preparation DAG is:
+
+```text
+D3 maze-nd/v1#source-topology → T2 task:mazehard/v1 corpus → [mazehard-hrm, mazehard-hrm-rl]
+```
+
+The `[corpus]` block in `experiment.toml` records the exact selection-level build requirements each
+preparation target needs (D3 Maze-ND, T2 MazeHard corpus), referencing research-owned definitions by
+canonical reference and identifying the unresolved research/framework gaps (notably the Maze-ND
+authoritative source, connectivity and selection policies, and the MazeHard admission profile) that
+must be fixed before Phase 2. It does not redefine substrate, task, or framework semantics
+(`ARCH-002`).
+
 ## Status
 
 `experiment.toml` declares the composition. No construction or execution exists yet; component
