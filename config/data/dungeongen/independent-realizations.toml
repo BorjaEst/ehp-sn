@@ -1,0 +1,42 @@
+# DungeonGen `independent-realizations` — independent irregular raster topologies
+# from generation outcomes that may repeat (allow duplicate policy), a larger
+# population within the reference random-walk generator's normalized reachable band
+# (8x8..16x16).
+#
+# Reusable concrete realization of substrate:dungeongen/v1 (general
+# variant), selected by the generic `ehp-sn data` lifecycle:
+#
+#   ehp-sn data plan substrate:dungeongen/v1 --config config/data/dungeongen/independent-realizations.toml
+#
+# NOTE (provisional identity): the generator dependency and reference protocol are a
+# dungeongen/v1 open issue; the injected reference random-walk generator is used.
+
+[substrate]
+    variant = "general"
+
+[generator]
+    dependency = "injected:reference_random_walk_generator"
+    protocol   = "dungeongen/provisional/v1"
+    profile    = "connected-random-walk"
+
+[conversion]
+    policy = "dungeongen:conversion/raster/v1"
+
+[acceptance]
+    require_connected = true
+
+[generation]
+    attempt_budget = 100
+    seed           = 0
+    record_count   = 10000
+
+[topology]
+    duplicate_policy = "allow"
+
+[topology.size_policy]
+    minimum_height = 8
+    maximum_height = 16
+    minimum_width  = 8
+    maximum_width  = 16
+    minimum_states = 16
+    maximum_states = 256

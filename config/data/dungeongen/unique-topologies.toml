@@ -1,0 +1,41 @@
+# DungeonGen `unique-topologies` — structurally unique irregular raster
+# topologies (reject-exact duplicate policy), within the reference random-walk
+# generator's normalized reachable band (8x8..16x16).
+#
+# Reusable concrete realization of substrate:dungeongen/v1 (general
+# variant), selected by the generic `ehp-sn data` lifecycle:
+#
+#   ehp-sn data plan substrate:dungeongen/v1 --config config/data/dungeongen/unique-topologies.toml
+#
+# NOTE (provisional identity): the generator dependency and reference protocol are a
+# dungeongen/v1 open issue; the injected reference random-walk generator is used.
+
+[substrate]
+    variant = "general"
+
+[generator]
+    dependency = "injected:reference_random_walk_generator"
+    protocol   = "dungeongen/provisional/v1"
+    profile    = "connected-random-walk"
+
+[conversion]
+    policy = "dungeongen:conversion/raster/v1"
+
+[acceptance]
+    require_connected = true
+
+[generation]
+    attempt_budget = 200
+    seed           = 0
+    record_count   = 2000
+
+[topology]
+    duplicate_policy = "reject-exact"
+
+[topology.size_policy]
+    minimum_height = 8
+    maximum_height = 16
+    minimum_width  = 8
+    maximum_width  = 16
+    minimum_states = 16
+    maximum_states = 256

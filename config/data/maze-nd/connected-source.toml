@@ -1,0 +1,28 @@
+# Maze-ND `connected-source` — connected-only source population: disconnected
+# normalized source topologies are rejected with diagnostics (`reject` policy).
+#
+# Reusable concrete realization of substrate:maze-nd/v1 (source-topology
+# variant), selected by the generic `ehp-sn data` lifecycle:
+#
+#   ehp-sn data plan substrate:maze-nd/v1 --config config/data/maze-nd/connected-source.toml
+#
+# NOTE (provisional identity): the authoritative source reference/revision/fingerprint
+# are a maze-nd/v1 open issue and are left unresolved below.
+
+[substrate]
+    variant = "source-topology"
+
+[source]
+    reference              = "UNRESOLVED-EXTERNAL-SOURCE"
+    revision               = "UNRESOLVED-EXTERNAL-SOURCE"
+    fingerprint            = "UNRESOLVED-EXTERNAL-SOURCE"
+    schema                 = "maze-nd:extraction/raster/v1"
+    selection_policy       = "complete-source"
+    selection_before_dedup = false
+
+[normalization]
+    policy = "maze-nd:normalization/raster/v1"
+
+[topology]
+    connectivity_policy  = "reject"
+    deduplication_policy = "maze-nd:dedup/orientation-preserving-raster/v1"

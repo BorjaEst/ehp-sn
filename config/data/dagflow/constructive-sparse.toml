@@ -1,0 +1,34 @@
+# Dagflow `constructive-sparse` — small, constrained-branching graph regime
+#
+# Reusable concrete realization of substrate:dagflow/v1 (single-terminal variant),
+# selected by the generic `ehp-sn data` lifecycle:
+#
+#   ehp-sn data plan substrate:dagflow/v1 --config config/data/dagflow/constructive-sparse.toml
+#
+# Sparse relative to the other dagflow profiles: edges remain directed, unweighted,
+# unique, and loop-free (simple-digraph/v1). Same base seed as the other dagflow
+# profiles so that size/density comparisons hold unrelated dimensions fixed.
+#
+# NOTE (provisional identity): `constructive-forward/v1` is the protocol reference
+# documented by the dagflow/v1 spec as the initial recommended protocol family;
+# it is provisional until a dagflow builder is registered.
+
+[substrate]
+    variant = "single-terminal"
+
+[generation]
+    protocol = "constructive-forward/v1"
+    seed     = 1729
+
+[graph]
+    node_count                  = 16
+    additional_edge_probability = 0.10
+
+[splits.train]
+    count = 10000
+
+[splits.validation]
+    count = 1000
+
+[splits.test]
+    count = 1000
