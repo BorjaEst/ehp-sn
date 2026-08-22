@@ -70,6 +70,20 @@ Malformed references are rejected at parse time. Unknown references are rejected
 
 Resource references identify manifest-declared resources owned by an artifact, such as `checkpoint:runs/01JXYZ123/best` for a training-run checkpoint. Their namespace and version grammar are defined by the owning artifact kind; for checkpoints, see [Checkpoints](checkpoints.md).
 
+## Fragment references within declarations
+
+A declaration may reference a **named member** of a component by appending a `#` fragment to a component reference.
+Each fragment name and its meaning are owned by the referenced component's specification, not re-enumerated here.
+
+For example, an experiment's `[metrics]` table references task-owned metric definitions by task reference plus fragment, in the form:
+
+```text
+task:<task>/vN#<metric-id>
+```
+
+`<metric-id>` is a task-specification-defined metric identifier (`components/experiment.md` § Field catalogue, `[metrics]`).
+The fragment is declaration-local selection syntax; it does not introduce a new top-level reference kind, and it is resolved only in the context of a declaration that references the owning component.
+
 ## Logical vs physical identity
 
 A canonical reference is a logical identity. It is portable across processes and machines. Physical paths and storage locations are not logical identities and do not substitute for canonical references.

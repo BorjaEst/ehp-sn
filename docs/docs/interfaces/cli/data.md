@@ -24,7 +24,9 @@ data/interim/<family>/<variant>/v<N>/
 ehp-sn tasks
 ```
 
-`data` owns topology generation, environment-level observations, source normalization, intrinsic split assignment, manifests, provenance, checksums, and validation. It does not own task episodes, learning targets, model tokenization, training batches, or task scoring.
+`ehp-sn data` orchestrates substrate generation: it resolves and invokes the installed substrate definitions, produces immutable interim artifacts with manifests, provenance, checksums, and validation, and manages release coordinates.
+The scientific semantics it operates on — topology generation, environment-level observations, source normalization, and intrinsic split assignment — are owned by the research substrate specifications (`docs/authority.md` § "Authority map").
+Task episodes, learning targets, model tokenization, training batches, and task scoring are outside its scope.
 
 ## Usage
 

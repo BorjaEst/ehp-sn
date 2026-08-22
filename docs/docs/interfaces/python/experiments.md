@@ -27,8 +27,9 @@ The generic Python interface takes a canonical reference and resolves it; it doe
 There is no `ehp_research.experiments` or `ehp_research.bindings` (`ARCH-005`/`ARCH-006`).
 
 > `resolve_experiment()` is a documented target.
-> The discovery and resolution contract is specified in [the framework experiment specification](../../framework/components/experiment.md): `experiment:<name>/vN` resolves to the workspace declaration `experiments/<name>/vN/experiment.toml`, a canonical TOML declaration instantiating the framework `ExperimentDefinition` specification.
-> The per-endpoint field catalogue and the resolve-side loader internals are not yet fully specified (`ARCH-014`); this interface must not be implemented against an unfinished endpoint contract.
+> The discovery and resolution contract is specified in [the framework experiment specification](../../framework/components/experiment.md):
+> `experiment:<name>/vN` resolves to the workspace declaration `experiments/<name>/vN/experiment.toml`, a canonical TOML declaration instantiating the framework `ExperimentDefinition` specification, whose `v1` field catalogue is now specified.
+> The resolve-side loader internals and the exhaustive per-adapter `config` field sets remain framework contracts to be completed (`ARCH-014`); this interface must not be implemented against an unfinished endpoint contract.
 
 ## Identity model
 

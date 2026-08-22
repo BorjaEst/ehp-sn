@@ -53,7 +53,7 @@ The selected target remains explicit:
 ```console
 ehp-sn train plan experiment:arena-tem/v1 \
     --workspace config/workspace.toml \
-    --config config/training/arena-tem.toml \
+    --config config/train/arena-tem.toml \
     --device cpu
 ```
 
@@ -108,7 +108,7 @@ destination = "runs/arena-tem"
 ```console
 ehp-sn train plan experiment:arena-tem/v1 \
     --workspace config/workspace.toml \
-    --config config/training/arena-tem.toml \
+    --config config/train/arena-tem.toml \
     --device cpu
 ```
 
