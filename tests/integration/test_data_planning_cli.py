@@ -8,14 +8,14 @@ projects that authoritative immutable framework plan into the CLI seam.
 Two explicit levels are tested so a CLI output test cannot pass merely because
 the adapter fabricated information:
 
-* **Python** — ``FrameworkDataService.plan`` returns the expected framework
+* **Python** — ``FrameworkDataAdapter.plan`` returns the expected framework
   plan semantics (target, output contract, bound resources, identity inputs)
   for the real Dagflow and Maze-ND profiles;
 * **CLI** — ``ehp-sn data plan ... --config <real-profile>`` exits 0 and
   projects the same semantics deterministically.
 
 Both real providers travel through the same generic orchestration; there is no
-Dagflow-specific or Maze-ND-specific branch inside ``ehp_sn``. ``FrameworkDataService``
+Dagflow-specific or Maze-ND-specific branch inside ``ehp_sn``. ``FrameworkDataAdapter``
 uses its production adapter and its minimal generic resource resolver; no custom
 resolver is injected here.
 
@@ -28,7 +28,7 @@ from pathlib import Path
 
 import pytest
 from ehp_sn.cli import app
-from ehp_sn.cli.data_adapter import FrameworkDataService
+from ehp_sn.cli.data_adapter import FrameworkDataAdapter
 from ehp_sn.discovery import effective_registry
 from ehp_sn.planning import effective_planning_composition
 from typer.testing import CliRunner
@@ -44,9 +44,9 @@ runner = CliRunner()
 
 
 @pytest.fixture()
-def service() -> FrameworkDataService:
-    """The production service: effective registry + composed planning resolvers."""
-    return FrameworkDataService(
+def service() -> FrameworkDataAdapter:
+    """The production adapter: effective registry + composed planning resolvers."""
+    return FrameworkDataAdapter(
         effective_registry(),
         planning_composition=effective_planning_composition(),
     )
@@ -112,7 +112,7 @@ def test_python_and_cli_share_one_planning_path(service) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_cli_plan_succeeds() -> None:
+def test_cli_plan_dagflow_succeeds() -> None:
     result = runner.invoke(
         app,
         ["data", "plan", "substrate:dagflow/v1", "--config", str(_DAGFLOW_PROFILE)],
@@ -124,7 +124,7 @@ def test_cli_plan_succeeds() -> None:
     assert "Traceback" not in result.stderr
 
 
-def test_cli_plan_succeeds() -> None:
+def test_cli_plan_maze_succeeds() -> None:
     result = runner.invoke(
         app,
         ["data", "plan", "substrate:maze-nd/v1", "--config", str(_MAZE_ND_PROFILE)],

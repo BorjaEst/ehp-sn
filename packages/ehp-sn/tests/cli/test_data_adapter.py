@@ -1,15 +1,17 @@
-"""Unit tests for Capability 3 — :class:`FrameworkDataService`.
+"""Unit tests for the CLI data adapter — :class:`FrameworkDataAdapter`.
 
-These tests prove the production ``ehp-sn data`` backend works entirely through
+These tests prove the production ``ehp-sn data`` adapter works entirely through
 the generic framework registry, using **synthetic** substrate definitions — the
 framework unit test never imports ``ehp_research`` (ARCH-001).
 
 The adapter projects registered definitions directly (identity, not copies),
 enumerates substrates deterministically, and translates generic framework
 failures (unknown / malformed / wrong-kind) into the CLI-facing
-:class:`UnknownSubstrateError`. The lifecycle operations not yet implemented
-(``plan``, ``build``, ``validate``, ``inspect``) fail explicitly with
-:class:`DataNotImplementedError` rather than returning fake successful results.
+:class:`UnknownSubstrateError`. The ``plan`` projection returns explicit CLI
+presentation DTOs and never leaks framework value objects. ``build``,
+``validate`` and ``inspect`` are not part of the adapter surface (they are
+reported unsupported by the CLI itself); no fake lifecycle method pretends they
+exist.
 """
 
 from __future__ import annotations
@@ -17,13 +19,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import pytest
-from ehp_sn.cli._data_service import (
+from ehp_sn.cli.data_adapter import (
     ConfigurationInvalidError,
     ConfigurationUnreadableError,
-    DataNotImplementedError,
+    FrameworkDataAdapter,
+    IdentityInputView,
+    ResolvedResourceView,
     UnknownSubstrateError,
 )
-from ehp_sn.cli.data_adapter import FrameworkDataService
 from ehp_sn.configuration import LoadedConfiguration
 from ehp_sn.discovery import ComponentRegistry
 from ehp_sn.experiments import ComponentRef
@@ -66,10 +69,10 @@ def _substrate(name: str, output: str, description: str = "synthetic substrate")
 def _service(
     registry: ComponentRegistry | None = None,
     planning_composition: SubstratePlanningComposition | None = None,
-) -> FrameworkDataService:
+) -> FrameworkDataAdapter:
     registry = registry if registry is not None else ComponentRegistry()
     planning_composition = planning_composition or SubstratePlanningComposition(())
-    return FrameworkDataService(
+    return FrameworkDataAdapter(
         registry,
         planning_composition=planning_composition,
     )
@@ -209,8 +212,6 @@ def plan_registry(tmp_path):
     ``service.plan`` through the real generic loading + planning path with
     synthetic (non-research) components.
     """
-    from ehp_sn.cli.data_adapter import FrameworkDataService
-
     registry = ComponentRegistry()
     definition = _substrate("alpha", "alpha-contract/v1", "synthetic substrate")
     registry.register(definition)
@@ -222,7 +223,7 @@ def plan_registry(tmp_path):
     config_path = tmp_path / "config.toml"
     config_path.write_text('[substrate]\nvariant = "default"\n', encoding="utf-8")
 
-    service = FrameworkDataService(registry, planning_composition=composition)
+    service = FrameworkDataAdapter(registry, planning_composition=composition)
     return service, config_path, definition
 
 
@@ -264,18 +265,21 @@ def test_plan_projects_authoritative_plan(plan_registry) -> None:
             ),
         )
     )
-    service = FrameworkDataService(registry, planning_composition=composition)
+    service = FrameworkDataAdapter(registry, planning_composition=composition)
 
     result = service.plan("substrate:alpha/v1", str(config_path))
 
     # Projection comes from the authoritative plan: target + output contract
     # derived from the registered definition; bound resource + identity exactly
-    # as planned.
+    # as planned, projected into CLI presentation values (never the framework
+    # value objects).
     assert result.target == "substrate:alpha/v1"
     assert result.output_contract == "alpha-contract/v1"
     assert len(result.resources) == 1
+    assert isinstance(result.resources[0], ResolvedResourceView)
     assert result.resources[0].resource_ref == "UNRESOLVED-SYNTHETIC"
     assert result.resources[0].resolution_source == "definition"
+    assert all(isinstance(item, IdentityInputView) for item in result.identity)
     assert [(i.name, i.value) for i in result.identity] == [
         ("variant", "default"),
         ("seed", 42),
@@ -305,7 +309,7 @@ def test_plan_missing_resolver_is_unknown_substrate(plan_registry) -> None:
     # cannot be planned; it surfaces as an unknown-substrate CLI category.
     registry = ComponentRegistry()
     registry.register(definition)
-    service = FrameworkDataService(
+    service = FrameworkDataAdapter(
         registry,
         planning_composition=SubstratePlanningComposition(()),
     )
@@ -347,36 +351,10 @@ def test_plan_producer_failure_is_configuration_invalid(plan_registry) -> None:
     composition = SubstratePlanningComposition(
         (SubstratePlanningRegistration(definition=definition, plan=exploding),)
     )
-    service = FrameworkDataService(registry, planning_composition=composition)
+    service = FrameworkDataAdapter(registry, planning_composition=composition)
 
     with pytest.raises(ConfigurationInvalidError):
         service.plan("substrate:alpha/v1", str(config_path))
-
-
-# ---------------------------------------------------------------------------
-# Phase boundary: remaining lifecycle operations are explicitly not implemented
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.parametrize(
-    ("op", "args"),
-    [
-        ("build", ("substrate:alpha/v1", "config.toml")),
-        ("validate", ("data/interim/alpha/default/v1", "full")),
-        ("inspect", ("data/interim/alpha/default/v1", 0)),
-    ],
-)
-def test_lifecycle_operations_are_not_implemented(op: str, args: tuple[str, ...]) -> None:
-    """The unimplemented lifecycle operations fail in one compact parameterized test.
-
-    ``plan`` is now real and is intentionally excluded; only the operations that
-    remain for later capabilities (``build``/``validate``/``inspect``) must still
-    raise rather than fake success.
-    """
-    service = _service(ComponentRegistry())
-
-    with pytest.raises(DataNotImplementedError):
-        getattr(service, op)(*args)
 
 
 # ---------------------------------------------------------------------------

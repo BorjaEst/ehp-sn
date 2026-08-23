@@ -6,18 +6,24 @@ Generates, validates, and inspects immutable interim substrates
 This module is a thin orchestration shell (CLI-001). Each command here owns only:
 
 * argument parsing and option validation;
-* delegating to a generic data-service seam (``_data_service.DataService``);
-* rendering the returned result (text or JSON);
+* delegating to a generic CLI adapter (``data_adapter.FrameworkDataAdapter``);
+* rendering the returned presentation DTO (text or JSON);
 * mapping controlled failures to stable exit codes.
 
 It does **not** own substrate generation, configuration semantics, registry,
 build planning, artifact construction/persistence, contract validation,
 inspection, resource resolution, or fingerprinting. Those live behind the
-service seam.
+adapter boundary or in future framework capabilities.
 
-The six commands are producer-neutral: this module contains no conditional
-logic keyed to any specific substrate family, and an arbitrary substrate
-reference works so long as the backend understands it.
+The implemented commands (``list``/``show``/``plan``) are producer-neutral: this
+module contains no conditional logic keyed to any specific substrate family, and
+an arbitrary substrate reference works so long as the backend understands it.
+
+The commands in the established command surface that are intentionally
+unsupported until the corresponding framework capability lands
+(``build``/``validate``/``inspect``) are reported here by the CLI itself as a
+controlled "not implemented" failure; no fake backend lifecycle method pretends
+they exist.
 """
 
 from __future__ import annotations
@@ -27,18 +33,14 @@ from typing import Annotated
 
 import typer
 
-from ehp_sn.cli._data_service import (
-    BuildResult,
+from ehp_sn.cli.data_adapter import (
+    DataCliError,
     DataNotImplementedError,
-    DataService,
-    DataServiceError,
-    InspectResult,
+    FrameworkDataAdapter,
     ListedSubstrate,
     PlanResult,
     ShowResult,
-    ValidateResult,
 )
-from ehp_sn.cli.data_adapter import FrameworkDataService
 from ehp_sn.discovery import effective_registry
 from ehp_sn.planning import effective_planning_composition
 
@@ -56,28 +58,19 @@ app = typer.Typer(
 def _fail(error: Exception) -> None:
     """Raise a controlled typer exit for a known failure.
 
-    ``DataServiceError`` instances carry their own category and exit code.
-    A bare ``NotImplementedError`` is translated to a controlled
-    ``operation_not_implemented`` failure (exit 1) so normal users never see a
-    traceback. Anything else is unexpected and re-raised for diagnostics.
+    ``DataCliError`` instances carry their own category and exit code.
+    ``DataNotImplementedError`` is the controlled translation the CLI uses for a
+    command that is part of the established surface but intentionally
+    unsupported. Anything else is unexpected and re-raised for diagnostics.
     """
     if isinstance(error, typer.Exit):
         raise error
-    if isinstance(error, DataServiceError):
+    if isinstance(error, DataCliError):
         if _json_mode():
             typer.echo(_error_envelope(error))
         else:
             typer.echo(f"Error: {error.message}", err=True)
         raise typer.Exit(code=error.exit_code)
-    if isinstance(error, NotImplementedError):
-        wrapped = DataNotImplementedError(
-            "the requested data operation is not yet implemented by the framework backend."
-        )
-        if _json_mode():
-            typer.echo(_error_envelope(wrapped))
-        else:
-            typer.echo(f"Error: {wrapped.message}", err=True)
-        raise typer.Exit(code=wrapped.exit_code)
     raise error
 
 
@@ -89,7 +82,7 @@ def _json_mode() -> bool:
     return _json_requested
 
 
-def _error_envelope(error: DataServiceError) -> str:
+def _error_envelope(error: DataCliError) -> str:
     import json
 
     envelope = {
@@ -104,42 +97,42 @@ def _error_envelope(error: DataServiceError) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Service wiring
+# Adapter wiring
 #
-# The default is a lazily-cached :class:`FrameworkDataService` over the
+# The default is a lazily-cached :class:`FrameworkDataAdapter` over the
 # effective application registry (installed research providers compose it).
-# Tests may inject a fake via ``_set_service``/``_reset_service`` so command
-# logic is exercised without a real backend.
+# Tests may inject a constructed adapter via ``_set_adapter``/``_reset_adapter``
+# so command logic is exercised without a real backend.
 # ---------------------------------------------------------------------------
 
-_override_service: DataService | None = None
-_default_service_cache: DataService | None = None
+_override_adapter: FrameworkDataAdapter | None = None
+_default_adapter_cache: FrameworkDataAdapter | None = None
 
 
-def _get_service() -> DataService:
-    """Return the data-service backend, preferring any test override."""
-    global _default_service_cache  # noqa: PLW0603
-    if _override_service is not None:
-        return _override_service
-    if _default_service_cache is None:
-        _default_service_cache = FrameworkDataService(
+def _get_adapter() -> FrameworkDataAdapter:
+    """Return the data adapter, preferring any test override."""
+    global _default_adapter_cache  # noqa: PLW0603
+    if _override_adapter is not None:
+        return _override_adapter
+    if _default_adapter_cache is None:
+        _default_adapter_cache = FrameworkDataAdapter(
             effective_registry(),
             planning_composition=effective_planning_composition(),
         )
-    return _default_service_cache
+    return _default_adapter_cache
 
 
-def _set_service(service: DataService) -> None:
-    """Install a service override (for test injection)."""
-    global _override_service  # noqa: PLW0603
-    _override_service = service
+def _set_adapter(adapter: FrameworkDataAdapter) -> None:
+    """Install an adapter override (for test injection)."""
+    global _override_adapter  # noqa: PLW0603
+    _override_adapter = adapter
 
 
-def _reset_service() -> None:
-    """Clear any override and the cached default backend."""
-    global _override_service, _default_service_cache  # noqa: PLW0603
-    _override_service = None
-    _default_service_cache = None
+def _reset_adapter() -> None:
+    """Clear any override and the cached default adapter."""
+    global _override_adapter, _default_adapter_cache  # noqa: PLW0603
+    _override_adapter = None
+    _default_adapter_cache = None
 
 
 # ---------------------------------------------------------------------------
@@ -241,91 +234,6 @@ def _emit_plan(result: PlanResult, fmt: str) -> None:
             typer.echo(f"  {i.name}: {i.value}")
 
 
-def _emit_build(result: BuildResult, fmt: str) -> None:
-    if fmt == "json":
-        import json
-
-        typer.echo(
-            json.dumps(
-                {
-                    "schema_version": 1,
-                    "status": "success",
-                    "action": result.action,
-                    "warnings": [],
-                    "result": {
-                        "ref": result.ref,
-                        "action": result.action,
-                        "location": result.location,
-                    },
-                }
-            )
-        )
-        return
-    if result.location:
-        typer.echo(f"{result.action}: {result.ref} -> {result.location}")
-    else:
-        typer.echo(f"{result.action}: {result.ref}")
-
-
-def _emit_validate(result: ValidateResult, fmt: str) -> None:
-    if fmt == "json":
-        import json
-
-        typer.echo(
-            json.dumps(
-                {
-                    "schema_version": 1,
-                    "status": "success" if result.ok else "error",
-                    "action": "validate",
-                    "warnings": list(result.warnings),
-                    "result": {
-                        "artifact": result.artifact,
-                        "ok": result.ok,
-                        "errors": list(result.errors),
-                    },
-                }
-            )
-        )
-        return
-    if result.ok:
-        typer.echo(f"OK: {result.artifact}")
-    else:
-        typer.echo(f"FAIL: {result.artifact}")
-    for warning in result.warnings:
-        typer.echo(f"warning: {warning}", err=True)
-    for error in result.errors:
-        typer.echo(f"error: {error}", err=True)
-
-
-def _emit_inspect(result: InspectResult, fmt: str) -> None:
-    if fmt == "json":
-        import json
-
-        typer.echo(
-            json.dumps(
-                {
-                    "schema_version": 1,
-                    "status": "success",
-                    "action": "inspect",
-                    "warnings": [],
-                    "result": {
-                        "artifact": result.artifact,
-                        "summary": dict(result.summary),
-                        "samples": list(result.samples),
-                    },
-                }
-            )
-        )
-        return
-    typer.echo(f"Artifact: {result.artifact}")
-    for key, value in result.summary.items():
-        typer.echo(f"{key}: {value}")
-    if result.samples:
-        typer.echo("samples:")
-        for sample in result.samples:
-            typer.echo(f"  {sample}")
-
-
 # ---------------------------------------------------------------------------
 # Commands
 # ---------------------------------------------------------------------------
@@ -341,7 +249,7 @@ def list_command(
     global _current_action  # noqa: PLW0603
     _current_action = "list"
     try:
-        rows = _get_service().list()
+        rows = _get_adapter().list()
     except Exception as exc:  # noqa: BLE001
         _fail(exc)
     _emit_list(rows, fmt)
@@ -358,7 +266,7 @@ def show_command(
     global _current_action  # noqa: PLW0603
     _current_action = "show"
     try:
-        result = _get_service().show(target)
+        result = _get_adapter().show(target)
     except Exception as exc:  # noqa: BLE001
         _fail(exc)
     _emit_show(result, fmt)
@@ -376,7 +284,7 @@ def plan_command(
     global _current_action  # noqa: PLW0603
     _current_action = "plan"
     try:
-        result = _get_service().plan(target, config)
+        result = _get_adapter().plan(target, config)
     except Exception as exc:  # noqa: BLE001
         _fail(exc)
     _emit_plan(result, fmt)
@@ -388,16 +296,17 @@ def build_command(
     config: Annotated[str, typer.Option("--config", help="Generation configuration file.")],
     fmt: Annotated[str, typer.Option("--format", help="Output format.")] = "text",
 ) -> None:
-    """Build one immutable substrate artifact."""
+    """Build one immutable substrate artifact.
+
+    Currently unsupported: materializing artifacts is a future framework
+    capability. The command is part of the established surface but is reported
+    here as a controlled not-implemented failure.
+    """
     global _json_requested  # noqa: PLW0603
     _json_requested = fmt == "json"
     global _current_action  # noqa: PLW0603
     _current_action = "build"
-    try:
-        result = _get_service().build(target, config)
-    except Exception as exc:  # noqa: BLE001
-        _fail(exc)
-    _emit_build(result, fmt)
+    _fail(DataNotImplementedError("data build is not yet implemented."))
 
 
 @app.command("validate")
@@ -406,7 +315,12 @@ def validate_command(
     level: Annotated[str, typer.Option("--level", help="Validation depth (quick|full).")] = "full",
     fmt: Annotated[str, typer.Option("--format", help="Output format.")] = "text",
 ) -> None:
-    """Validate an existing substrate artifact without modifying it."""
+    """Validate an existing substrate artifact without modifying it.
+
+    Currently unsupported: artifact validation is a future framework
+    capability. The command is part of the established surface but is reported
+    here as a controlled not-implemented failure.
+    """
     global _json_requested  # noqa: PLW0603
     _json_requested = fmt == "json"
     global _current_action  # noqa: PLW0603
@@ -414,13 +328,7 @@ def validate_command(
     if level not in ("quick", "full"):
         typer.echo("Error: --level must be 'quick' or 'full'.", err=True)
         raise typer.Exit(code=2)
-    try:
-        result = _get_service().validate(artifact, level)
-    except Exception as exc:  # noqa: BLE001
-        _fail(exc)
-    _emit_validate(result, fmt)
-    if not result.ok:
-        raise typer.Exit(code=5)
+    _fail(DataNotImplementedError("data validate is not yet implemented."))
 
 
 @app.command("inspect")
@@ -429,7 +337,12 @@ def inspect_command(
     samples: Annotated[int, typer.Option("--samples", help="Number of representative records.")] = 0,
     fmt: Annotated[str, typer.Option("--format", help="Output format.")] = "text",
 ) -> None:
-    """Display artifact metadata and bounded samples."""
+    """Display artifact metadata and bounded samples.
+
+    Currently unsupported: artifact inspection is a future framework
+    capability. The command is part of the established surface but is reported
+    here as a controlled not-implemented failure.
+    """
     global _json_requested  # noqa: PLW0603
     _json_requested = fmt == "json"
     global _current_action  # noqa: PLW0603
@@ -437,8 +350,4 @@ def inspect_command(
     if samples < 0:
         typer.echo("Error: --samples must be non-negative.", err=True)
         raise typer.Exit(code=2)
-    try:
-        result = _get_service().inspect(artifact, samples)
-    except Exception as exc:  # noqa: BLE001
-        _fail(exc)
-    _emit_inspect(result, fmt)
+    _fail(DataNotImplementedError("data inspect is not yet implemented."))

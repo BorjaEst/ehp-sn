@@ -1,115 +1,109 @@
 """CLI behavior tests for the ``ehp-sn data`` command group.
 
 These tests focus on CLI behavior (CLI-001): command existence, argument and
-option interfaces, help text, delegation through the generic data-service seam,
-output formatting, failure formatting, and exit codes.
+option interfaces, help text, delegation through the production
+:class:`~ehp_sn.cli.data_adapter.FrameworkDataAdapter`, output formatting,
+failure formatting, and exit codes.
 
-They run against a **test-local fake** data service (see :class:`FakeDataService`)
-and never require real research definitions. The fake uses deliberately neutral
-substrate names (``alpha``/``beta``) so no scientific metadata is duplicated
-here; authoritative Dagflow/Maze-ND facts live at their definition owners and
-in the root integration test.
+The implemented commands (``list``/``show``/``plan``) run against a real
+``FrameworkDataAdapter`` built over **synthetic** generic dependencies (a
+registry with neutral ``alpha``/``beta`` substrate definitions and a composed
+planning resolver). No research package is imported; no test-local fake service
+stands in for the adapter boundary.
 
-The production default backend (registry-backed) is exercised for the controlled
-error path (``build`` → exit 1 for not-implemented; ``plan`` → exit 4 for an
-unknown target), which does not depend on whether ``ehp_research`` is installed.
+The commands that are part of the established surface but intentionally
+unsupported (``build``/``validate``/``inspect``) are asserted to produce the
+documented controlled not-implemented response (exit 1), which the CLI owns
+directly rather than delegating to a placeholder adapter method.
 """
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Sequence
+import json
+from dataclasses import dataclass
 
 import pytest
 from ehp_sn.cli import app
 from ehp_sn.cli import data as data_module
-from ehp_sn.cli._data_service import (
-    ArtifactNotFoundError,
-    BuildResult,
+from ehp_sn.cli.data_adapter import (
     ConfigurationInvalidError,
     ConfigurationUnreadableError,
+    DataCliError,
     DataNotImplementedError,
-    DataOperationError,
-    InspectResult,
-    ListedSubstrate,
-    PlanResult,
-    ShowResult,
+    FrameworkDataAdapter,
     UnknownSubstrateError,
-    ValidateResult,
 )
-from ehp_sn.planning import IdentityInput
+from ehp_sn.configuration import LoadedConfiguration
+from ehp_sn.discovery import ComponentRegistry
+from ehp_sn.experiments import ComponentRef
+from ehp_sn.planning import (
+    IdentityInput,
+    PlanningDeclaration,
+    SubstratePlanningComposition,
+    SubstratePlanningRegistration,
+)
 from typer.testing import CliRunner
 
 runner = CliRunner()
 
 
-class FakeDataService:
-    """In-memory fake backend implementing the ``DataService`` seam.
+# ---------------------------------------------------------------------------
+# Synthetic production adapter (no research import)
+# ---------------------------------------------------------------------------
 
-    ``plan`` returns a minimal real :class:`PlanResult` (a projection the CLI
-    renders); the other lifecycle operations return minimal presentation
-    results so the CLI renderers are exercised.
-    """
 
-    def __init__(self) -> None:
-        self.calls: list[tuple[str, tuple[object, ...]]] = []
+@dataclass(frozen=True)
+class _Definition:
+    """Minimal synthetic stand-in shaped like a registered substrate definition."""
 
-    def _record(self, op: str, *args: object) -> None:
-        self.calls.append((op, args))
+    ref: ComponentRef
+    description: str
+    output_contract: str
 
-    def list(self) -> Sequence[ListedSubstrate]:
-        self._record("list")
-        return (
-            ListedSubstrate(ref="substrate:alpha/v1", family="alpha", output="alpha-contract/v1"),
-            ListedSubstrate(ref="substrate:beta/v1", family="beta", output="beta-contract/v1"),
-        )
+    @property
+    def kind(self) -> str:
+        return self.ref.kind
 
-    def show(self, target: str) -> ShowResult:
-        self._record("show", target)
-        if target == "substrate:alpha/v1":
-            return ShowResult(ref=target, description="A synthetic alpha substrate.")
-        raise UnknownSubstrateError(f"unknown substrate: {target}")
 
-    def plan(self, target: str, config: str | None) -> PlanResult:
-        self._record("plan", target, config)
-        return PlanResult(
-            target=target,
-            output_contract="alpha-contract/v1",
-            resources=(),
-            identity=(
-                IdentityInput(name="variant", value="default"),
-                IdentityInput(name="seed", value=42),
-            ),
-        )
-
-    def build(self, target: str, config: str | None) -> BuildResult:
-        self._record("build", target, config)
-        return BuildResult(ref=target, action="created", location=f"data/interim/{target}")
-
-    def validate(self, artifact: str, level: str) -> ValidateResult:
-        self._record("validate", artifact, level)
-        if artifact == "example-substrate/v7":
-            return ValidateResult(artifact=artifact, ok=True)
-        return ValidateResult(artifact=artifact, ok=False, errors=("manifest missing",), warnings=())
-
-    def inspect(self, artifact: str, samples: int) -> InspectResult:
-        self._record("inspect", artifact, samples)
-        return InspectResult(
-            artifact=artifact,
-            summary={"kind": "raster-topology", "records": "10"},
-            samples=tuple(f"sample{i}" for i in range(samples)),
-        )
+def _plan(document: LoadedConfiguration) -> PlanningDeclaration:
+    return PlanningDeclaration(
+        configuration={"synthetic": True},
+        resources=(),
+        identity_inputs=(
+            IdentityInput(name="variant", value="default"),
+            IdentityInput(name="seed", value=42),
+        ),
+    )
 
 
 @pytest.fixture()
-def fake_service() -> FakeDataService:
-    return FakeDataService()
+def adapter() -> FrameworkDataAdapter:
+    """A production adapter over synthetic generic dependencies."""
+    registry = ComponentRegistry()
+    alpha = _Definition(
+        ref=ComponentRef.parse("substrate:alpha/v1"),
+        description="A synthetic alpha substrate.",
+        output_contract="alpha-contract/v1",
+    )
+    beta = _Definition(
+        ref=ComponentRef.parse("substrate:beta/v1"),
+        description="A synthetic beta substrate.",
+        output_contract="beta-contract/v1",
+    )
+    registry.register(alpha)
+    registry.register(beta)
+
+    composition = SubstratePlanningComposition(
+        (SubstratePlanningRegistration(definition=alpha, plan=_plan),)
+    )
+    return FrameworkDataAdapter(registry, planning_composition=composition)
 
 
 @pytest.fixture()
-def use_fake(fake_service: FakeDataService) -> Iterator[FakeDataService]:
-    data_module._set_service(fake_service)
-    yield fake_service
-    data_module._reset_service()
+def use_adapter(adapter: FrameworkDataAdapter) -> None:
+    data_module._set_adapter(adapter)
+    yield
+    data_module._reset_adapter()
 
 
 # ---------------------------------------------------------------------------
@@ -147,27 +141,20 @@ def test_each_command_help(args: list[str]) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_list_renders_rows(use_fake: FakeDataService) -> None:
+def test_list_renders_rows(use_adapter: None) -> None:
     result = runner.invoke(app, ["data", "list"])
     assert result.exit_code == 0
     assert "substrate:alpha/v1" in result.stdout
     assert "substrate:beta/v1" in result.stdout
 
 
-def test_list_json(use_fake: FakeDataService) -> None:
+def test_list_json(use_adapter: None) -> None:
     result = runner.invoke(app, ["data", "list", "--format", "json"])
     assert result.exit_code == 0
-    import json
-
     payload = json.loads(result.stdout)
     assert payload["status"] == "success"
     assert payload["action"] == "list"
     assert len(payload["result"]) == 2
-
-
-def test_list_delegates_to_service(use_fake: FakeDataService) -> None:
-    runner.invoke(app, ["data", "list"])
-    assert use_fake.calls == [("list", ())]
 
 
 # ---------------------------------------------------------------------------
@@ -175,14 +162,14 @@ def test_list_delegates_to_service(use_fake: FakeDataService) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_show_delegates_and_renders(use_fake: FakeDataService) -> None:
+def test_show_renders(use_adapter: None) -> None:
     result = runner.invoke(app, ["data", "show", "substrate:alpha/v1"])
     assert result.exit_code == 0
     assert "Target: substrate:alpha/v1" in result.stdout
-    assert use_fake.calls == [("show", ("substrate:alpha/v1",))]
+    assert "A synthetic alpha substrate." in result.stdout
 
 
-def test_show_unknown_substrate_maps_to_exit_4(use_fake: FakeDataService) -> None:
+def test_show_unknown_substrate_maps_to_exit_4(use_adapter: None) -> None:
     result = runner.invoke(app, ["data", "show", "substrate:missing/v1"])
     assert result.exit_code == 4
     assert "unknown substrate" in result.stderr
@@ -199,11 +186,11 @@ def test_plan_requires_config() -> None:
     assert "--config" in result.stdout or "--config" in result.stderr
 
 
-def test_plan_delegates_and_renders(use_fake: FakeDataService) -> None:
-    """``plan`` delegates through the seam and renders the projected result."""
-    cfg = "config/data/example/family.toml"
-    result = runner.invoke(app, ["data", "plan", "substrate:alpha/v1", "--config", cfg])
-    assert use_fake.calls == [("plan", ("substrate:alpha/v1", cfg))]
+def test_plan_renders(use_adapter: None, tmp_path) -> None:
+    """``plan`` delegates to the real adapter and renders the projected result."""
+    cfg = tmp_path / "config.toml"
+    cfg.write_text('[substrate]\nvariant = "default"\n', encoding="utf-8")
+    result = runner.invoke(app, ["data", "plan", "substrate:alpha/v1", "--config", str(cfg)])
     assert result.exit_code == 0
     assert "target: substrate:alpha/v1" in result.stdout
     assert "output: alpha-contract/v1" in result.stdout
@@ -212,15 +199,14 @@ def test_plan_delegates_and_renders(use_fake: FakeDataService) -> None:
     assert "Traceback" not in result.stderr
 
 
-def test_plan_json_renders_semantic_fields(use_fake: FakeDataService) -> None:
+def test_plan_json_renders_semantic_fields(use_adapter: None, tmp_path) -> None:
     """JSON ``plan`` output is a deterministic projection of semantic fields."""
-    cfg = "config/data/example/family.toml"
+    cfg = tmp_path / "config.toml"
+    cfg.write_text('[substrate]\nvariant = "default"\n', encoding="utf-8")
     result = runner.invoke(
-        app, ["data", "plan", "substrate:alpha/v1", "--config", cfg, "--format", "json"]
+        app, ["data", "plan", "substrate:alpha/v1", "--config", str(cfg), "--format", "json"]
     )
     assert result.exit_code == 0
-    import json
-
     payload = json.loads(result.stdout)
     assert payload["status"] == "success"
     assert payload["action"] == "plan"
@@ -233,45 +219,38 @@ def test_plan_json_renders_semantic_fields(use_fake: FakeDataService) -> None:
     ]
 
 
-# ---------------------------------------------------------------------------
-# build
-# ---------------------------------------------------------------------------
-
-
-def test_build_requires_config() -> None:
-    result = runner.invoke(app, ["data", "build", "substrate:alpha/v1"])
-    assert result.exit_code == 2
-
-
-def test_build_delegates_and_renders(use_fake: FakeDataService) -> None:
-    cfg = "config/data/example/family.toml"
-    result = runner.invoke(app, ["data", "build", "substrate:alpha/v1", "--config", cfg])
-    assert result.exit_code == 0
-    assert use_fake.calls == [("build", ("substrate:alpha/v1", cfg))]
-    assert "created: substrate:alpha/v1" in result.stdout
+def test_plan_unreadable_config_maps_to_exit_4(use_adapter: None, tmp_path) -> None:
+    result = runner.invoke(
+        app, ["data", "plan", "substrate:alpha/v1", "--config", str(tmp_path / "missing.toml")]
+    )
+    assert result.exit_code == 4
+    assert "Traceback" not in result.stderr
 
 
 # ---------------------------------------------------------------------------
-# validate
+# Unsupported commands produce the documented controlled response
 # ---------------------------------------------------------------------------
 
 
-def test_validate_ok_exit_0(use_fake: FakeDataService) -> None:
+def test_build_is_controlled_not_implemented() -> None:
+    result = runner.invoke(app, ["data", "build", "substrate:alpha/v1", "--config", "x.toml"])
+    assert result.exit_code == 1
+    assert "not yet implemented" in result.stderr
+    assert "Traceback" not in result.stderr
+
+
+def test_validate_is_controlled_not_implemented() -> None:
     result = runner.invoke(app, ["data", "validate", "example-substrate/v7"])
-    assert result.exit_code == 0
-    assert use_fake.calls == [("validate", ("example-substrate/v7", "full"))]
+    assert result.exit_code == 1
+    assert "not yet implemented" in result.stderr
+    assert "Traceback" not in result.stderr
 
 
-def test_validate_failure_exit_5(use_fake: FakeDataService) -> None:
-    result = runner.invoke(app, ["data", "validate", "some-artifact"])
-    assert result.exit_code == 5
-    assert "FAIL: some-artifact" in result.stdout
-
-
-def test_validate_level_passthrough(use_fake: FakeDataService) -> None:
-    result = runner.invoke(app, ["data", "validate", "example-substrate/v7", "--level", "quick"])
-    assert result.exit_code == 0
-    assert use_fake.calls == [("validate", ("example-substrate/v7", "quick"))]
+def test_inspect_is_controlled_not_implemented() -> None:
+    result = runner.invoke(app, ["data", "inspect", "example-substrate/v7"])
+    assert result.exit_code == 1
+    assert "not yet implemented" in result.stderr
+    assert "Traceback" not in result.stderr
 
 
 def test_validate_invalid_level_exit_2() -> None:
@@ -279,51 +258,27 @@ def test_validate_invalid_level_exit_2() -> None:
     assert result.exit_code == 2
 
 
-# ---------------------------------------------------------------------------
-# inspect
-# ---------------------------------------------------------------------------
-
-
-def test_inspect_delegates_and_renders(use_fake: FakeDataService) -> None:
-    result = runner.invoke(app, ["data", "inspect", "example-substrate/v7", "--samples", "2"])
-    assert result.exit_code == 0
-    assert use_fake.calls == [("inspect", ("example-substrate/v7", 2))]
-    assert "Artifact: example-substrate/v7" in result.stdout
-    assert "sample0" in result.stdout
-    assert "sample1" in result.stdout
-
-
 def test_inspect_negative_samples_exit_2() -> None:
     result = runner.invoke(app, ["data", "inspect", "x", "--samples", "-1"])
     assert result.exit_code == 2
 
 
-# ---------------------------------------------------------------------------
-# Controlled failure categories and exit codes
-# ---------------------------------------------------------------------------
-
-
-def test_default_backend_build_is_controlled_not_implemented() -> None:
-    # No fake service: the production registry-backed backend is used, and an
-    # unimplemented operation surfaces as a controlled message + exit 1.
-    data_module._reset_service()
-    result = runner.invoke(app, ["data", "build", "substrate:alpha/v1", "--config", "x.toml"])
-    assert result.exit_code == 1
-    assert "not yet implemented" in result.stderr
-    assert "Traceback" not in result.stderr
-
-
 def test_default_backend_plan_is_real_not_not_implemented() -> None:
-    # The real backend ``plan`` is no longer "not implemented": it is a real,
+    # The real backend ``plan`` is not "not implemented": it is a real,
     # registry-backed projection. With the production (possibly empty) registry
     # and an absent config file, the operation surfaces as a controlled
     # referenced-input failure (exit 4: unreadable config or unknown target),
     # never a not-implemented message or a traceback.
-    data_module._reset_service()
+    data_module._reset_adapter()
     result = runner.invoke(app, ["data", "plan", "substrate:alpha/v1", "--config", "x.toml"])
     assert result.exit_code == 4
     assert "not yet implemented" not in result.stderr
     assert "Traceback" not in result.stderr
+
+
+# ---------------------------------------------------------------------------
+# Controlled failure categories and exit codes
+# ---------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -332,51 +287,24 @@ def test_default_backend_plan_is_real_not_not_implemented() -> None:
         (UnknownSubstrateError("no such substrate"), 4, "no such substrate"),
         (ConfigurationUnreadableError("cannot read config"), 4, "cannot read config"),
         (ConfigurationInvalidError("bad schema"), 3, "bad schema"),
-        (ArtifactNotFoundError("artifact missing"), 4, "artifact missing"),
-        (DataOperationError("generation failed"), 6, "generation failed"),
         (DataNotImplementedError("not implemented"), 1, "not implemented"),
     ],
 )
 def test_error_categories_map_to_exit_codes(
-    exc: Exception, expected_code: int, expected_text: str
+    exc: DataCliError, expected_code: int, expected_text: str
 ) -> None:
-    class RaisingService:
+    class RaisingAdapter(FrameworkDataAdapter):
+        def __init__(self) -> None:
+            pass
+
         def list(self):
             raise exc
 
-        def show(self, target):
-            raise exc
-
-        def plan(self, target, config):
-            raise exc
-
-        def build(self, target, config):
-            raise exc
-
-        def validate(self, artifact, level):
-            raise exc
-
-        def inspect(self, artifact, samples):
-            raise exc
-
-    data_module._set_service(RaisingService())  # type: ignore[arg-type]
-    result = runner.invoke(app, ["data", "build", "substrate:alpha/v1", "--config", "x.toml"])
-    data_module._reset_service()
+    data_module._set_adapter(RaisingAdapter())  # type: ignore[arg-type]
+    result = runner.invoke(app, ["data", "list"])
+    data_module._reset_adapter()
     assert result.exit_code == expected_code
     assert expected_text in result.stderr
-    assert "Traceback" not in result.stderr
-
-
-def test_bare_not_implemented_is_controlled() -> None:
-    class RaisingService:
-        def build(self, target, config):
-            raise NotImplementedError
-
-    data_module._set_service(RaisingService())  # type: ignore[arg-type]
-    result = runner.invoke(app, ["data", "build", "x", "--config", "y.toml"])
-    data_module._reset_service()
-    assert result.exit_code == 1
-    assert "not yet implemented" in result.stderr
     assert "Traceback" not in result.stderr
 
 

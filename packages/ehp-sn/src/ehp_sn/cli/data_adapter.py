@@ -1,24 +1,28 @@
 """Registry-backed adapter that connects ``ehp-sn data`` to the framework.
 
-This module adapts real framework objects (the generic discovery registry and
-the generic planning machinery) to the temporary CLI-facing seam declared in
-``cli/_data_service.py``.
+This module is the production CLI boundary for the ``ehp-sn data`` command
+group. It holds three responsibilities:
 
-The two responsibilities are deliberately separated:
+* :class:`FrameworkDataAdapter` — adapts real framework objects (the generic
+  discovery registry and the generic planning machinery) to the CLI;
+* the CLI-facing presentation DTOs the CLI renders to text/JSON
+  (``ListedSubstrate``, ``ShowResult``, ``PlanResult`` and their value views);
+* the stable CLI-facing error categories the CLI maps to exit codes
+  (:class:`DataCliError` and subclasses).
 
-* ``cli/_data_service.py`` — defines the CLI-facing seam: the ``DataService``
-  protocol, the presentation result containers, and the stable user-facing error
-  categories;
-* ``cli/data_adapter.py`` — adapts real framework objects to that seam.
+These live here because there is no separate generic CLI error module: the
+error categories are data-CLI-specific and are exercised only through this
+adapter boundary.
 
-:class:`FrameworkDataService` is the *production* backend. ``list``/``show`` are
-backed by the effective application registry, and ``plan`` delegates to the
-single generic framework planning orchestration (``ehp_sn.planning.plan_substrate``)
-— the same machinery the Python API uses — injecting the producer planning
-composition, then projects the authoritative immutable framework plan into a
-CLI-facing :class:`PlanResult`. ``build``/``validate``/``inspect`` remain
-explicitly unimplemented for this capability (they raise
-:class:`DataNotImplementedError`, surfaced by the CLI as a controlled failure).
+:class:`FrameworkDataAdapter` adapts real framework objects to the CLI.
+``list``/``show`` are backed by the effective application registry, and
+``plan`` delegates to the single generic framework planning orchestration
+(``ehp_sn.planning.plan_substrate``) — the same machinery the Python API uses —
+injecting the producer planning composition, then projects the authoritative
+immutable framework plan into a CLI-facing :class:`PlanResult`. The future
+execution/artifact lifecycle (``build``/``validate``/``inspect``) is not part
+of this adapter's surface; those commands are reported by the CLI itself as
+unsupported until real framework capabilities exist.
 
 The adapter holds no producer-specific branches, metadata maps, or error
 classes. It translates only generic framework failures: unknown/malformed
@@ -28,14 +32,14 @@ and generic resource-resolution failures into the stable CLI error categories.
 It never imports a concrete research package (ARCH-001).
 
 The adapter consumes the effective application registry; it does not own or
-construct one. It is structurally compatible with the ``DataService`` protocol;
-explicit inheritance from a ``Protocol`` is not required.
+construct one.
 """
 
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Protocol, cast
+from dataclasses import dataclass
+from typing import Any, Protocol, cast
 
 from ehp_sn.configuration import (
     ConfigurationAccessError,
@@ -58,22 +62,160 @@ from ehp_sn.planning import (
 )
 from ehp_sn.planning.resources import ResourceRequirement
 
-from ._data_service import (
-    BuildResult,
-    ConfigurationInvalidError,
-    ConfigurationUnreadableError,
-    DataNotImplementedError,
-    DataOperationError,
-    InspectResult,
-    ListedSubstrate,
-    PlanResult,
-    ShowResult,
-    UnknownSubstrateError,
-    ValidateResult,
-)
-
 #: The component kind this adapter's operations accept.
 _SUBSTRATE_KIND = "substrate"
+
+# ---------------------------------------------------------------------------
+# Stable user-facing error categories
+#
+# These are the categories the CLI treats as controlled failures. The mapping
+# to process exit codes follows the authoritative table in
+# ``docs/docs/interfaces/cli/index.md`` § "Exit codes".
+# ---------------------------------------------------------------------------
+
+
+class DataCliError(Exception):
+    """Base class for controlled, user-facing data CLI errors.
+
+    A ``DataCliError`` is not an internal bug: it is an expected condition the
+    CLI surfaces as a concise message and a stable exit code, never as a
+    normal-user traceback. It is a CLI-facing category, not a framework
+    service-domain exception.
+    """
+
+    #: Process exit code associated with this category.
+    exit_code: int
+    #: Stable machine-readable category name.
+    category: str
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.message = message
+
+
+class UnknownSubstrateError(DataCliError):
+    """The requested substrate target is not known to the registry/backing machinery."""
+
+    exit_code = 4  # referenced input not found
+    category = "unknown_substrate"
+
+
+class ConfigurationUnreadableError(DataCliError):
+    """The supplied configuration file is absent or cannot be read."""
+
+    exit_code = 4  # referenced file absent or unreadable
+    category = "configuration_unreadable"
+
+
+class ConfigurationInvalidError(DataCliError):
+    """The supplied configuration file is present but invalid."""
+
+    exit_code = 3  # invalid configuration or specification
+    category = "configuration_invalid"
+
+
+class DataOperationError(DataCliError):
+    """A generic framework planning/resolution failure the current slice maps to a CLI category.
+
+    Kept only while current planning genuinely maps an implemented generic
+    planning failure (a resource-resolution failure) to this category.
+    """
+
+    exit_code = 6  # execution failure
+    category = "operation_failed"
+
+
+class DataNotImplementedError(DataCliError):
+    """A command the CLI exposes is not yet implemented by a real capability.
+
+    This is the controlled translation of a CLI command that is part of the
+    established command surface but intentionally unsupported until the
+    corresponding framework capability lands, so the CLI does not leak a
+    traceback to a normal user.
+    """
+
+    exit_code = 1  # unexpected internal or operational failure
+    category = "operation_not_implemented"
+
+
+# ---------------------------------------------------------------------------
+# CLI presentation DTOs
+#
+# These are explicit CLI-facing projections, deliberately distinct from the
+# internal framework value objects. The CLI renders these to text/JSON; it must
+# not accidentally expose internal framework representation as public CLI API.
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ListedSubstrate:
+    """One row of a ``data list`` result."""
+
+    ref: str
+    family: str
+    output: str
+
+
+@dataclass(frozen=True)
+class ShowResult:
+    """A ``data show`` description of one substrate."""
+
+    ref: str
+    description: str
+
+
+@dataclass(frozen=True)
+class ResolvedResourceView:
+    """CLI-facing value of one bound logical resource (presentation value)."""
+
+    requirement_ref: str
+    resource_ref: str
+    resolution_source: str
+
+
+@dataclass(frozen=True)
+class IdentityInputView:
+    """CLI-facing value of one identity-bearing scientific input (presentation value)."""
+
+    name: str
+    value: Any
+
+
+@dataclass(frozen=True)
+class PlanResult:
+    """A ``data plan`` projection of the authoritative framework execution plan.
+
+    This is a presentational, deterministic projection of the immutable
+    framework :class:`~ehp_sn.planning.ExecutionPlan`. It is **not** itself the
+    authoritative plan and is never used to drive build execution: build will
+    consume the framework plan, while this projection is only what the CLI
+    renders.
+
+    It carries only stable, useful information that the authoritative plan
+    genuinely supports:
+
+    * ``target`` — the canonical reference of the planned substrate;
+    * ``output_contract`` — the expected normalized output schema reference,
+      derived from the registered definition (single authority);
+    * ``resources`` — the exact bound logical resource records the build would
+      rely on (empty when the producer declares none), projected as
+      :class:`ResolvedResourceView` values;
+    * ``identity`` — the canonical, ordered producer-declared identity-bearing
+      scientific inputs that contribute to build identity, projected as
+      :class:`IdentityInputView` values.
+
+    The projection never exposes internal framework value objects
+    (:class:`~ehp_sn.planning.ResolvedResource` /
+    :class:`~ehp_sn.planning.IdentityInput`). No artifact destination,
+    conflict/reuse status, or identity hash is included because the framework
+    plan available to this capability does not establish those yet; fields are
+    added only when the authoritative plan supports them.
+    """
+
+    target: str
+    output_contract: str
+    resources: tuple[ResolvedResourceView, ...]
+    identity: tuple[IdentityInputView, ...]
 
 
 class _RegisteredSubstrate(Protocol):
@@ -145,20 +287,32 @@ def _project_plan(plan: ExecutionPlan) -> PlanResult:
     return PlanResult(
         target=plan.target.canonical,
         output_contract=plan.output_contract,
-        resources=plan.resources,
-        identity=plan.identity_inputs,
+        resources=tuple(
+            ResolvedResourceView(
+                requirement_ref=resource.requirement_ref,
+                resource_ref=resource.resource_ref,
+                resolution_source=resource.resolution_source,
+            )
+            for resource in plan.resources
+        ),
+        identity=tuple(
+            IdentityInputView(name=input_.name, value=input_.value) for input_ in plan.identity_inputs
+        ),
     )
 
 
-class FrameworkDataService:
-    """The registry-backed production backend for the ``ehp-sn data`` CLI group.
+class FrameworkDataAdapter:
+    """The registry-backed production adapter for the ``ehp-sn data`` CLI group.
 
     ``list`` enumerates registered substrate definitions from the injected
     registry; ``show`` resolves one authoritative definition and projects it;
     ``plan`` delegates to the single generic framework planning orchestration
     and projects the authoritative immutable plan into a CLI-facing
-    :class:`PlanResult`. The remaining lifecycle operations
-    (``build``/``validate``/``inspect``) are explicitly not implemented yet.
+    :class:`PlanResult`.
+
+    The future execution/artifact lifecycle (``build``/``validate``/``inspect``)
+    is deliberately **absent** from this adapter: there is no concrete framework
+    capability for it yet, so no placeholder method pretends it exists.
     """
 
     def __init__(
@@ -248,18 +402,3 @@ class FrameworkDataService:
             raise ConfigurationInvalidError(str(exc)) from exc
 
         return _project_plan(plan)
-
-    def build(self, target: str, config: str | None) -> BuildResult:
-        raise DataNotImplementedError(
-            f"data build is not yet implemented by the framework backend (target: {target})."
-        )
-
-    def validate(self, artifact: str, level: str) -> ValidateResult:
-        raise DataNotImplementedError(
-            f"data validate is not yet implemented by the framework backend (artifact: {artifact})."
-        )
-
-    def inspect(self, artifact: str, samples: int) -> InspectResult:
-        raise DataNotImplementedError(
-            f"data inspect is not yet implemented by the framework backend (artifact: {artifact})."
-        )

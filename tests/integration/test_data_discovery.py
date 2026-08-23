@@ -7,7 +7,7 @@ scope). It proves the production composition path end to end:
         ↓  (entry-point provider, group ``ehp_sn.providers``)
     real generic ehp_sn registry (effective_registry)
         ↓
-    FrameworkDataService
+    FrameworkDataAdapter
         ↓
     ``data list`` / ``data show``
 
@@ -23,8 +23,7 @@ import pytest
 from ehp_research.substrates.dagflow import DAGFLOW_DEFINITION
 from ehp_research.substrates.maze_nd import MAZE_ND_DEFINITION
 from ehp_sn.cli import app
-from ehp_sn.cli._data_service import UnknownSubstrateError
-from ehp_sn.cli.data_adapter import FrameworkDataService
+from ehp_sn.cli.data_adapter import FrameworkDataAdapter, UnknownSubstrateError
 from ehp_sn.discovery import effective_registry
 from ehp_sn.planning import effective_planning_composition
 from typer.testing import CliRunner
@@ -33,9 +32,9 @@ runner = CliRunner()
 
 
 @pytest.fixture()
-def service() -> FrameworkDataService:
-    """The production service: effective registry + composed planning resolvers."""
-    return FrameworkDataService(
+def service() -> FrameworkDataAdapter:
+    """The production adapter: effective registry + composed planning resolvers."""
+    return FrameworkDataAdapter(
         effective_registry(),
         planning_composition=effective_planning_composition(),
     )
@@ -46,7 +45,7 @@ def service() -> FrameworkDataService:
 # ---------------------------------------------------------------------------
 
 
-def test_data_list_exposes_dagflow(service: FrameworkDataService) -> None:
+def test_data_list_exposes_dagflow(service: FrameworkDataAdapter) -> None:
     listed = {row.ref: row for row in service.list()}
     row = listed["substrate:dagflow/v1"]
 
@@ -56,7 +55,7 @@ def test_data_list_exposes_dagflow(service: FrameworkDataService) -> None:
     assert row.output == DAGFLOW_DEFINITION.output_contract
 
 
-def test_data_list_exposes_maze_nd(service: FrameworkDataService) -> None:
+def test_data_list_exposes_maze_nd(service: FrameworkDataAdapter) -> None:
     listed = {row.ref: row for row in service.list()}
     row = listed["substrate:maze-nd/v1"]
 
@@ -65,7 +64,7 @@ def test_data_list_exposes_maze_nd(service: FrameworkDataService) -> None:
     assert row.output == MAZE_ND_DEFINITION.output_contract
 
 
-def test_list_uses_provider_metadata(service: FrameworkDataService) -> None:
+def test_list_uses_provider_metadata(service: FrameworkDataAdapter) -> None:
     listed = {row.ref: row for row in service.list()}
 
     assert listed["substrate:dagflow/v1"].output == DAGFLOW_DEFINITION.output_contract
@@ -77,26 +76,28 @@ def test_list_uses_provider_metadata(service: FrameworkDataService) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_show_dagflow_succeeds(service: FrameworkDataService) -> None:
+def test_show_dagflow_succeeds(service: FrameworkDataAdapter) -> None:
     result = service.show("substrate:dagflow/v1")
 
     assert result.ref == DAGFLOW_DEFINITION.ref.canonical
     assert result.description == DAGFLOW_DEFINITION.description
 
 
-def test_show_maze_nd_succeeds(service: FrameworkDataService) -> None:
+def test_show_maze_nd_succeeds(service: FrameworkDataAdapter) -> None:
     result = service.show("substrate:maze-nd/v1")
 
     assert result.ref == MAZE_ND_DEFINITION.ref.canonical
     assert result.description == MAZE_ND_DEFINITION.description
 
 
-def test_show_unknown_substrate_receives_controlled_error(service: FrameworkDataService) -> None:
+def test_show_unknown_substrate_receives_controlled_error(
+    service: FrameworkDataAdapter,
+) -> None:
     with pytest.raises(UnknownSubstrateError):
         service.show("substrate:not-registered/v1")
 
 
-def test_show_wrong_kind_receives_controlled_error(service: FrameworkDataService) -> None:
+def test_show_wrong_kind_receives_controlled_error(service: FrameworkDataAdapter) -> None:
     # The research provider registers only substrates; a task-shaped reference
     # must be rejected by ``show`` (which requires a substrate target).
     with pytest.raises(UnknownSubstrateError):
