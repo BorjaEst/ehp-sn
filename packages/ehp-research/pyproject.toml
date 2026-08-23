@@ -30,6 +30,9 @@
 [project.entry-points."ehp_sn.providers"]
     components = "ehp_research.registration:register_components"
 
+[project.entry-points."ehp_sn.planning.providers"]
+    substrate = "ehp_research.registration:planning_composition_source"
+
 [project.urls]
     "Homepage"      = "https://github.com/BorjaEst/ehp-sn"
     "Bug Tracker"   = "https://github.com/BorjaEst/ehp-sn/issues"

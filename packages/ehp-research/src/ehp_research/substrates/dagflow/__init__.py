@@ -3,9 +3,9 @@
 Exposes the authoritative ``substrate:dagflow/v1`` definition object
 (``DAGFLOW_DEFINITION``) at the discovery level, and the producer-owned
 configuration surface (``resolve_configuration``, ``DagflowConfiguration``,
-``DagflowConfigurationError``) and planning capability
-(``DagflowPlanningCapability``) with their scientific owner. This package only
-re-exports them; it defines no semantics itself.
+``DagflowConfigurationError``) and planning resolver (``plan``) with
+their scientific owner. This package only re-exports them; it defines no
+semantics itself.
 """
 
 from __future__ import annotations
@@ -16,12 +16,12 @@ from .configuration import (
     resolve_configuration,
 )
 from .definition import DAGFLOW_DEFINITION
-from .planning import DagflowPlanningCapability
+from .planning import plan
 
 __all__ = [
     "DAGFLOW_DEFINITION",
     "DagflowConfiguration",
     "DagflowConfigurationError",
-    "DagflowPlanningCapability",
+    "plan",
     "resolve_configuration",
 ]

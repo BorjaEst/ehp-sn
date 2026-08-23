@@ -10,9 +10,9 @@ substrate names (``alpha``/``beta``) so no scientific metadata is duplicated
 here; authoritative Dagflow/Maze-ND facts live at their definition owners and
 in the root integration test.
 
-The production default backend (registry-backed) is exercised only for the
-controlled not-implemented path (``plan``/``build`` → exit 1), which does not
-depend on whether ``ehp_research`` is installed.
+The production default backend (registry-backed) is exercised for the controlled
+error path (``build`` → exit 1 for not-implemented; ``plan`` → exit 4 for an
+unknown target), which does not depend on whether ``ehp_research`` is installed.
 """
 
 from __future__ import annotations
@@ -31,10 +31,12 @@ from ehp_sn.cli._data_service import (
     DataOperationError,
     InspectResult,
     ListedSubstrate,
+    PlanResult,
     ShowResult,
     UnknownSubstrateError,
     ValidateResult,
 )
+from ehp_sn.planning import IdentityInput
 from typer.testing import CliRunner
 
 runner = CliRunner()
@@ -43,9 +45,9 @@ runner = CliRunner()
 class FakeDataService:
     """In-memory fake backend implementing the ``DataService`` seam.
 
-    ``plan`` raises :class:`DataNotImplementedError` to mirror the real backend
-    (planning has no result projection yet); the other lifecycle operations
-    return minimal presentation results so the CLI renderers are exercised.
+    ``plan`` returns a minimal real :class:`PlanResult` (a projection the CLI
+    renders); the other lifecycle operations return minimal presentation
+    results so the CLI renderers are exercised.
     """
 
     def __init__(self) -> None:
@@ -67,9 +69,17 @@ class FakeDataService:
             return ShowResult(ref=target, description="A synthetic alpha substrate.")
         raise UnknownSubstrateError(f"unknown substrate: {target}")
 
-    def plan(self, target: str, config: str | None) -> None:
+    def plan(self, target: str, config: str | None) -> PlanResult:
         self._record("plan", target, config)
-        raise DataNotImplementedError("data plan is not yet implemented by the framework backend.")
+        return PlanResult(
+            target=target,
+            output_contract="alpha-contract/v1",
+            resources=(),
+            identity=(
+                IdentityInput(name="variant", value="default"),
+                IdentityInput(name="seed", value=42),
+            ),
+        )
 
     def build(self, target: str, config: str | None) -> BuildResult:
         self._record("build", target, config)
@@ -189,15 +199,38 @@ def test_plan_requires_config() -> None:
     assert "--config" in result.stdout or "--config" in result.stderr
 
 
-def test_plan_delegates_then_reports_not_implemented(use_fake: FakeDataService) -> None:
-    """``plan`` has no result projection; a controlled failure is surfaced, not a fake success."""
+def test_plan_delegates_and_renders(use_fake: FakeDataService) -> None:
+    """``plan`` delegates through the seam and renders the projected result."""
     cfg = "config/data/example/family.toml"
     result = runner.invoke(app, ["data", "plan", "substrate:alpha/v1", "--config", cfg])
     assert use_fake.calls == [("plan", ("substrate:alpha/v1", cfg))]
-    assert result.exit_code == 1
-    assert "not yet implemented" in result.stderr
-    assert "planned" not in result.stdout
+    assert result.exit_code == 0
+    assert "target: substrate:alpha/v1" in result.stdout
+    assert "output: alpha-contract/v1" in result.stdout
+    assert "variant: default" in result.stdout
+    assert "seed: 42" in result.stdout
     assert "Traceback" not in result.stderr
+
+
+def test_plan_json_renders_semantic_fields(use_fake: FakeDataService) -> None:
+    """JSON ``plan`` output is a deterministic projection of semantic fields."""
+    cfg = "config/data/example/family.toml"
+    result = runner.invoke(
+        app, ["data", "plan", "substrate:alpha/v1", "--config", cfg, "--format", "json"]
+    )
+    assert result.exit_code == 0
+    import json
+
+    payload = json.loads(result.stdout)
+    assert payload["status"] == "success"
+    assert payload["action"] == "plan"
+    assert payload["result"]["target"] == "substrate:alpha/v1"
+    assert payload["result"]["output_contract"] == "alpha-contract/v1"
+    assert payload["result"]["resources"] == []
+    assert payload["result"]["identity"] == [
+        {"name": "variant", "value": "default"},
+        {"name": "seed", "value": 42},
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -280,14 +313,16 @@ def test_default_backend_build_is_controlled_not_implemented() -> None:
     assert "Traceback" not in result.stderr
 
 
-def test_default_backend_plan_is_controlled_not_implied_success() -> None:
-    # The real backend reports ``plan`` as not implemented; it never returns a
-    # fake ``"planned"`` success.
+def test_default_backend_plan_is_real_not_not_implemented() -> None:
+    # The real backend ``plan`` is no longer "not implemented": it is a real,
+    # registry-backed projection. With the production (possibly empty) registry
+    # and an absent config file, the operation surfaces as a controlled
+    # referenced-input failure (exit 4: unreadable config or unknown target),
+    # never a not-implemented message or a traceback.
     data_module._reset_service()
     result = runner.invoke(app, ["data", "plan", "substrate:alpha/v1", "--config", "x.toml"])
-    assert result.exit_code == 1
-    assert "not yet implemented" in result.stderr
-    assert "planned" not in result.stdout
+    assert result.exit_code == 4
+    assert "not yet implemented" not in result.stderr
     assert "Traceback" not in result.stderr
 
 

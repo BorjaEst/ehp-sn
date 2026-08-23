@@ -1,9 +1,11 @@
-"""Generic framework planning (Capability 6).
+"""Generic framework planning.
 
 This package owns the generic, framework-level planning surface: the narrow
-producer planning capability boundary, the immutable plan, logical resource
-requirements and their resolution, and the single planning orchestration
-function.
+typed producer planning operation, the producer planning composition, the
+immutable plan, logical resource requirements and their resolution, and the
+single planning orchestration function. Discovery of definitions is owned
+elsewhere (``ehp_sn.discovery``); this package composes the demonstrated
+producer planning operation with a registered definition independently of it.
 
 It is deliberately reusable and not data-specific: the immutable plan, resource
 requirement, and identity-input representations are generic framework contracts
@@ -14,7 +16,14 @@ and never branches on a substrate family (``ARCH-001``/``ARCH-003``).
 
 from __future__ import annotations
 
-from .capability import PlanningDeclaration, SubstratePlanningCapability
+from .capability import PlanningDeclaration, PlanningResolver
+from .composition import (
+    PROVIDER_ENTRY_POINT_GROUP,
+    SubstratePlanningComposition,
+    SubstratePlanningRegistration,
+    compose_planning_providers,
+    effective_planning_composition,
+)
 from .identity import IdentityInput
 from .orchestration import (
     MissingPlanningCapabilityError,
@@ -40,13 +49,18 @@ __all__ = [
     "IdentityInput",
     "MissingPlanningCapabilityError",
     "NotASubstrateError",
+    "PROVIDER_ENTRY_POINT_GROUP",
     "PlanningDeclaration",
     "PlanningError",
+    "PlanningResolver",
     "ProducerResolutionError",
     "ResolvedResource",
     "ResourceResolutionError",
     "ResourceRequirement",
     "ResourceResolver",
-    "SubstratePlanningCapability",
+    "SubstratePlanningComposition",
+    "SubstratePlanningRegistration",
+    "compose_planning_providers",
+    "effective_planning_composition",
     "plan_substrate",
 ]

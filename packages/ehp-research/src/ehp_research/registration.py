@@ -1,20 +1,21 @@
-"""Explicit provider integration point for research component definitions.
+"""Research package integration point for definitions and planning composition.
 
-This module is a *package integration point*, not a catalogue. Its only
-responsibility is to register authoritative research definition objects into a
-generic ``ehp_sn`` registry (the Capability-1 discovery mechanism):
+This module is the *package integration point* for ``ehp_research``. It owns two
+distinct actions that share bootstrap timing but remain separate concerns
+(``docs/invariants.md`` ARCH-001/ARCH-003):
 
-.. code-block:: text
-
-    authoritative definition objects
-                ↓
-    generic ehp_sn registry
+* **discovery installation** — registering authoritative research definition
+  objects into the generic ``ehp_sn`` discovery registry
+  (:func:`register_components`);
+* **planning composition** — exposing the demonstrated producer planning
+  operation bound to each authoritative definition, as planning registrations
+  (:func:`planning_registrations`).
 
 The provider manifest (``_COMPONENTS``) lists which definitions this package
-exposes in this phase — nothing more. It never redefines what a definition
-means and never duplicates a definition's metadata; the scientific facts live
-with each family's authoritative definition object (its ``ref``, description,
-and output contract).
+exposes. It never redefines what a definition means and never duplicates a
+definition's metadata; the scientific facts live with each family's
+authoritative definition object (its ``ref``, description, and output contract)
+and each family's planning resolver.
 
 Registration is explicit and side-effect free: importing ``ehp_research`` does
 not mutate any registry. Population happens only when a consumer calls
@@ -22,20 +23,28 @@ not mutate any registry. Population happens only when a consumer calls
 handling and duplicate detection are owned by the generic registry itself;
 this function deliberately does not re-implement them.
 
+The planning composition is built from :func:`planning_registrations` by an
+application bootstrap; it is independent of the discovery registry and is never
+stored there.
+
 See ``docs/invariants.md`` ARCH-001/ARCH-003 and the package README's
 "Registration and discovery" section.
 """
 
 from __future__ import annotations
 
-from ehp_sn.discovery import ComponentRegistry
+from collections.abc import Iterable
 
+from ehp_sn.discovery import ComponentRegistry
+from ehp_sn.planning import SubstratePlanningRegistration
+
+from .substrates import dagflow, maze_nd
 from .substrates.dagflow import DAGFLOW_DEFINITION
 from .substrates.maze_nd import MAZE_ND_DEFINITION
 
-#: Provider manifest for this capability: the authoritative Dagflow and Maze-ND
-#: definitions. DungeonGen and ObsField are intentionally not registered yet
-#: (phase control: they serve as later generality tests).
+#: Authoritative Dagflow and Maze-ND definitions admitted to discovery.
+#: DungeonGen and ObsField are intentionally not registered yet (phase control:
+#: they serve as later generality tests).
 _COMPONENTS = (
     DAGFLOW_DEFINITION,
     MAZE_ND_DEFINITION,
@@ -50,9 +59,42 @@ def register_components(registry: ComponentRegistry) -> None:
     of its own — the generic registry remains the authority, so registering the
     same canonical reference twice raises the generic
     :class:`DuplicateRegistrationError` (``ehp_sn.discovery``).
+
+    This function installs *only definitions* into discovery. It does not store
+    producer behavior; planning composition is exposed separately via
+    :func:`planning_registrations`.
     """
     for definition in _COMPONENTS:
         registry.register(definition)
 
 
-__all__ = ["register_components"]
+def planning_registrations() -> tuple[SubstratePlanningRegistration, ...]:
+    """Expose the producer planning operations bound to the authoritative definitions.
+
+    Each entry binds the exact authoritative definition object (identity
+    preserved with discovery) to its demonstrated :data:`PlanningResolver`
+    callable. These registrations are consumed by the framework-owned planning
+    composition ; they are separate from — and never stored in — the discovery
+    registry.
+    """
+    return (
+        SubstratePlanningRegistration(definition=DAGFLOW_DEFINITION, plan=dagflow.plan),
+        SubstratePlanningRegistration(definition=MAZE_ND_DEFINITION, plan=maze_nd.plan),
+    )
+
+
+def planning_composition_source() -> Iterable[SubstratePlanningRegistration]:
+    """Entry-point provider: the planning registrations for this package.
+
+    Advertised under the framework-owned ``ehp_sn.planning.providers`` group so
+    an application bootstrap can compose installed research planning without
+    ``ehp_sn`` importing this package by name.
+    """
+    return planning_registrations()
+
+
+__all__ = [
+    "planning_composition_source",
+    "planning_registrations",
+    "register_components",
+]

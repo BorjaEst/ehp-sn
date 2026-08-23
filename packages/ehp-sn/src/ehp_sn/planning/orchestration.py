@@ -1,31 +1,41 @@
-"""Generic substrate planning orchestration (Capability 6).
+"""Generic substrate planning orchestration.
 
 This module owns the single generic orchestration function that connects a
-registered substrate definition and its producer capability to the framework
-resource-resolution and immutable-plan machinery, for one planning operation:
+registered substrate definition and its producer planning operation (from the
+injected :class:`~ehp_sn.planning.composition.SubstratePlanningComposition`) to
+the framework resource-resolution and immutable-plan machinery, for one planning
+operation:
 
 .. code-block:: text
 
-    registered substrate definition
-            +
+    registered substrate definition      (discovery registry)
+                +
         loaded configuration document
-            ↓
-        producer capability (plan)
-            ↓
+                +
+        planning composition            (injected independently)
+                ↓
+        producer planning resolver
+                ↓
         producer-declared planning inputs
-            ↓
+                ↓
         framework resource resolution
-            ↓
+                ↓
         framework identity-input incorporation
-            ↓
-        existing immutable framework plan
-            ↓
+                ↓
+        immutable framework plan
+                ↓
         STOP
 
+Discovery and planning composition are separate concerns: the registry supplies
+only the authoritative definition; the composition supplies the producer's
+demonstrated planning operation. Both are injected by the caller; the planner
+never retrieves producer behavior from the discovery registry.
+
 :func:`plan_substrate` is a single function, not a service class. It is usable
-independently of the CLI (a Python caller passes the registry, target, document,
-and resource resolver), which matches the framework's Python/CLI equivalence
-model. It must remain the *only* way a data build is planned.
+independently of the CLI (a Python caller passes the registry, the planning
+composition, target, document, and resource resolver), which matches the
+framework's Python/CLI equivalence model. It must remain the *only* way a data
+build is planned.
 
 The orchestration is pure resolution/construction relative to the artifact
 lifecycle: it opens no TOML file, interprets no producer configuration field,
@@ -42,7 +52,8 @@ from ehp_sn.configuration import LoadedConfiguration
 from ehp_sn.discovery import ComponentRegistry
 from ehp_sn.experiments import ComponentRef
 
-from .capability import SubstratePlanningCapability
+from .capability import PlanningDeclaration, PlanningResolver
+from .composition import SubstratePlanningComposition
 from .plan import ExecutionPlan
 from .resources import ResolvedResource, ResourceResolver
 
@@ -54,15 +65,15 @@ class PlanningError(Exception):
     """A controlled framework planning failure.
 
     Raised when planning cannot construct an immutable plan: the target is not
-    a registered substrate, no planning capability is registered for it, a
-    registered producer cannot resolve the document into a declaration, or a
-    required resource cannot be bound. It is a framework-domain error, not a
-    CLI category; the CLI maps it at its own layer.
+    a registered substrate, no planning resolver is registered for it in the
+    injected composition, a producer cannot resolve the document into a
+    declaration, or a required resource cannot be bound. It is a
+    framework-domain error, not a CLI category; the CLI maps it at its own layer.
     """
 
 
 class MissingPlanningCapabilityError(PlanningError):
-    """The target definition has no registered planning capability."""
+    """The target definition has no planning resolver in the injected composition."""
 
 
 class NotASubstrateError(PlanningError):
@@ -70,16 +81,15 @@ class NotASubstrateError(PlanningError):
 
 
 class ProducerResolutionError(PlanningError):
-    """A registered producer could not resolve the document into a plan declaration.
+    """A producer could not resolve the document into a plan declaration.
 
-    Raised when a registered producer's
-    :meth:`~ehp_sn.planning.capability.SubstratePlanningCapability.plan` fails
-    while interpreting a loaded configuration into a generic planning
-    declaration (for example a producer-semantic configuration invariant
-    violation). The framework does not interpret producer error types; it only
-    translates the boundary failure into a controlled planning error so the
-    CLI boundary can map it without knowing any producer class. The original
-    producer exception is preserved as this error's cause for diagnostics.
+    Raised when a producer's planning resolver fails while interpreting a loaded
+    configuration into a generic planning declaration (for example a
+    producer-semantic configuration invariant violation). The framework does not
+    interpret producer error types; it only translates the boundary failure into
+    a controlled planning error so the CLI boundary can map it without knowing
+    any producer class. The original producer exception is preserved as this
+    error's cause for diagnostics.
     """
 
 
@@ -100,6 +110,7 @@ class _SubstrateDefinition(Protocol):
 
 def plan_substrate(
     registry: ComponentRegistry,
+    planning_composition: SubstratePlanningComposition,
     target: str | ComponentRef,
     document: LoadedConfiguration,
     *,
@@ -107,10 +118,12 @@ def plan_substrate(
 ) -> ExecutionPlan:
     """Plan one substrate build from a registered definition and a loaded document.
 
-    ``registry`` supplies the authoritative registered definition and its
-    registered planning capability. ``document`` is the generic loaded
-    configuration (Capability 4) passed opaquely to the producer capability. The
-    producer capability resolves it (Capability 5) and returns a generic
+    ``registry`` supplies the authoritative registered definition (resolved by
+    canonical reference). ``planning_composition`` supplies the producer's
+    demonstrated planning operation, selected by definition identity from the
+    resolved definition object; it is injected independently of discovery.
+    ``document`` is the generic loaded configuration passed opaquely to the
+    producer planning resolver. The resolver returns a generic
     :class:`~ehp_sn.planning.capability.PlanningDeclaration`; this function then
     binds the declared resource requirements via ``resource_resolver`` and
     returns an immutable :class:`ExecutionPlan`.
@@ -120,10 +133,11 @@ def plan_substrate(
     come from the resolved configuration via the producer declaration.
 
     Raises :class:`NotASubstrateError` when ``target`` is registered but is not
-    a substrate, :class:`MissingPlanningCapabilityError` when the target has no
-    registered planning capability, :class:`ProducerResolutionError` when the
-    registered producer fails to resolve the document into a declaration, and
-    :class:`PlanningError` propagation from resource resolution.
+    a substrate, :class:`MissingPlanningCapabilityError` when the injected
+    composition has no resolver for the target definition,
+    :class:`ProducerResolutionError` when the producer resolver fails to resolve
+    the document into a declaration, and :class:`PlanningError` propagation from
+    resource resolution.
 
     This function performs no producer execution and no artifact mutation.
     """
@@ -136,25 +150,13 @@ def plan_substrate(
             f"for reference {ref.canonical!r}"
         )
 
-    capability = registry.capability(ref)
-    if capability is None:
+    plan: PlanningResolver | None = planning_composition.resolver(definition)
+    if plan is None:
         raise MissingPlanningCapabilityError(
-            f"no planning capability registered for definition {ref.canonical!r}"
-        )
-    if not isinstance(capability, SubstratePlanningCapability):
-        raise MissingPlanningCapabilityError(
-            f"registered capability for {ref.canonical!r} is not a SubstratePlanningCapability"
+            f"no planning resolver in the composition for definition {ref.canonical!r}"
         )
 
-    try:
-        declaration = capability.plan(document)
-    except PlanningError:
-        raise
-    except Exception as exc:
-        raise ProducerResolutionError(
-            f"producer planning capability for {ref.canonical!r} failed to "
-            "resolve the document into a planning declaration"
-        ) from exc
+    declaration = _resolve_declaration(plan, ref, document)
 
     resources: tuple[ResolvedResource, ...] = tuple(
         resource_resolver.resolve(requirement) for requirement in declaration.resources
@@ -168,6 +170,30 @@ def plan_substrate(
         resources=resources,
         identity_inputs=declaration.identity_inputs,
     )
+
+
+def _resolve_declaration(
+    plan: PlanningResolver,
+    ref: ComponentRef,
+    document: LoadedConfiguration,
+) -> PlanningDeclaration:
+    """Invoke ``plan`` and normalize any failure to a producer-resolution error.
+
+    The framework does not interpret producer error types; any non-planning
+    exception from the producer resolution is translated into a controlled
+    :class:`ProducerResolutionError` so the CLI boundary can map it without
+    knowing any producer class. The original exception is preserved as the
+    cause for diagnostics.
+    """
+    try:
+        return plan(document)
+    except PlanningError:
+        raise
+    except Exception as exc:
+        raise ProducerResolutionError(
+            f"producer planning resolver for {ref.canonical!r} failed to "
+            "resolve the document into a planning declaration"
+        ) from exc
 
 
 __all__ = [

@@ -19,7 +19,7 @@ from __future__ import annotations
 import pathlib
 
 import pytest
-from ehp_research.registration import register_components
+from ehp_research.registration import planning_registrations, register_components
 from ehp_research.substrates.dagflow import DAGFLOW_DEFINITION
 from ehp_research.substrates.maze_nd import MAZE_ND_DEFINITION
 from ehp_sn.discovery import (
@@ -28,6 +28,7 @@ from ehp_sn.discovery import (
     DuplicateRegistrationError,
 )
 from ehp_sn.experiments import ComponentRef
+from ehp_sn.planning import SubstratePlanningComposition
 
 
 def fresh_registry() -> ComponentRegistry:
@@ -127,6 +128,27 @@ def test_enumeration_and_resolution_agree_on_the_same_objects() -> None:
     by_ref = {definition.ref.canonical: definition for definition in registry.iter()}
     assert by_ref["substrate:dagflow/v1"] is DAGFLOW_DEFINITION
     assert by_ref["substrate:maze-nd/v1"] is MAZE_ND_DEFINITION
+
+
+# ---------------------------------------------------------------------------
+# Planning composition (separate concern from discovery)
+# ---------------------------------------------------------------------------
+
+
+def test_planning_registrations_bind_each_definition_to_its_resolver() -> None:
+    """The planning composition associates each definition with its resolver by identity.
+
+    Discovery is not extended to own producer behavior; the planning
+    composition selects each definition's resolver by the authoritative object
+    identity, which matches what the registry resolves.
+    """
+    registry = fresh_registry()
+    composition = SubstratePlanningComposition(planning_registrations())
+
+    # The composition matches the exact authoritative definitions by identity.
+    assert composition.resolver(registry.resolve("substrate:dagflow/v1")) is not None
+    assert composition.resolver(registry.resolve("substrate:maze-nd/v1")) is not None
+    assert len(composition) == 2
 
 
 # ---------------------------------------------------------------------------

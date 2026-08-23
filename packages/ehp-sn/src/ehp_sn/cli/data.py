@@ -40,6 +40,7 @@ from ehp_sn.cli._data_service import (
 )
 from ehp_sn.cli.data_adapter import FrameworkDataService
 from ehp_sn.discovery import effective_registry
+from ehp_sn.planning import effective_planning_composition
 
 app = typer.Typer(
     help="Generate, validate, and inspect substrate artifacts.",
@@ -121,7 +122,10 @@ def _get_service() -> DataService:
     if _override_service is not None:
         return _override_service
     if _default_service_cache is None:
-        _default_service_cache = FrameworkDataService(effective_registry())
+        _default_service_cache = FrameworkDataService(
+            effective_registry(),
+            planning_composition=effective_planning_composition(),
+        )
     return _default_service_cache
 
 
@@ -210,16 +214,31 @@ def _emit_plan(result: PlanResult, fmt: str) -> None:
                     "warnings": [],
                     "result": {
                         "target": result.target,
-                        "config": result.config,
-                        "status": result.status,
+                        "output_contract": result.output_contract,
+                        "resources": [
+                            {
+                                "requirement_ref": r.requirement_ref,
+                                "resource_ref": r.resource_ref,
+                                "resolution_source": r.resolution_source,
+                            }
+                            for r in result.resources
+                        ],
+                        "identity": [{"name": i.name, "value": i.value} for i in result.identity],
                     },
                 }
             )
         )
         return
     typer.echo(f"target: {result.target}")
-    typer.echo(f"config: {result.config or '(default)'}")
-    typer.echo(f"status: {result.status}")
+    typer.echo(f"output: {result.output_contract}")
+    if result.resources:
+        typer.echo("resources:")
+        for r in result.resources:
+            typer.echo(f"  {r.requirement_ref}: {r.resource_ref} ({r.resolution_source})")
+    if result.identity:
+        typer.echo("identity-inputs:")
+        for i in result.identity:
+            typer.echo(f"  {i.name}: {i.value}")
 
 
 def _emit_build(result: BuildResult, fmt: str) -> None:

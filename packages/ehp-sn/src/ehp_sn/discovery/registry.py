@@ -1,11 +1,17 @@
 """Generic framework component registry.
 
 A ``ComponentRegistry`` is the single generic, deterministic registration and
-resolution authority for framework component definitions. It stores arbitrary
+resolution authority for **discoverable component definitions**. It stores
 definitions keyed by their canonical ``ComponentRef``, enumerates them by
 component kind, and resolves the original authoritative definition object.
 
-Capability boundary (``docs/invariants.md`` ARCH-003):
+The registry indexes authoritative discoverable definitions by canonical
+framework reference. It does **not** own producer execution, configuration
+resolution, or any lifecycle behavior: those belong to the concrete component's
+own operation and are composed by the layer that needs them (for example the
+planning composition), not stored here.
+
+Registration boundary (``docs/invariants.md`` ARCH-003):
 
 * registration uses canonical component references;
 * catalogue semantics do not depend on registration order;
@@ -13,11 +19,12 @@ Capability boundary (``docs/invariants.md`` ARCH-003):
 
 This module contains no scientific semantics. It never imports ``ehp_research``
 and never branches on a component family or kind beyond treating ``kind`` as an
-opaque grouping key.
+opaque grouping key. It is not a plugin container, service locator, or generic
+behavior dictionary.
 
 No provider abstraction, plugin architecture, or package-loading mechanism
 lives here: how installed definitions populate an application registry is a
-separate capability. The primitive capability is ``register(definition)``.
+separate capability. The primitive operation is ``register(definition)``.
 """
 
 from __future__ import annotations
@@ -94,6 +101,11 @@ class _Entry:
 
     Bundles a registered definition with its canonical key and kind so both
     deterministic enumeration and identity-preserving resolution are cheap.
+
+    An entry holds only discoverable component identity — nothing about how the
+    component is configured, planned, built, or executed. Producer behavior is
+    composed externally (for example by the planning composition) and injected
+    into consumers independently of this registry.
     """
 
     kind: str

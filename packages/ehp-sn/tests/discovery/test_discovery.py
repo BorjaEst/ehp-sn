@@ -242,3 +242,32 @@ def test_registry_works_with_runtime_protocol_check() -> None:
     assert isinstance(definition, DiscoverableDefinition)
     registry.register(definition)
     assert registry.resolve("substrate:synthetic/v1") is definition
+
+
+# ---------------------------------------------------------------------------
+# Definition-only authority
+#
+# The registry owns discoverable definitions, not behavior. Registration has no
+# behavioral parameter, and the registry exposes no capability/resolver/
+# behavior lookup. Producer planning is composed outside discovery.
+# ---------------------------------------------------------------------------
+
+
+def test_registry_has_no_behavioral_registration_parameter() -> None:
+    """``register`` accepts only a definition — no capability/resolver argument.
+
+    Guards the invariant that discovery is definition-only: behavior is
+    associated through the planning composition, never on the registry entry.
+    """
+    signature = ComponentRegistry.register.__annotations__
+    # Only ``definition`` (plus ``self``/return) is declared; no ``capability``,
+    # ``behavior``, ``resolver``, ``provider``, or ``metadata`` parameter exists.
+    declared = {name for name in signature if name not in {"return"}}
+    assert declared <= {"definition"}
+
+    # No behavioral lookup methods are exposed on the registry.
+    assert not hasattr(ComponentRegistry, "capability")
+    assert not hasattr(ComponentRegistry, "register_capability")
+    assert not hasattr(ComponentRegistry, "planning_capability")
+    assert not hasattr(ComponentRegistry, "register_planning_capability")
+    assert not hasattr(ComponentRegistry, "has_capability")

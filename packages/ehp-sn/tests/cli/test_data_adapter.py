@@ -17,10 +17,24 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import pytest
-from ehp_sn.cli._data_service import DataNotImplementedError, UnknownSubstrateError
+from ehp_sn.cli._data_service import (
+    ConfigurationInvalidError,
+    ConfigurationUnreadableError,
+    DataNotImplementedError,
+    UnknownSubstrateError,
+)
 from ehp_sn.cli.data_adapter import FrameworkDataService
+from ehp_sn.configuration import LoadedConfiguration
 from ehp_sn.discovery import ComponentRegistry
 from ehp_sn.experiments import ComponentRef
+from ehp_sn.planning import (
+    IdentityInput,
+    PlanningDeclaration,
+    PlanningResolver,
+    ResourceRequirement,
+    SubstratePlanningComposition,
+    SubstratePlanningRegistration,
+)
 
 
 @dataclass(frozen=True)
@@ -49,9 +63,16 @@ def _substrate(name: str, output: str, description: str = "synthetic substrate")
     )
 
 
-def _service(registry: ComponentRegistry | None = None) -> FrameworkDataService:
+def _service(
+    registry: ComponentRegistry | None = None,
+    planning_composition: SubstratePlanningComposition | None = None,
+) -> FrameworkDataService:
     registry = registry if registry is not None else ComponentRegistry()
-    return FrameworkDataService(registry)
+    planning_composition = planning_composition or SubstratePlanningComposition(())
+    return FrameworkDataService(
+        registry,
+        planning_composition=planning_composition,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -160,14 +181,186 @@ def test_show_wrong_component_kind_is_rejected() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Phase boundary: lifecycle operations are explicitly not implemented
+# plan: delegates to the generic planning orchestration, then projects
+# ---------------------------------------------------------------------------
+
+
+def _declaring_plan(
+    resources: tuple[ResourceRequirement, ...] = (),
+    identity: tuple[IdentityInput, ...] = (),
+) -> PlanningResolver:
+    """A synthetic planning resolver producing a fixed declaration."""
+
+    def plan(document: LoadedConfiguration) -> PlanningDeclaration:
+        return PlanningDeclaration(
+            configuration={"synthetic": True},
+            resources=resources,
+            identity_inputs=identity,
+        )
+
+    return plan
+
+
+@pytest.fixture()
+def plan_registry(tmp_path):
+    """A registry with one synthetic substrate + planning composition, and a config path.
+
+    Returns ``(service, config_path, definition)`` so tests can call
+    ``service.plan`` through the real generic loading + planning path with
+    synthetic (non-research) components.
+    """
+    from ehp_sn.cli.data_adapter import FrameworkDataService
+
+    registry = ComponentRegistry()
+    definition = _substrate("alpha", "alpha-contract/v1", "synthetic substrate")
+    registry.register(definition)
+
+    composition = SubstratePlanningComposition(
+        (SubstratePlanningRegistration(definition=definition, plan=_declaring_plan()),)
+    )
+
+    config_path = tmp_path / "config.toml"
+    config_path.write_text('[substrate]\nvariant = "default"\n', encoding="utf-8")
+
+    service = FrameworkDataService(registry, planning_composition=composition)
+    return service, config_path, definition
+
+
+def test_plan_requires_config(plan_registry) -> None:
+    service, _, _ = plan_registry
+
+    with pytest.raises(ConfigurationInvalidError):
+        service.plan("substrate:alpha/v1", None)
+
+
+def test_plan_projects_authoritative_plan(plan_registry) -> None:
+    service, config_path, definition = plan_registry
+
+    # Re-compose with a source requirement + identity to check projection width.
+    registry = ComponentRegistry()
+    registry.register(definition)
+    from ehp_sn.planning import CARDINALITY_ONE
+
+    composition = SubstratePlanningComposition(
+        (
+            SubstratePlanningRegistration(
+                definition=definition,
+                plan=_declaring_plan(
+                    resources=(
+                        ResourceRequirement(
+                            ref="requirement:substrate/alpha-source/v1",
+                            resource_kind="raw-source",
+                            accepted_schema_ids=("raw/v1",),
+                            cardinality=CARDINALITY_ONE,
+                            definition_resource_ref="UNRESOLVED-SYNTHETIC",
+                            description="synthetic source",
+                        ),
+                    ),
+                    identity=(
+                        IdentityInput(name="variant", value="default"),
+                        IdentityInput(name="seed", value=42),
+                    ),
+                ),
+            ),
+        )
+    )
+    service = FrameworkDataService(registry, planning_composition=composition)
+
+    result = service.plan("substrate:alpha/v1", str(config_path))
+
+    # Projection comes from the authoritative plan: target + output contract
+    # derived from the registered definition; bound resource + identity exactly
+    # as planned.
+    assert result.target == "substrate:alpha/v1"
+    assert result.output_contract == "alpha-contract/v1"
+    assert len(result.resources) == 1
+    assert result.resources[0].resource_ref == "UNRESOLVED-SYNTHETIC"
+    assert result.resources[0].resolution_source == "definition"
+    assert [(i.name, i.value) for i in result.identity] == [
+        ("variant", "default"),
+        ("seed", 42),
+    ]
+
+
+def test_plan_does_not_serialize_producer_configuration(plan_registry) -> None:
+    """The projection never exposes the opaque producer configuration object."""
+    service, config_path, _ = plan_registry
+
+    result = service.plan("substrate:alpha/v1", str(config_path))
+
+    # The opaque configuration is deliberately not part of the CLI projection.
+    assert not hasattr(result, "configuration")
+
+
+def test_plan_unknown_substrate_is_translated(plan_registry) -> None:
+    service, config_path, _ = plan_registry
+
+    with pytest.raises(UnknownSubstrateError):
+        service.plan("substrate:not-registered/v1", str(config_path))
+
+
+def test_plan_missing_resolver_is_unknown_substrate(plan_registry) -> None:
+    service, config_path, definition = plan_registry
+    # A target registered in discovery but absent from the planning composition
+    # cannot be planned; it surfaces as an unknown-substrate CLI category.
+    registry = ComponentRegistry()
+    registry.register(definition)
+    service = FrameworkDataService(
+        registry,
+        planning_composition=SubstratePlanningComposition(()),
+    )
+    with pytest.raises(UnknownSubstrateError):
+        service.plan("substrate:alpha/v1", str(config_path))
+
+
+def test_plan_unreadable_config_is_configuration_unreadable(plan_registry, tmp_path) -> None:
+    service, _, _ = plan_registry
+    missing = tmp_path / "missing.toml"
+
+    with pytest.raises(ConfigurationUnreadableError):
+        service.plan("substrate:alpha/v1", str(missing))
+
+
+def test_plan_malformed_config_is_configuration_invalid(plan_registry) -> None:
+    service, config_path, _ = plan_registry
+    config_path.write_text("this is [ not valid toml", encoding="utf-8")
+
+    with pytest.raises(ConfigurationInvalidError):
+        service.plan("substrate:alpha/v1", str(config_path))
+
+
+def test_plan_producer_failure_is_configuration_invalid(plan_registry) -> None:
+    """A generic producer-resolution failure maps to the invalid-configuration category.
+
+    The synthetic resolver raises a generic exception; the framework planning
+    boundary normalizes it into :class:`ProducerResolutionError`, and the
+    adapter maps that generic error — not any producer-specific class — to
+    ``ConfigurationInvalidError``.
+    """
+    service, config_path, definition = plan_registry
+    registry = ComponentRegistry()
+    registry.register(definition)
+
+    def exploding(document: LoadedConfiguration) -> PlanningDeclaration:
+        raise ValueError("producer semantics rejected the configuration")
+
+    composition = SubstratePlanningComposition(
+        (SubstratePlanningRegistration(definition=definition, plan=exploding),)
+    )
+    service = FrameworkDataService(registry, planning_composition=composition)
+
+    with pytest.raises(ConfigurationInvalidError):
+        service.plan("substrate:alpha/v1", str(config_path))
+
+
+# ---------------------------------------------------------------------------
+# Phase boundary: remaining lifecycle operations are explicitly not implemented
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
     ("op", "args"),
     [
-        ("plan", ("substrate:alpha/v1", "config.toml")),
         ("build", ("substrate:alpha/v1", "config.toml")),
         ("validate", ("data/interim/alpha/default/v1", "full")),
         ("inspect", ("data/interim/alpha/default/v1", 0)),
@@ -176,8 +369,9 @@ def test_show_wrong_component_kind_is_rejected() -> None:
 def test_lifecycle_operations_are_not_implemented(op: str, args: tuple[str, ...]) -> None:
     """The unimplemented lifecycle operations fail in one compact parameterized test.
 
-    Their internal semantics are not tested because they do not exist yet; the
-    test only pins the phase boundary (they must raise rather than fake success).
+    ``plan`` is now real and is intentionally excluded; only the operations that
+    remain for later capabilities (``build``/``validate``/``inspect``) must still
+    raise rather than fake success.
     """
     service = _service(ComponentRegistry())
 

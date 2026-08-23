@@ -26,6 +26,7 @@ from ehp_sn.cli import app
 from ehp_sn.cli._data_service import UnknownSubstrateError
 from ehp_sn.cli.data_adapter import FrameworkDataService
 from ehp_sn.discovery import effective_registry
+from ehp_sn.planning import effective_planning_composition
 from typer.testing import CliRunner
 
 runner = CliRunner()
@@ -33,8 +34,11 @@ runner = CliRunner()
 
 @pytest.fixture()
 def service() -> FrameworkDataService:
-    """The production composition: effective registry over FrameworkDataService."""
-    return FrameworkDataService(effective_registry())
+    """The production service: effective registry + composed planning resolvers."""
+    return FrameworkDataService(
+        effective_registry(),
+        planning_composition=effective_planning_composition(),
+    )
 
 
 # ---------------------------------------------------------------------------

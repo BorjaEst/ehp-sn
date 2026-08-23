@@ -1,15 +1,14 @@
-"""Producer-owned Maze-ND planning declaration capability (Capability 6).
+"""Producer-owned Maze-ND planning operation.
 
-This module owns the Maze-ND side of the demonstrated planning boundary: it
-exposes the registered ``substrate:maze-nd/v1`` definition's planning capability
-to the generic framework orchestration, without the framework importing this
-package or reading any Maze-ND configuration field.
+This module owns the Maze-ND side of the demonstrated planning boundary: the
+typed planning resolver bound to the registered ``substrate:maze-nd/v1``
+definition. It is supplied to the framework as a :data:`PlanningResolver`
+callable via the research planning composition; the framework never imports this
+package or reads any Maze-ND configuration field.
 
-:class:`MazeNDPlanningCapability` implements the framework-owned
-:class:`~ehp_sn.planning.SubstratePlanningCapability` protocol. Its
-:meth:`~MazeNDPlanningCapability.plan` resolves a generic loaded configuration
-through :func:`ehp_research.substrates.maze_nd.configuration.resolve_configuration`
-(Capability 5) and declares the generic planning inputs:
+:data:`plan` resolves a generic loaded configuration through
+:func:`ehp_research.substrates.maze_nd.configuration.resolve_configuration`
+and declares the generic planning inputs:
 
 * the effective :class:`MazeNDConfiguration` (opaque to the framework);
 * one generic :class:`~ehp_sn.planning.ResourceRequirement` expressing the
@@ -34,7 +33,6 @@ from ehp_sn.planning import (
     IdentityInput,
     PlanningDeclaration,
     ResourceRequirement,
-    SubstratePlanningCapability,
 )
 
 from .configuration import resolve_configuration
@@ -61,43 +59,44 @@ _IDENTITY_ORDER: tuple[str, ...] = (
 )
 
 
-class MazeNDPlanningCapability(SubstratePlanningCapability):
-    """Planning capability for the registered ``substrate:maze-nd/v1`` definition."""
+def plan(document: LoadedConfiguration) -> PlanningDeclaration:
+    """Resolve ``document`` into a Maze-ND configuration and declare planning inputs.
 
-    def plan(self, document: LoadedConfiguration) -> PlanningDeclaration:
-        """Resolve ``document`` into a Maze-ND configuration and declare planning inputs."""
-        configuration = resolve_configuration(document)
+    This is the typed :data:`~ehp_sn.planning.PlanningResolver` for the
+    registered ``substrate:maze-nd/v1`` definition.
+    """
+    configuration = resolve_configuration(document)
 
-        source_requirement = ResourceRequirement(
-            ref=_SOURCE_REQUIREMENT_REF,
-            resource_kind=_SOURCE_RESOURCE_KIND,
-            accepted_schema_ids=(configuration.source_schema,),
-            cardinality=CARDINALITY_ONE,
-            definition_resource_ref=configuration.source_reference,
-            description="immutable upstream source for Maze-ND raster-topology extraction",
-        )
+    source_requirement = ResourceRequirement(
+        ref=_SOURCE_REQUIREMENT_REF,
+        resource_kind=_SOURCE_RESOURCE_KIND,
+        accepted_schema_ids=(configuration.source_schema,),
+        cardinality=CARDINALITY_ONE,
+        definition_resource_ref=configuration.source_reference,
+        description="immutable upstream source for Maze-ND raster-topology extraction",
+    )
 
-        identity_values: dict[str, object] = {
-            "specification_reference": "maze-nd/v1",
-            "variant": configuration.variant,
-            "source_reference": configuration.source_reference,
-            "source_fingerprint": configuration.source_fingerprint,
-            "source_schema": configuration.source_schema,
-            "source_selection_policy": configuration.source_selection_policy,
-            "selection_before_dedup": configuration.selection_before_dedup,
-            "normalization_policy": configuration.normalization_policy,
-            "connectivity_policy": configuration.connectivity_policy,
-            "deduplication_policy": configuration.deduplication_policy,
-        }
-        identity_inputs = tuple(
-            IdentityInput(name=name, value=identity_values[name]) for name in _IDENTITY_ORDER
-        )
+    identity_values: dict[str, object] = {
+        "specification_reference": "maze-nd/v1",
+        "variant": configuration.variant,
+        "source_reference": configuration.source_reference,
+        "source_fingerprint": configuration.source_fingerprint,
+        "source_schema": configuration.source_schema,
+        "source_selection_policy": configuration.source_selection_policy,
+        "selection_before_dedup": configuration.selection_before_dedup,
+        "normalization_policy": configuration.normalization_policy,
+        "connectivity_policy": configuration.connectivity_policy,
+        "deduplication_policy": configuration.deduplication_policy,
+    }
+    identity_inputs = tuple(
+        IdentityInput(name=name, value=identity_values[name]) for name in _IDENTITY_ORDER
+    )
 
-        return PlanningDeclaration(
-            configuration=configuration,
-            resources=(source_requirement,),
-            identity_inputs=identity_inputs,
-        )
+    return PlanningDeclaration(
+        configuration=configuration,
+        resources=(source_requirement,),
+        identity_inputs=identity_inputs,
+    )
 
 
-__all__ = ["MazeNDPlanningCapability"]
+__all__ = ["plan"]

@@ -1,6 +1,6 @@
-"""Generic producer planning capability (Capability 6).
+"""Generic producer planning operation and its declaration.
 
-This module defines the narrow, demonstrated provider boundary that lets
+This module defines the narrow, demonstrated producer operation that lets
 ``ehp_sn`` orchestrate planning for a registered substrate without ever
 importing a concrete research package or inspecting a producer configuration
 field (``ARCH-001`` / no research leakage).
@@ -16,13 +16,13 @@ two completed producer-configuration implementations) is:
             ↓
     generic PlanningDeclaration
 
-A :class:`SubstratePlanningCapability` is the framework-owned protocol a
-producer objects to. It exposes exactly one operation at the planning boundary:
-:meth:`~SubstratePlanningCapability.plan`. It deliberately does **not** expose
-build, validate, inspect, execute, or any lifecycle verb — later capabilities
-may add those as *independent* capabilities rather than widening this one, so
-no monolithic provider interface is assumed (see ``docs/invariants.md`` ARCH-007
-and the Capability-6 design notes).
+It is represented by the single typed callable :data:`PlanningResolver`
+(``Callable[[LoadedConfiguration], PlanningDeclaration]``). A producer supplies
+one such callable per registered definition; the planning composition binds it
+to the authoritative definition object. No protocol object, capability slot, or
+lifecycle verb is introduced: planning needs exactly this one resolution and
+declaration operation, and nothing more (no build / validate / inspect /
+execute reservation).
 
 The producer owns:
 
@@ -33,7 +33,7 @@ The producer owns:
 
 The framework owns:
 
-* whether a planning capability is present for a registered definition;
+* whether a planning resolver is present for a registered definition;
 * HOW resource requirements are bound and identity inputs are canonicalized and
   incorporated into the immutable plan.
 
@@ -42,8 +42,8 @@ Nothing here is substrate-family specific; ``ehp_sn`` never branches on a family
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Protocol, runtime_checkable
 
 from ehp_sn.configuration import LoadedConfiguration
 
@@ -55,11 +55,11 @@ from .resources import ResourceRequirement
 class PlanningDeclaration:
     """A generic declaration of what the framework must resolve for one build.
 
-    Produced by a producer capability and consumed by the framework planning
-    orchestration. It carries the producer's effective scientific configuration
-    (opaque to the framework) together with the logical resource requirements
-    and identity-bearing scientific inputs that the framework must bind and
-    incorporate.
+    Produced by a producer planning resolver and consumed by the framework
+    planning orchestration. It carries the producer's effective scientific
+    configuration (opaque to the framework) together with the logical resource
+    requirements and identity-bearing scientific inputs that the framework must
+    bind and incorporate.
 
     ``configuration`` is the immutable, fully effective producer configuration
     (for example a resolved substrate-family configuration). The framework
@@ -80,29 +80,14 @@ class PlanningDeclaration:
     identity_inputs: tuple[IdentityInput, ...] = field(default_factory=tuple)
 
 
-@runtime_checkable
-class SubstratePlanningCapability(Protocol):
-    """Framework-owned boundary for a registered substrate's planning operation.
-
-    A producer object (in ``ehp_research``) implements this protocol so the
-    framework can plan for the definition it registers, without the framework
-    importing the producer package by name.
-
-    :meth:`plan` interprets a generic :class:`~ehp_sn.configuration.LoadedConfiguration`
-    document (Capability 4) into a generic :class:`PlanningDeclaration`. It is
-    a pure resolution/declaration operation: it performs no file loading beyond
-    what the loader already did, no resource binding, no generation, and no
-    artifact mutation.
-    """
-
-    def plan(self, document: LoadedConfiguration) -> PlanningDeclaration:
-        """Resolve ``document`` and declare the generic planning inputs.
-
-        Returns the producer's effective configuration, required logical
-        resources, and identity-bearing scientific inputs as a generic
-        :class:`PlanningDeclaration`.
-        """
-        ...
+#: The typed producer planning operation bound to a registered definition.
+#:
+#: It interprets a generic :class:`~ehp_sn.configuration.LoadedConfiguration`
+#: document into a generic :class:`PlanningDeclaration`, performing producer
+#: configuration resolution and planning-input declaration. The behavioral
+#: contract is typed (a callable with an exact signature); only the producer
+#: result it returns is deliberately opaque to the framework.
+type PlanningResolver = Callable[[LoadedConfiguration], PlanningDeclaration]
 
 
-__all__ = ["PlanningDeclaration", "SubstratePlanningCapability"]
+__all__ = ["PlanningDeclaration", "PlanningResolver"]
