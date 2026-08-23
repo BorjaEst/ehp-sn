@@ -217,7 +217,7 @@ framework (ehp_sn)
     resolves generic resource requirements to the concrete
     bindings the plan needs,
     applies the plan-identity rule from
-    Identity § "Plan identity",
+    Identity § "PlanId",
     and constructs the immutable authoritative plan
 ```
 
@@ -227,7 +227,7 @@ Producer-specific semantics remain downstream and are owned by the corresponding
 
 ### Identity handoff
 
-Resolution supplies canonical resolved inputs and BOUND resource records to the identity mechanism defined by [Identity](../../framework/identity.md) § "Plan identity".
+Resolution supplies canonical resolved inputs and BOUND resource records to the identity mechanism defined by [Identity](../../framework/identity.md) § "PlanId".
 Source file paths, CLI positions, and frontend spelling are excluded.
 
 Resolution does not redefine which fields contribute to identity.
@@ -246,7 +246,7 @@ The implemented framework surface covers:
 
 - producer-owned planning input resolution for the selected authoritative definition;
 - resolution of declared resource requirements to exact bound resources;
-- application of the plan-identity rule from [Identity](../../framework/identity.md) § "Plan identity";
+- application of the plan-identity rule from [Identity](../../framework/identity.md) § "PlanId";
 - construction of the immutable framework plan.
 
 The implementation is deliberately limited to the framework surface demonstrated by current substrate planning.
@@ -266,6 +266,33 @@ authored request
     → execution of the same plan
 ```
 
+### Plan-to-validation binding
+
+A validation report is bound to a plan through the framework-derived `PlanId` defined by [Identity](../../framework/identity.md) § "PlanId".
+The binding is deterministic: the report records the `PlanId` derived from the canonical identity projection of the same immutable plan it observed.
+
+The central invariant is:
+
+```text
+report.plan_id == plan_id(plan)
+```
+
+This cleanly separates two independent questions:
+
+```text
+Does this report describe this plan?
+        → plan_id equality
+
+Are its observations still usable?
+        → freshness
+```
+
+This corresponds directly to the separation of plan staleness, validation staleness, and execution blocking below: `plan_id` equality answers "did validation observe this plan?", while freshness answers "are those observations still current?".
+
+Validation may add observations to the report, but it must never add identity-bearing state to the plan.
+A validation observation does not become a plan-identity input and is never folded back into the immutable plan.
+For example, an expected resource digest necessary to identify a resource scientifically must already be part of the BOUND intention before validation; validation only confirms or contradicts it as a `VERIFIED` observation.
+
 Under this model:
 
 - logical resources are BOUND before the plan is complete;
@@ -275,6 +302,41 @@ Under this model:
 - execution records the actual allocation and physical resolutions.
 
 ## Validation
+
+### ValidationReport contract
+
+Beyond the plan-to-validation binding above, a `ValidationReport` has a deliberately narrow semantic contract:
+
+```text
+ValidationReport
+    plan_id
+    validation_level
+    outcome
+    observations / evidence
+    diagnostic information
+    observation provenance / time where relevant
+```
+
+The report's `plan_id` must equal `plan_id(plan)` for the plan it observed.
+Its `validation_level` records the highest validation level satisfied.
+Its observations are volatile evidence about mutable external state; they are never folded into the immutable plan.
+
+Execution against a validated plan requires:
+
+```text
+execute(P, R)
+
+requires:
+
+R.plan_id == plan_id(P)
+R.level >= required_level
+R is successful
+R's volatile observations remain fresh
+```
+
+Freshness is deliberately not part of `PlanId`.
+For example, a plan with `device = "auto"` keeps the same `plan_id` when CUDA becomes unavailable; the validation report merely becomes stale.
+The framework does not need to solve every future freshness mechanism before a resource-empty plan can execute.
 
 ### Diagnostic categories
 

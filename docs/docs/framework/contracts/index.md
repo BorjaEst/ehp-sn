@@ -147,13 +147,142 @@ Until that specification exists:
 - [Resource requirements](../../interfaces/configuration/resource-requirements.md) remains the provisional operational integration surface through accepted schema IDs and package-owned compatibility validators;
 - no contract here implies that public types such as `ContractRef`, `CapabilityDeclaration`, or `CapabilityRequirement` already exist.
 
-## Per-record identity and record envelope — deferred
+## Per-record identity and record envelope
 
 EHP-SN requires deterministic, independently addressable records within generated data artifacts.
-A future framework specification will define the generic relationship among artifact indexes, record identifiers, logical record schemas, record addressing, and any common record envelope.
+A framework specification defines the generic relationship among artifact indexes, record identifiers, logical record schemas, record addressing, and any common record envelope.
 
-Until that specification exists, concrete data contracts may require a `record_id` field as a provisional interoperability requirement.
+Three distinct concepts must be kept separate:
+
+```text
+1. realization identity
+2. record_id
+3. content identity
+```
+
+### Realization identity — producer owned
+
+This answers: _which intended scientific realization is this?_
+
+It is declared by the producing `ehp_research` specification from producer semantics — for example a variant, generation protocol, record-local generation parameters, base seed, split, and realization index.
+Its exact inputs are producer-specific and opaque to the framework.
+The framework receives only canonical producer-declared realization-identity inputs; it does not recognize or branch on concrete producer fields.
+
+### `record_id` — framework owned
+
+This answers: _what stable identifier addresses this logical record inside framework data artifacts?_
+
+`record_id` is:
+
+```text
+opaque
+deterministic
+independent of storage
+independent of worker scheduling
+independent of enumeration order
+unique within the artifact
+```
+
+The framework derives the public `record_id` from canonical identity inputs:
+
+```text
+framework_record_id(
+    producer/component identity,
+    record schema,
+    realization key
+)
+```
+
+where the **realization key** is the producer-declared canonical realization-identity information for one intended record:
+
+```text
+producer
+    scientific configuration
+    +
+    logical realization index / address
+        ↓
+canonical realization key
+        ↓ (framework)
+record_id
+```
+
+The exact digest algorithm is owned by the framework [Digests](../../digests.md) specification and is not restated here.
+
+### Content identity — contract owned
+
+This answers: _are these two scientific payloads the same content?_
+
+Content equality is defined by the owning data contract — for example `node_count` plus the directed edge relation for `simple-digraph/v1`.
+`record_id` is not a content digest.
+A producer may legitimately have two different realizations with identical content under some policies; using a content digest as `record_id` would collapse those records into one.
+
+### Why `record_id` is not derived from `plan_id`
+
+`record_id` must not be derived from the artifact or build plan identity plus an index:
+
+```text
+record_id != hash(plan_id + index)
+```
+
+Plan-wide choices can change without changing an existing realization.
+For example, increasing a requested split count changes the artifact/build plan identity, but an already-existing realization (for example `train / realization 17`) must retain the same `record_id`.
+
+This yields a useful identity hierarchy:
+
+```text
+artifact/build identity
+    includes collection-level choices
+    e.g. split counts
+
+record realization identity
+    includes only choices capable of changing THAT realization
+```
+
+### Producer-to-framework handoff and materialization
+
+The producer does not directly produce a complete framework logical record when the complete record requires a framework-owned `record_id`.
+The boundary is:
+
+```text
+producer execution
+    ↓
+generated record body          ← producer-owned scientific content
+    +
+producer realization key       ← producer-owned canonical identity inputs
+    +
+producer-owned descriptors     ← e.g. intrinsic split
+    ↓
+framework materialization
+    ↓
+record_id derivation
+    ↓
+complete logical record
+    ↓
+framework logical resource / index entry
+```
+
+The producer output is deliberately called a **generated record body** rather than a complete logical record: a complete conforming logical record contains its `record_id`, so before the framework adds the ID it is not yet a complete conforming logical record.
+
+### Minimal enumerated record contract
+
+The demonstrated generic contract is minimal and does not introduce a universal serialized record envelope, `RecordEnvelope`, `ScientificRecordBase`, or a record-metadata hierarchy:
+
+```text
+logical record
+    identified by record_id
+
+record index entry
+    record_id
+    schema_ref
+    payload_locator
+    producer-required index descriptors
+```
+
+Physical layout and serialization remain unspecified: consumers resolve logical records and their payloads through framework logical resources rather than fixed filenames, and producers expose producer-specific descriptors through the artifact's logical-resource contract.
+
+Concrete data contracts may require a `record_id` field as part of the complete logical record.
 They must not define global identity semantics, hashing rules, cross-artifact equality, or physical serialization for that identifier.
+The exact envelope representation for records that need additional framework-managed metadata beyond this minimal contract is deferred.
 
 ## Registered contracts
 

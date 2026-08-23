@@ -30,7 +30,7 @@ Configuration resolution
 | Component identity             | Canonical reference + version                          | [References](references.md)                                  |
 | Scientific definition identity | Resolved experiment digest                             | Experiment specification                                     |
 | Request identity               | Target + invocation-specific values                    | Operation specification                                      |
-| Plan identity                  | Canonical resolved plan inputs + bound resources       | [Identity specification](#plan-identity)                     |
+| Plan identity                  | Canonical resolved plan inputs + bound resources       | [Identity specification](#planid)                            |
 | Artifact identity              | Manifest + artifact fingerprint + provenance reference | [Data artifacts](data-artifacts.md) § "Artifact fingerprint" |
 | Scientific result identity     | Inputs + analysis version + semantic parameters        | Analysis specification                                       |
 | Run identity                   | Every non-resumed invocation                           | Training specification                                       |
@@ -86,6 +86,89 @@ If an identity rule requires evidence available only at `VERIFIED` state, the pl
 
 For the currently implemented substrate slice, the owning substrate specification establishes what is identity-sufficient for the plan.
 Typically this is an exact logical resource reference plus the producer-declared immutable inputs — including any family-specific revision or fingerprint the producer supplies as identity inputs — without depending on a later storage-integrity digest that exists only after `VERIFIED` validation.
+
+## PlanId
+
+`PlanId` is the deterministic framework representation of plan identity.
+It is a value **derived** from the immutable plan, not an independently authored field inside `ExecutionPlan`:
+
+```text
+ExecutionPlan P
+        ↓
+canonical plan-identity projection
+        ↓
+framework digest
+        ↓
+PlanId
+```
+
+Conceptually `plan_id(P) -> PlanId`, rather than a user- or planner-supplied attribute.
+Deriving it from a canonical projection avoids duplicated authority: the plan has exactly one identity home, and nothing external may author a divergent `PlanId`.
+
+### What contributes to `PlanId`
+
+The canonical projection must represent the identity-bearing plan inputs and bound resources exactly as the plan-identity rule defines above, conceptually:
+
+```text
+canonical target
+output contract
+canonical identity-bearing resolved inputs
+canonical BOUND resource identities
+explicit optional-resource absence where applicable
+```
+
+The framework derives `PlanId` from canonical identity-relevant plan values.
+It never hashes a producer configuration type by introspection.
+Producer-specific scientific identity inputs are declared by the owning `ehp_research` specification; the framework canonicalizes and represents them without interpreting producer fields.
+
+If changing a producer configuration value can change the intended execution semantics represented by the plan, that value must be a producer-declared canonical plan-identity input.
+
+### What must not contribute to `PlanId`
+
+The following do not contribute to `PlanId`:
+
+```text
+configuration file path
+working directory
+resolution source
+CLI spelling
+diagnostic provenance
+staging path
+validation timestamp
+observed hardware allocation
+temporary resource availability
+```
+
+This mirrors and applies the exclusions already stated in "Canonical identity inputs": mutable validation observations and external resolution details are not identity-bearing.
+
+### `PlanId` and resource state
+
+There is a strict separation between intended identity and observed state:
+
+```text
+BOUND intended identity
+    belongs to the plan
+
+VERIFIED observation
+    belongs to the ValidationReport
+```
+
+Validation may establish `expected digest = X` and observe `digest = X`, but it must never discover an expected digest and silently add it to the plan.
+A `VERIFIED` observation that becomes an identity input would change plan identity after validation, violating the immutable-plan model.
+If an expected resource digest is required to identify a resource scientifically, it must already be part of the immutable BOUND intention before validation begins.
+
+### What `PlanId` is not
+
+`PlanId` is explicitly distinct from artifact identity:
+
+```text
+PlanId != ArtifactId
+PlanId != artifact fingerprint
+PlanId != record_id
+```
+
+A plan identifies intended execution; an artifact identifies committed materialized output; a `record_id` addresses a logical record inside a committed artifact.
+The identity categories table above already treats plan identity and artifact identity as different categories, and those categories must never be equated.
 
 ## Equality invariants
 
