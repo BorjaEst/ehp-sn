@@ -34,42 +34,18 @@ from ehp_sn.cli._data_service import (
     DataServiceError,
     InspectResult,
     ListedSubstrate,
-    PlaceholderDataService,
     PlanResult,
     ShowResult,
     ValidateResult,
 )
+from ehp_sn.cli.data_adapter import FrameworkDataService
+from ehp_sn.discovery import effective_registry
 
 app = typer.Typer(
     help="Generate, validate, and inspect substrate artifacts.",
     no_args_is_help=True,
     rich_markup_mode=None,
 )
-
-# The active backend for this process. Defaults to the temporary placeholder;
-# tests (and, later, the real framework) replace it with a real implementation.
-_service: DataService | None = None
-
-
-def _get_service() -> DataService:
-    """Return the active data service (placeholder unless overridden)."""
-    return _service if _service is not None else PlaceholderDataService()
-
-
-def _set_service(service: DataService) -> None:
-    """Override the data service used by the command group.
-
-    Intended for tests and for wiring in a real framework backend.
-    """
-    global _service  # noqa: PLW0603
-    _service = service
-
-
-def _reset_service() -> None:
-    """Restore the default placeholder data service."""
-    global _service  # noqa: PLW0603
-    _service = None
-
 
 # ---------------------------------------------------------------------------
 # Error mapping

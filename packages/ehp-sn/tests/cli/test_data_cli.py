@@ -30,9 +30,20 @@ from ehp_sn.cli._data_service import (
     UnknownSubstrateError,
     ValidateResult,
 )
+from ehp_sn.experiments import ComponentRef
 from typer.testing import CliRunner
 
 runner = CliRunner()
+
+
+class _FakeTaskDefinition:
+    """A non-substrate registered definition (task kind) for the wrong-kind test."""
+
+    ref = ComponentRef.parse("task:synthetic/v1")
+
+    @property
+    def kind(self) -> str:
+        return "task"
 
 
 class FakeDataService:
@@ -277,13 +288,95 @@ def test_inspect_negative_samples_exit_2() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_placeholder_backend_build_is_controlled() -> None:
-    # No fake service: the placeholder backend is used, and an unimplemented
-    # operation surfaces as a controlled message + exit 1, not a traceback.
+def test_default_backend_build_is_controlled_not_implemented() -> None:
+    # No fake service: the production registry-backed backend is used, and an
+    # unimplemented operation surfaces as a controlled message + exit 1, not a
+    # traceback.
     data_module._reset_service()
-    result = runner.invoke(app, ["data", "build", "example-substrate/v7", "--config", "x.toml"])
+    result = runner.invoke(app, ["data", "build", "substrate:dagflow/v1", "--config", "x.toml"])
     assert result.exit_code == 1
     assert "not yet implemented" in result.stderr
+    assert "Traceback" not in result.stderr
+
+
+def test_default_backend_plan_is_controlled_not_implied_success() -> None:
+    # ``plan`` must no longer return a fake ``"planned"`` success; the real
+    # backend reports it as not implemented.
+    data_module._reset_service()
+    result = runner.invoke(app, ["data", "plan", "substrate:dagflow/v1", "--config", "x.toml"])
+    assert result.exit_code == 1
+    assert "not yet implemented" in result.stderr
+    assert "planned" not in result.stdout
+    assert "Traceback" not in result.stderr
+
+
+# ---------------------------------------------------------------------------
+# Real registry-backed backend (production default, end to end)
+# ---------------------------------------------------------------------------
+
+
+def test_real_list_projects_installed_substrates() -> None:
+    """The production default backend lists the installed Dagflow and Maze-ND defs."""
+    try:
+        import ehp_research  # noqa: F401
+    except ImportError:  # pragma: no cover - skipping when not installed
+        pytest.skip("ehp_research is not installed")
+
+    data_module._reset_service()
+    result = runner.invoke(app, ["data", "list"])
+    assert result.exit_code == 0
+    assert "substrate:dagflow/v1" in result.stdout
+    assert "substrate:maze-nd/v1" in result.stdout
+    assert "simple-digraph/v1" in result.stdout
+    assert "raster-topology/v1" in result.stdout
+
+
+def test_real_show_projects_the_installed_definition() -> None:
+    try:
+        import ehp_research  # noqa: F401
+    except ImportError:  # pragma: no cover - skipping when not installed
+        pytest.skip("ehp_research is not installed")
+
+    data_module._reset_service()
+    result = runner.invoke(app, ["data", "show", "substrate:dagflow/v1"])
+    assert result.exit_code == 0
+    assert "Target: substrate:dagflow/v1" in result.stdout
+    assert "Description:" in result.stdout
+
+
+def test_real_show_unknown_substrate_is_controlled_exit_4() -> None:
+    try:
+        import ehp_research  # noqa: F401
+    except ImportError:  # pragma: no cover - skipping when not installed
+        pytest.skip("ehp_research is not installed")
+
+    data_module._reset_service()
+    result = runner.invoke(app, ["data", "show", "substrate:not-registered/v1"])
+    assert result.exit_code == 4
+    assert "unknown substrate" in result.stderr
+    assert "Traceback" not in result.stderr
+
+
+def test_real_show_wrong_kind_is_controlled() -> None:
+    """A reference that exists but is not a substrate must not succeed in ``show``."""
+    try:
+        import ehp_research  # noqa: F401
+    except ImportError:  # pragma: no cover - skipping when not installed
+        pytest.skip("ehp_research is not installed")
+
+    # Give the effective registry a registered task reference in isolation.
+    from ehp_research.registration import register_components
+    from ehp_sn.discovery import ComponentRegistry
+
+    registry = ComponentRegistry()
+    register_components(registry)
+    registry.register(_FakeTaskDefinition())
+    from ehp_sn.cli.data_adapter import FrameworkDataService
+
+    data_module._set_service(FrameworkDataService(registry))
+    result = runner.invoke(app, ["data", "show", "task:synthetic/v1"])
+    data_module._reset_service()
+    assert result.exit_code == 4
     assert "Traceback" not in result.stderr
 
 

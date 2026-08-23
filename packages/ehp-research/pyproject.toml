@@ -27,6 +27,9 @@
     dynamic = ["version", "readme"]
     dependencies = ["ehp-sn>=0.1.0"]
 
+[project.entry-points."ehp_sn.providers"]
+    components = "ehp_research.registration:register_components"
+
 [project.urls]
     "Homepage"      = "https://github.com/BorjaEst/ehp-sn"
     "Bug Tracker"   = "https://github.com/BorjaEst/ehp-sn/issues"
