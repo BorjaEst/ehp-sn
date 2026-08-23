@@ -2,7 +2,7 @@
 title: Configuration resolution
 authority: normative
 document_status: specified
-capability_status: planned
+capability_status: partial
 api_stability: provisional
 ---
 
@@ -10,7 +10,33 @@ api_stability: provisional
 
 Resolution transforms frontend inputs into a finalized scientific definition, effective request, BOUND resource records, and immutable execution plan.
 
-## Validation phases
+This document is the orchestration home in the ownership chain:
+
+```text
+Resource requirements
+        ↓
+Identity
+        ↓
+Configuration resolution
+```
+
+[Resource requirements](resource-requirements.md) owns what a resource requirement and binding is; [Identity](../../framework/identity.md) owns which resolved facts are identity-bearing and how plan identity is composed.
+This document applies both: it defines precedence and specialization, applies resource policy, binds resources, and constructs the immutable plan.
+
+## Foundational dependencies
+
+Resolution applies rather than redefines its downstream-owned semantics:
+
+- [Resource requirements](resource-requirements.md) — resource requirement model, candidate selection, and `BOUND`/`VERIFIED` states;
+- [Identity](../../framework/identity.md) — identity categories, plan identity, and identity completeness;
+- [References](../../framework/references.md) — canonical reference grammar;
+- [Digests](../../framework/digests.md) — resource digest and artifact fingerprint semantics;
+- [Artifacts](../../framework/artifacts.md) — artifact commitment and immutability.
+
+Resolution may bind resources before the payload is verified.
+Identity-sensitive behavior is defined by the framework artifact and identity specifications, which resolution applies rather than redefines.
+
+## Resolution phases
 
 Resolution is specified by phases rather than exact internal discovery order.
 
@@ -63,7 +89,8 @@ workspace_binding
 operation_file
 ```
 
-`operation_file` is the source class for values supplied through `--config PATH`. The CLI may use the term `--config file` to refer to the same source in its user-facing documentation.
+`operation_file` is the source class for values supplied through `--config PATH`.
+The CLI may use the term `--config file` to refer to the same source in its user-facing documentation.
 
 Invocation-explicit sources:
 
@@ -93,7 +120,8 @@ A dedicated argument may replace an operation-file value.
 
 ### Invocation-explicit conflict rule
 
-At most one invocation-explicit assignment may target a canonical semantic field at the same precedence level. Three distinct cases govern repeated field appearance:
+At most one invocation-explicit assignment may target a canonical semantic field at the same precedence level.
+Three distinct cases govern repeated field appearance:
 
 | Case                   | Definition                                                                       | Example                                                                     | Result                                                    |
 | ---------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------- |
@@ -111,9 +139,11 @@ Specific rules:
 
 ### Resource sources
 
-Resource candidates do not use the generic precedence chain. They use the requirement category and replacement policy defined in [Resource requirements](resource-requirements.md).
+Resource candidates do not use the generic precedence chain.
+They use the requirement category and replacement policy defined in [Resource requirements](resource-requirements.md).
 
-A fixed definition resource is not a default-bearing source and cannot be replaced. A replaceable definition default is lower priority than a workspace binding and an explicit permitted request resource.
+A fixed definition resource is not a default-bearing source and cannot be replaced.
+A replaceable definition default is lower priority than a workspace binding and an explicit permitted request resource.
 
 ### Workspace mappings
 
@@ -127,11 +157,13 @@ A fixed definition resource is not a default-bearing source and cannot be replac
 
 ### Source equivalence
 
-Frontend source class does not affect semantic identity when effective semantic values are equal. A value supplied through TOML, Python, workspace default, `--set`, or a dedicated option contributes the same semantic value after canonicalization. Source class remains provenance.
+Frontend source class does not affect semantic identity when effective semantic values are equal.
+A value supplied through TOML, Python, workspace default, `--set`, or a dedicated option contributes the same semantic value after canonicalization.
+Source class remains provenance.
 
-## Request source application
+## Request resolution
 
-For non-resource fields:
+For non-resource fields, the effective value follows normal precedence:
 
 ```text
 package_default
@@ -140,13 +172,19 @@ package_default
 < one invocation-explicit assignment
 ```
 
+This restates the normal precedence for request fields specifically; it does not add a second source model.
+Sources, precedence, and conflict handling are defined above.
+
 ## Resource binding
 
 Resource binding follows the requirement category and request policy, not the generic source order.
+It applies, rather than redefines, the selection and precedence model owned by [Resource requirements](resource-requirements.md).
 
-See [Resource requirements](resource-requirements.md).
+## Planning
 
-## Planning completeness
+Planning consumes resolved configuration, BOUND resources, and the identity rule to construct the immutable authoritative plan.
+
+### Planning completeness
 
 At the end of configuration resolution:
 
@@ -158,9 +196,67 @@ At the end of configuration resolution:
 
 This is the minimum completeness required for planning.
 
+### Authoritative immutable plan
+
+Planning produces an immutable, authoritative framework plan in which all scientific build choices required before execution are resolved.
+The plan is a plan of intention only: it performs no generation, stages nothing, mutates no artifact, and commits nothing.
+
+Execution must not later invent unresolved scientific choices.
+Every scientific choice the build requires is either resolved in the plan or declared absent by it, before execution begins.
+
+### Producer/framework ownership boundary
+
+The framework and the producer split responsibility for a plan:
+
+```text
+producer (ehp_research)
+    declares family-specific identity-bearing scientific inputs
+    and resource requirements that characterize the build
+
+framework (ehp_sn)
+    resolves generic resource requirements to the concrete
+    bindings the plan needs,
+    applies the plan-identity rule from
+    Identity § "Plan identity",
+    and constructs the immutable authoritative plan
+```
+
+The framework must not know producer-specific configuration types or family-specific fields.
+It carries the producer-effective configuration opaquely and never inspects its fields.
+Producer-specific semantics remain downstream and are owned by the corresponding `ehp_research` specifications.
+
+### Identity handoff
+
+Resolution supplies canonical resolved inputs and BOUND resource records to the identity mechanism defined by [Identity](../../framework/identity.md) § "Plan identity".
+Source file paths, CLI positions, and frontend spelling are excluded.
+
+Resolution does not redefine which fields contribute to identity.
+Which producer-specific values are identity-bearing, how bound resources contribute, and when identity is complete are decided by [Identity](../../framework/identity.md).
+In particular, whether a plan may be considered identity-complete at `BOUND` or requires `VERIFIED`-state evidence is governed by Identity § "Identity completeness and verification".
+
+### Implemented substrate-planning slice
+
+This section records the settled semantics and implemented scope demonstrated by current substrate planning.
+It does not extend to execution, artifact staging or publication, validation, inspection, or unrelated planned framework contracts.
+
+The generic planning mechanics live in `ehp_sn` (the `ehp_sn.planning` package).
+Normative semantics remain in the owning specifications, including this document.
+
+The implemented framework surface covers:
+
+- producer-owned planning input resolution for the selected authoritative definition;
+- resolution of declared resource requirements to exact bound resources;
+- application of the plan-identity rule from [Identity](../../framework/identity.md) § "Plan identity";
+- construction of the immutable framework plan.
+
+The implementation is deliberately limited to the framework surface demonstrated by current substrate planning.
+It does not imply implementation of producer execution, artifact staging or publication, validation, inspection, or unrelated planned framework contracts.
+Broader resolution semantics above remain `capability_status: partial` where only a subset is satisfied by code.
+
 ## Plan and validation relationship
 
-Validation observes and reports facts about an immutable plan. It does not complete or transform a partially resolved plan.
+Validation observes and reports facts about an immutable plan.
+It does not complete or transform a partially resolved plan.
 
 ```text
 authored request
@@ -198,15 +294,16 @@ resource_unbound
 resource_unverified
 ```
 
-Diagnostics within one phase must be reported in implementation-deterministic order: stable across repeated runs of the same implementation version for the same inputs. Cross-implementation canonical ordering is not required.
+Diagnostics within one phase must be reported in implementation-deterministic order: stable across repeated runs of the same implementation version for the same inputs.
+Cross-implementation canonical ordering is not required.
 
 ### Validation levels
 
-| Level       | Guarantee                                                                                                                          |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `CONFIG`    | Parsing, field ownership, source conflicts, scientific specialization, resource policy, and BOUND resource completeness are valid. |
-| `RESOURCES` | `CONFIG` holds and every required bound resource is VERIFIED.                                                                      |
-| `BUILD`     | `RESOURCES` holds and runtime components can be constructed without scientific execution.                                          |
+| Level       | Guarantee                                                                                                                         |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `CONFIG`    | Parsing, field ownership, source conflicts, scientific specialization, resource policy, and BOUND resource completeness are valid |
+| `RESOURCES` | `CONFIG` holds and every required bound resource is VERIFIED                                                                      |
+| `BUILD`     | `RESOURCES` holds and runtime components can be constructed without scientific execution                                          |
 
 ### Staleness and execution readiness
 
@@ -218,13 +315,17 @@ Three distinct concepts govern correctness after planning:
 | **Validation stale**  | An observed external condition may have changed                  | GPU became unavailable; destination became occupied        | Re-validate; if conditions restored, plan remains valid |
 | **Execution blocked** | Current environmental state incompatible with the unchanged plan | Temporary resource contention                              | Retry may succeed; plan identity unchanged              |
 
-A plan describes intended execution and is immutable after construction. A validation report records observations about mutable external state at a point in time.
+A plan describes intended execution and is immutable after construction.
+A validation report records observations about mutable external state at a point in time.
 
 Changing unused workspace fields, unused operation-file fields, absolute paths, or diagnostic provenance does not affect any of these conditions.
 
-## Runtime `auto` resolution
+## Special resolution policies
 
-`device = "auto"` is a policy, not a physical allocation. Its normative semantics are:
+### Runtime `auto` resolution
+
+`device = "auto"` is a policy, not a physical allocation.
+Its normative semantics are:
 
 | Property             | Value                                                       |
 | -------------------- | ----------------------------------------------------------- |
@@ -236,17 +337,11 @@ Changing unused workspace fields, unused operation-file fields, absolute paths, 
 | Availability check   | Observed during `RESOURCES` validation                      |
 | Execution choice     | Must match the validation observation unless re-validated   |
 
-The resolved device is recorded in execution provenance. It does not affect scientific identity. Changing only the resolved device (when `auto` produces a different allocation) changes request identity but not experiment identity.
+The resolved device is recorded in execution provenance.
+It does not affect scientific identity.
+Changing only the resolved device (when `auto` produces a different allocation) changes request identity but not experiment identity.
 
 Plans containing `device = "auto"` are exact execution descriptions only when combined with their validation report, which records the observed allocation.
-
-## Identity inputs
-
-Resolution passes canonical semantic values to identity computation.
-
-Source file paths, CLI positions, and frontend spelling are excluded.
-
-Normalization rule IDs and derivation rule IDs are included when changing them could change an effective semantic value.
 
 ## CLI and Python equivalence
 
@@ -266,12 +361,4 @@ Serialized frontend representation and diagnostic provenance may differ.
 - [Files and overrides](files-and-overrides.md)
 - [Resource requirements](resource-requirements.md)
 - [Identities and provenance](identities-and-provenance.md)
-
-## Foundational dependencies
-
-Resolution may bind resources before the payload is verified. Identity-sensitive behavior is defined by the framework artifact and identity specifications, which resolution applies rather than redefines:
-
-- [References](../../framework/references.md) — canonical reference grammar
-- [Identity](../../framework/identity.md) — identity categories and equality invariants
-- [Digests](../../framework/digests.md) — resource digest and artifact fingerprint semantics
-- [Artifacts](../../framework/artifacts.md) — artifact commitment and immutability
+- [Identity](../../framework/identity.md)

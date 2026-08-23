@@ -2,13 +2,27 @@
 title: Resource requirements
 authority: normative
 document_status: specified
-capability_status: planned
+capability_status: partial
 api_stability: provisional
 ---
 
 # Resource requirements
 
 Resource requirements define package-owned resource roles and deterministic selection of exact logical resources.
+
+This document owns the resource requirement model, candidate selection and precedence, and the resource states.
+It is the most upstream of the ownership chain:
+
+```text
+Resource requirements
+        ↓
+Identity
+        ↓
+Configuration resolution
+```
+
+It defines WHAT a resource requirement and binding is.
+It does not define which facts constitute identity — that belongs to [Identity](../../framework/identity.md) — and it does not define how requirements are applied to construct a plan — that belongs to [Resolution](resolution.md).
 
 ## Initial surface
 
@@ -25,7 +39,9 @@ The initial interface supports only:
 
 It does not define a general-purpose compatibility language.
 
-## Resource categories
+## Requirement model
+
+### Resource categories
 
 A requirement declares exactly one definition-owned resource category:
 
@@ -35,7 +51,7 @@ default
 none
 ```
 
-### Fixed resource
+#### Fixed resource
 
 A fixed resource is an exact definition-owned resource.
 
@@ -43,35 +59,15 @@ It must be used directly.
 
 It cannot be replaced by a workspace binding or request resource.
 
-### Definition-provided default
+#### Definition-provided default
 
 A default resource is an exact replaceable definition-owned fallback.
 
-For a replaceable requirement, precedence is:
+#### No definition resource
 
-```text
-explicit permitted request resource
-    ↓
-workspace binding
-    ↓
-definition-provided default
-    ↓
-failure or optional absence
-```
+When no definition resource exists, candidate selection proceeds without a definition fallback.
 
-### No definition resource
-
-When no definition resource exists:
-
-```text
-explicit permitted request resource
-    ↓
-workspace binding
-    ↓
-failure or optional absence
-```
-
-## Request policy
+### Request policy
 
 `request_policy` is one of:
 
@@ -89,7 +85,7 @@ Rules:
 
 A fixed resource always implies `request_policy="forbidden"`.
 
-## Requirement declaration
+### Requirement declaration
 
 A minimal declaration contains:
 
@@ -105,7 +101,35 @@ compatibility_validator_id
 description
 ```
 
-`compatibility_validator_id` is optional and package-owned. It identifies a versioned validator but does not serialize a callable.
+`compatibility_validator_id` is optional and package-owned.
+It identifies a versioned validator but does not serialize a callable.
+
+## Candidate selection and precedence
+
+For a replaceable requirement, precedence is:
+
+```text
+explicit permitted request resource
+    ↓
+workspace binding
+    ↓
+definition-provided default
+    ↓
+failure or optional absence
+```
+
+When no definition resource exists:
+
+```text
+explicit permitted request resource
+    ↓
+workspace binding
+    ↓
+failure or optional absence
+```
+
+Selection is deterministic and recordable.
+Resource selection determinism is definition and planning semantics; registration only makes a definition discoverable and does not change a definition's resource semantics.
 
 ## Resource states
 
@@ -144,7 +168,7 @@ BOUND does not guarantee resource existence, accepted schema metadata, or integr
 
 The configuration docs define the state transition, not storage validation internals.
 
-## Optional absence
+### Optional absence
 
 For `optional-one`, absence is represented by an explicit state record:
 
@@ -157,52 +181,53 @@ presence = "absent"
 
 This is preferable to omitting the record because it preserves the fact that the optional requirement was deliberately resolved.
 
-## Resource identity contribution
+## Identity boundary
 
-At scientific-invocation identity level, a selected scientific resource contributes:
+Resource resolution can provide these facts about a resolved requirement:
 
-- canonical logical reference;
+- requirement reference;
+- selected logical resource reference;
 - immutable version when part of the reference;
-- resource digest when the resource contract declares content identity necessary and VERIFIED evidence is available;
-- requirement identity.
+- verification digest or evidence when `VERIFIED` evidence is available.
 
-The operation or artifact identity specification determines whether the logical reference alone is sufficient before verification.
+This document does not decide whether or how those facts contribute to identity.
+[Identity](../../framework/identity.md) decides that: it identifies which canonical resolved facts are identity-bearing and how they compose into plan identity, including how the `BOUND`/`VERIFIED` distinction affects identity completeness.
+
+Resource parsing and precedence may be implemented independently of the identity contracts that consume them.
+If the required artifact or operation identity specification does not exist, identity-sensitive use of a resource requirement is blocked.
+
+## Non-goals
+
+This page does not define:
+
+- which facts are identity-bearing or compose plan identity — see [Identity](../../framework/identity.md);
+- artifact lookup, download, commit, or storage integrity algorithms;
+- operation-specific compatibility;
+- how requirements are applied to construct a plan — see [Resolution](resolution.md).
+
+## Implemented scope: substrate planning resource resolution
+
+This section records only the implemented slice of resource requirements, as demonstrated by current substrate planning.
+It does not claim that every future workspace or resource-resolution feature described on this page is implemented.
+
+Implemented:
+
+- producer planning semantics may declare resource requirements for the selected authoritative definition;
+- framework planning resolves those requirements to the concrete bindings the plan needs;
+- a requirement is either resolved to one exact resource, or fails cleanly when it cannot be bound;
+- bound resources are represented in the immutable framework plan.
+
+The implemented substrate-planning slice supports only the candidate sources exercised by the current substrate planners: an exact definition-provided reference with cardinality `one` or `optional-one`, bound with resolution source `definition`.
+The broader `fixed`/`default`/workspace/request precedence and `request_policy` model on this page remains planned unless explicitly stated otherwise.
+
+The implemented surface covers requirement declaration and resolution to bound resources (`BOUND`).
+It does not implement workspace persistence backends, download, commit, storage integrity, `VERIFIED` evidence assignment, or the broader resolution machinery that other pages describe.
 
 ## Related interfaces
 
 - [Configuration model](model.md)
 - [Resolution](resolution.md)
+- [Identity](../../framework/identity.md)
 - [Python artifacts](../python/artifacts.md)
 - [Python training](../python/training.md)
 - [Python evaluation](../python/evaluation.md)
-
-## Non-goals
-
-This page does not define artifact lookup, download, commit, storage integrity algorithms, or operation-specific compatibility.
-
-## Identity authority
-
-Configuration supplies the following candidate identity components:
-
-- requirement reference;
-- exact logical resource reference;
-- immutable version when encoded by the reference;
-- verified resource digest when required by the resource contract.
-
-The owning operation identity specification and artifact identity specification declare which components contribute to scientific invocation, plan, result, and artifact identity.
-
-Configuration resolution must not decide this dynamically. The applicable identity rule must be declared before resolution begins.
-
-If the required artifact or operation identity specification does not exist, identity-sensitive implementation of that resource requirement is blocked.
-
-## Implementation dependency
-
-Resource parsing and precedence may be implemented independently of the specific operation and artifact identity contracts that consume them.
-
-The following behavior is defined by the owning operation and artifact identity specifications, per [Identity](../../framework/identity.md), [Digests](../../framework/digests.md), and [Data artifacts](../../framework/data-artifacts.md), not by this page:
-
-- deciding whether logical reference alone is identity-complete;
-- requiring or interpreting resource digests;
-- assigning verification evidence;
-- computing identity-sensitive plan fields;
-- determining resource compatibility beyond declared schema acceptance.

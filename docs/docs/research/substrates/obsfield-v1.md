@@ -236,7 +236,7 @@ They must not alter scientific content.
 
 ## Family-specific identity inputs
 
-ObsField contributes the following semantic inputs to framework build identity:
+ObsField contributes the following family-specific identity inputs:
 
 - specification reference;
 - variant;

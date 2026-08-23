@@ -108,13 +108,14 @@ Unused and shadowed values:
 
 This page does not define canonical serialization or hash algorithms.
 
-## Resource identity authority
+## Resource identity contribution
 
-Resource identity contribution is governed exclusively by the rule in [Resource requirements](resource-requirements.md):
+Which resource identity components contribute to each identity category is governed by the identity rules in [Identity](../../framework/identity.md) § "Bound-resource identity contribution":
 
-> The owning operation identity specification and artifact identity specification declare which resource identity components contribute to each identity category.
+> Bound resources contribute to plan identity according to the identity rule for the operation and artifact in question.
+> This document decides which of those facts are identity-bearing and how they combine into plan identity.
 
-This page does not independently redefine that selection.
+This page does not independently redefine that selection. It does not enumerate which facts are identity-bearing; that belongs to [Identity](../../framework/identity.md).
 
 Source document digests are semantic provenance only. They do not contribute to scientific-invocation identity unless the document itself is a declared scientific input.
 
