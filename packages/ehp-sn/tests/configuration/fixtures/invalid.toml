@@ -1,7 +1,11 @@
-# Syntactically invalid TOML fixture: a missing value and an unclosed string.
+# Synthetically invalid TOML fixture.
+# Exercises the parse-error path: an unclosed list leaves the document
+# syntactically invalid, so the loader must raise ConfigurationParseError
+# rather than returning a document.
+
 [alpha]
     count   = 12
     enabled = true
 
 [beta]
-    names = ["x", "y"]
+this_is_invalid

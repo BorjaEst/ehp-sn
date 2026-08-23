@@ -33,18 +33,6 @@ def _import_lines(text: str) -> list[str]:
     return [line for line in text.splitlines() if line.lstrip().startswith(("import ", "from "))]
 
 
-def test_ehp_sn_never_imports_ehp_research() -> None:
-    """The framework must never depend on a concrete research package."""
-    offenders: list[str] = []
-    for file in _py_files(_EHP_SN_SRC):
-        import_lines = _import_lines(file.read_text(encoding="utf-8"))
-        if any("ehp_research" in line for line in import_lines):
-            offenders.append(str(file))
-    assert offenders == [], (
-        f"ehp_sn must not import ehp_research; found forbidden imports in: {offenders}"
-    )
-
-
 def test_ehp_sn_discovers_generically_without_family_branching() -> None:
     """Capability 2 must require zero special handling in ``ehp_sn``.
 

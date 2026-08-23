@@ -103,6 +103,42 @@ def _error_envelope(error: DataServiceError) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Service wiring
+#
+# The default is a lazily-cached :class:`FrameworkDataService` over the
+# effective application registry (installed research providers compose it).
+# Tests may inject a fake via ``_set_service``/``_reset_service`` so command
+# logic is exercised without a real backend.
+# ---------------------------------------------------------------------------
+
+_override_service: DataService | None = None
+_default_service_cache: DataService | None = None
+
+
+def _get_service() -> DataService:
+    """Return the data-service backend, preferring any test override."""
+    global _default_service_cache  # noqa: PLW0603
+    if _override_service is not None:
+        return _override_service
+    if _default_service_cache is None:
+        _default_service_cache = FrameworkDataService(effective_registry())
+    return _default_service_cache
+
+
+def _set_service(service: DataService) -> None:
+    """Install a service override (for test injection)."""
+    global _override_service  # noqa: PLW0603
+    _override_service = service
+
+
+def _reset_service() -> None:
+    """Clear any override and the cached default backend."""
+    global _override_service, _default_service_cache  # noqa: PLW0603
+    _override_service = None
+    _default_service_cache = None
+
+
+# ---------------------------------------------------------------------------
 # Output rendering
 # ---------------------------------------------------------------------------
 
@@ -386,12 +422,4 @@ def inspect_command(
         result = _get_service().inspect(artifact, samples)
     except Exception as exc:  # noqa: BLE001
         _fail(exc)
-    _emit_inspect(result, fmt)
-    _emit_inspect(result, fmt)
-    _emit_inspect(result, fmt)
-    _emit_inspect(result, fmt)
-    _emit_inspect(result, fmt)
-    _emit_inspect(result, fmt)
-    _emit_inspect(result, fmt)
-    _emit_inspect(result, fmt)
     _emit_inspect(result, fmt)
