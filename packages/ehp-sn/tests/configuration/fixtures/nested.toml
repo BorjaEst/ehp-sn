@@ -1,0 +1,16 @@
+# Synthetic generic configuration fixture with nested structure.
+
+[alpha]
+    count   = 12
+    enabled = true
+
+[beta]
+    names = ["x", "y"]
+
+[beta.nested]
+    depth = 3
+    flags = [true, false, true]
+
+[beta.nested.deeper]
+    label = "leaf"
+    value = 1.5

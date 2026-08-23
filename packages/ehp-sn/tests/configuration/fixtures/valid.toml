@@ -1,0 +1,11 @@
+# Synthetic generic configuration fixture.
+# Deliberately uses arbitrary, non-scientific keys to prove the loader is
+# generic: it must preserve whatever structure the parser returns without
+# interpreting any producer field.
+
+[alpha]
+    count   = 12
+    enabled = true
+
+[beta]
+    names = ["x", "y"]

@@ -1,0 +1,7 @@
+# Syntactically invalid TOML fixture: a missing value and an unclosed string.
+[alpha]
+    count   = 12
+    enabled = true
+
+[beta]
+    names = ["x", "y"]
