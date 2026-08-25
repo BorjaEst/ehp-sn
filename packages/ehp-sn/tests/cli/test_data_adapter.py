@@ -8,10 +8,10 @@ The adapter projects registered definitions directly (identity, not copies),
 enumerates substrates deterministically, and translates generic framework
 failures (unknown / malformed / wrong-kind) into the CLI-facing
 :class:`UnknownSubstrateError`. The ``plan`` projection returns explicit CLI
-presentation DTOs and never leaks framework value objects. ``build``,
-``validate`` and ``inspect`` are not part of the adapter surface (they are
-reported unsupported by the CLI itself); no fake lifecycle method pretends they
-exist.
+presentation DTOs and never leaks framework value objects, and ``build``
+delegates to the generic lifecycle and projects the outcome. ``validate`` and
+``inspect`` are not part of the adapter surface (they remain reported unsupported
+by the CLI itself); no fake lifecycle method pretends they exist.
 """
 
 from __future__ import annotations
@@ -29,6 +29,7 @@ from ehp_sn.cli.data_adapter import (
 )
 from ehp_sn.configuration import LoadedConfiguration
 from ehp_sn.discovery import ComponentRegistry
+from ehp_sn.execution import SubstrateExecutionComposition
 from ehp_sn.experiments import ComponentRef
 from ehp_sn.planning import (
     IdentityInput,
@@ -75,6 +76,7 @@ def _service(
     return FrameworkDataAdapter(
         registry,
         planning_composition=planning_composition,
+        execution_composition=SubstrateExecutionComposition(()),
     )
 
 
@@ -223,7 +225,11 @@ def plan_registry(tmp_path):
     config_path = tmp_path / "config.toml"
     config_path.write_text('[substrate]\nvariant = "default"\n', encoding="utf-8")
 
-    service = FrameworkDataAdapter(registry, planning_composition=composition)
+    service = FrameworkDataAdapter(
+        registry,
+        planning_composition=composition,
+        execution_composition=SubstrateExecutionComposition(()),
+    )
     return service, config_path, definition
 
 
@@ -265,7 +271,11 @@ def test_plan_projects_authoritative_plan(plan_registry) -> None:
             ),
         )
     )
-    service = FrameworkDataAdapter(registry, planning_composition=composition)
+    service = FrameworkDataAdapter(
+        registry,
+        planning_composition=composition,
+        execution_composition=SubstrateExecutionComposition(()),
+    )
 
     result = service.plan("substrate:alpha/v1", str(config_path))
 
@@ -312,6 +322,7 @@ def test_plan_missing_resolver_is_unknown_substrate(plan_registry) -> None:
     service = FrameworkDataAdapter(
         registry,
         planning_composition=SubstratePlanningComposition(()),
+        execution_composition=SubstrateExecutionComposition(()),
     )
     with pytest.raises(UnknownSubstrateError):
         service.plan("substrate:alpha/v1", str(config_path))
@@ -351,7 +362,11 @@ def test_plan_producer_failure_is_configuration_invalid(plan_registry) -> None:
     composition = SubstratePlanningComposition(
         (SubstratePlanningRegistration(definition=definition, plan=exploding),)
     )
-    service = FrameworkDataAdapter(registry, planning_composition=composition)
+    service = FrameworkDataAdapter(
+        registry,
+        planning_composition=composition,
+        execution_composition=SubstrateExecutionComposition(()),
+    )
 
     with pytest.raises(ConfigurationInvalidError):
         service.plan("substrate:alpha/v1", str(config_path))

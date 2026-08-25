@@ -34,6 +34,7 @@ from typing import Annotated
 import typer
 
 from ehp_sn.cli.data_adapter import (
+    BuildResult,
     DataCliError,
     DataNotImplementedError,
     FrameworkDataAdapter,
@@ -42,6 +43,7 @@ from ehp_sn.cli.data_adapter import (
     ShowResult,
 )
 from ehp_sn.discovery import effective_registry
+from ehp_sn.execution import effective_execution_composition
 from ehp_sn.planning import effective_planning_composition
 
 app = typer.Typer(
@@ -118,6 +120,7 @@ def _get_adapter() -> FrameworkDataAdapter:
         _default_adapter_cache = FrameworkDataAdapter(
             effective_registry(),
             planning_composition=effective_planning_composition(),
+            execution_composition=effective_execution_composition(),
         )
     return _default_adapter_cache
 
@@ -234,6 +237,35 @@ def _emit_plan(result: PlanResult, fmt: str) -> None:
             typer.echo(f"  {i.name}: {i.value}")
 
 
+def _emit_build(result: BuildResult, fmt: str) -> None:
+    if fmt == "json":
+        import json
+
+        typer.echo(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "status": "success",
+                    "action": "build",
+                    "warnings": [],
+                    "result": {
+                        "action": result.action,
+                        "target": result.target,
+                        "output_contract": result.output_contract,
+                        "build_input_identity": result.build_input_identity,
+                        "artifact_fingerprint": result.artifact_fingerprint,
+                    },
+                }
+            )
+        )
+        return
+    typer.echo(f"action: {result.action}")
+    typer.echo(f"target: {result.target}")
+    typer.echo(f"output: {result.output_contract}")
+    typer.echo(f"build-input-identity: {result.build_input_identity}")
+    typer.echo(f"artifact-fingerprint: {result.artifact_fingerprint}")
+
+
 # ---------------------------------------------------------------------------
 # Commands
 # ---------------------------------------------------------------------------
@@ -298,15 +330,20 @@ def build_command(
 ) -> None:
     """Build one immutable substrate artifact.
 
-    Currently unsupported: materializing artifacts is a future framework
-    capability. The command is part of the established surface but is reported
-    here as a controlled not-implemented failure.
+    Delegates to the generic framework build lifecycle and renders the projected
+    framework build outcome (committed or reused) with the committed artifact's
+    identity. Physical destination publication is a deferred concern; this
+    command reports the logical, edition-bearing outcome.
     """
     global _json_requested  # noqa: PLW0603
     _json_requested = fmt == "json"
     global _current_action  # noqa: PLW0603
     _current_action = "build"
-    _fail(DataNotImplementedError("data build is not yet implemented."))
+    try:
+        result = _get_adapter().build(target, config)
+    except Exception as exc:  # noqa: BLE001
+        _fail(exc)
+    _emit_build(result, fmt)
 
 
 @app.command("validate")

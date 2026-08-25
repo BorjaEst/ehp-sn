@@ -35,6 +35,10 @@ from ehp_sn.cli.data_adapter import (
 )
 from ehp_sn.configuration import LoadedConfiguration
 from ehp_sn.discovery import ComponentRegistry
+from ehp_sn.execution import (
+    SubstrateExecutionComposition,
+    SubstrateExecutionRegistration,
+)
 from ehp_sn.experiments import ComponentRef
 from ehp_sn.planning import (
     IdentityInput,
@@ -96,7 +100,25 @@ def adapter() -> FrameworkDataAdapter:
     composition = SubstratePlanningComposition(
         (SubstratePlanningRegistration(definition=alpha, plan=_plan),)
     )
-    return FrameworkDataAdapter(registry, planning_composition=composition)
+    execution = SubstrateExecutionComposition(
+        (SubstrateExecutionRegistration(definition=alpha, execute=_execute),)
+    )
+    return FrameworkDataAdapter(
+        registry, planning_composition=composition, execution_composition=execution
+    )
+
+
+def _execute(session) -> None:
+    """Synthetic producer execution: one generic record, no split."""
+    from ehp_sn.execution import GeneratedRecordBody, RealizationKey
+    from ehp_sn.planning import IdentityInput
+
+    session.add_record(
+        GeneratedRecordBody(
+            content={"value": "alpha-record"},
+            realization_key=RealizationKey(inputs=(IdentityInput("realization_index", 1),)),
+        )
+    )
 
 
 @pytest.fixture()
@@ -232,10 +254,40 @@ def test_plan_unreadable_config_maps_to_exit_4(use_adapter: None, tmp_path) -> N
 # ---------------------------------------------------------------------------
 
 
-def test_build_is_controlled_not_implemented() -> None:
+def test_build_delegates_to_real_backend(use_adapter: None, tmp_path) -> None:
+    """``data build`` delegates to the generic lifecycle, not a placeholder.
+
+    With a synthetic production adapter and a valid config file, build commits a
+    logical artifact and reports the committed outcome; it never says
+    "not implemented".
+    """
+    config = tmp_path / "alpha.toml"
+    config.write_text("[generation]\nseed = 42\n")
+    result = runner.invoke(app, ["data", "build", "substrate:alpha/v1", "--config", str(config)])
+    assert result.exit_code == 0
+    assert "action: committed" in result.stdout
+    assert "artifact-fingerprint:" in result.stdout
+    assert "not yet implemented" not in result.stdout
+
+
+def test_build_json(use_adapter: None, tmp_path) -> None:
+    config = tmp_path / "alpha.toml"
+    config.write_text("[generation]\nseed = 42\n")
+    result = runner.invoke(
+        app, ["data", "build", "substrate:alpha/v1", "--config", str(config), "--format", "json"]
+    )
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["status"] == "success"
+    assert payload["action"] == "build"
+    assert payload["result"]["action"] == "committed"
+    assert payload["result"]["target"] == "substrate:alpha/v1"
+
+
+def test_build_missing_config_is_controlled() -> None:
+    """Building with an unreadable config maps to a controlled exit, no traceback."""
     result = runner.invoke(app, ["data", "build", "substrate:alpha/v1", "--config", "x.toml"])
-    assert result.exit_code == 1
-    assert "not yet implemented" in result.stderr
+    assert result.exit_code == 4
     assert "Traceback" not in result.stderr
 
 

@@ -24,6 +24,7 @@ from .composition import (
     compose_planning_providers,
     effective_planning_composition,
 )
+from .digest import plan_identity
 from .identity import IdentityInput
 from .orchestration import (
     MissingPlanningCapabilityError,
@@ -62,5 +63,6 @@ __all__ = [
     "SubstratePlanningRegistration",
     "compose_planning_providers",
     "effective_planning_composition",
+    "plan_identity",
     "plan_substrate",
 ]

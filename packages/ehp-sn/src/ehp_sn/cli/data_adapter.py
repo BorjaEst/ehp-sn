@@ -41,6 +41,12 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, Protocol, cast
 
+from ehp_sn.artifacts import (
+    BuildError,
+    BuildOutcome,
+    CommitConflictError,
+    build_substrate,
+)
 from ehp_sn.configuration import (
     ConfigurationAccessError,
     ConfigurationParseError,
@@ -48,6 +54,7 @@ from ehp_sn.configuration import (
 )
 from ehp_sn.discovery import ComponentRegistry
 from ehp_sn.discovery.registry import UnknownReferenceError
+from ehp_sn.execution import SubstrateExecutionComposition
 from ehp_sn.experiments import ComponentRef, InvalidReferenceError
 from ehp_sn.planning import (
     ExecutionPlan,
@@ -218,6 +225,27 @@ class PlanResult:
     identity: tuple[IdentityInputView, ...]
 
 
+@dataclass(frozen=True)
+class BuildResult:
+    """A ``data build`` projection of the framework build outcome.
+
+    This is a presentational, deterministic projection of the framework-domain
+    :class:`~ehp_sn.artifacts.BuildOutcome`. It is **not** the framework result
+    and carries no exit code, CLI category, or physical location.
+
+    It exposes the stable lifecycle outcome (``committed`` or ``reused``), the
+    committed target, the output contract, and the committed artifact's
+    build-input identity and artifact fingerprint. The framework result remains
+    authoritative; this view is only what the CLI renders.
+    """
+
+    action: str
+    target: str
+    output_contract: str
+    build_input_identity: str
+    artifact_fingerprint: str
+
+
 class _RegisteredSubstrate(Protocol):
     """Structural shape of a registered substrate definition the adapter projects.
 
@@ -307,12 +335,23 @@ class FrameworkDataAdapter:
     ``list`` enumerates registered substrate definitions from the injected
     registry; ``show`` resolves one authoritative definition and projects it;
     ``plan`` delegates to the single generic framework planning orchestration
-    and projects the authoritative immutable plan into a CLI-facing
-    :class:`PlanResult`.
+    (``ehp_sn.planning.plan_substrate``) and projects the authoritative
+    immutable plan into a CLI-facing :class:`PlanResult`; ``build`` delegates to
+    the single generic framework build orchestration
+    (``ehp_sn.artifacts.build_substrate``) and projects the framework build
+    outcome into a CLI-facing :class:`BuildResult`.
 
-    The future execution/artifact lifecycle (``build``/``validate``/``inspect``)
-    is deliberately **absent** from this adapter: there is no concrete framework
-    capability for it yet, so no placeholder method pretends it exists.
+    The build path intentionally does little more than invoke the generic build,
+    translate controlled framework errors, and project the result: it does not
+    load TOML except through the established generic path, does not inspect
+    producer configuration, does not select execution operations, does not
+    allocate releases, does not compute fingerprints, and does not publish or
+    understand logical-resource formats — those are all framework
+    responsibilities.
+
+    ``validate``/``inspect`` are deliberately absent: they remain unsupported
+    until the corresponding framework capabilities exist, so no placeholder
+    method pretends they do.
     """
 
     def __init__(
@@ -320,10 +359,12 @@ class FrameworkDataAdapter:
         registry: ComponentRegistry,
         *,
         planning_composition: SubstratePlanningComposition,
+        execution_composition: SubstrateExecutionComposition,
         resource_resolver: ResourceResolver | None = None,
     ) -> None:
         self._registry = registry
         self._planning_composition = planning_composition
+        self._execution_composition = execution_composition
         self._resource_resolver = resource_resolver or _DeclaredResourceResolver()
 
     def _resolve_substrate(self, target: str) -> _RegisteredSubstrate:
@@ -402,3 +443,68 @@ class FrameworkDataAdapter:
             raise ConfigurationInvalidError(str(exc)) from exc
 
         return _project_plan(plan)
+
+    def build(self, target: str, config: str | None) -> BuildResult:
+        """Run one generic substrate build and project the framework outcome.
+
+        Delegates the complete lifecycle to the single generic framework build
+        orchestration (``ehp_sn.artifacts.build_substrate``), which loads and
+        plans exactly once, executes the exact plan, assembles and commits the
+        artifact, and returns a framework-domain :class:`BuildOutcome` (``None``
+        for the conflict/producer-translated case → a controlled CLI error).
+
+        ``config`` is required: an explicit reusable profile must be supplied. A
+        ``None`` configuration is rejected as invalid.
+
+        This method does not re-implement any lifecycle stage; it only wires the
+        injected compositions, delegates, translates controlled framework
+        errors, and projects the result.
+        """
+        if config is None:
+            raise ConfigurationInvalidError(
+                "data build requires an explicit --config profile for the target"
+            )
+
+        try:
+            outcome: BuildOutcome = build_substrate(
+                registry=self._registry,
+                planning_composition=self._planning_composition,
+                execution_composition=self._execution_composition,
+                target=target,
+                config=config,
+                resource_resolver=self._resource_resolver,
+            )
+        except BuildError as exc:
+            raise DataOperationError(str(exc)) from exc
+        except ConfigurationAccessError as exc:
+            raise ConfigurationUnreadableError(str(exc)) from exc
+        except ConfigurationParseError as exc:
+            raise ConfigurationInvalidError(str(exc)) from exc
+        except (UnknownReferenceError, InvalidReferenceError) as exc:
+            raise UnknownSubstrateError(f"unknown substrate: {target}") from exc
+        except (NotASubstrateError, MissingPlanningCapabilityError) as exc:
+            raise UnknownSubstrateError(str(exc)) from exc
+        except (ProducerResolutionError, ResourceResolutionError) as exc:
+            raise ConfigurationInvalidError(str(exc)) from exc
+        except CommitConflictError as exc:
+            raise DataOperationError(str(exc)) from exc
+
+        return _project_build_result(outcome)
+
+
+def _project_build_result(outcome: BuildOutcome) -> BuildResult:
+    """Project the framework build outcome into a CLI ``build`` result.
+
+    A lossy presentation projection (never the framework result). Selects the
+    lifecycle outcome, target, output contract, and the committed artifact's
+    build-input identity and artifact fingerprint; discards everything else and
+    exposes no physical location.
+    """
+    artifact = outcome.artifact
+    return BuildResult(
+        action=outcome.action,
+        target=artifact.component_ref,
+        output_contract=artifact.output_contract,
+        build_input_identity=artifact.build_input_identity,
+        artifact_fingerprint=artifact.artifact_fingerprint,
+    )

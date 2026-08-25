@@ -25,6 +25,7 @@ from ehp_research.substrates.maze_nd import MAZE_ND_DEFINITION
 from ehp_sn.cli import app
 from ehp_sn.cli.data_adapter import FrameworkDataAdapter, UnknownSubstrateError
 from ehp_sn.discovery import effective_registry
+from ehp_sn.execution import effective_execution_composition
 from ehp_sn.planning import effective_planning_composition
 from typer.testing import CliRunner
 
@@ -33,10 +34,11 @@ runner = CliRunner()
 
 @pytest.fixture()
 def service() -> FrameworkDataAdapter:
-    """The production adapter: effective registry + composed planning resolvers."""
+    """The production adapter: effective registry + composed planning/execution."""
     return FrameworkDataAdapter(
         effective_registry(),
         planning_composition=effective_planning_composition(),
+        execution_composition=effective_execution_composition(),
     )
 
 
