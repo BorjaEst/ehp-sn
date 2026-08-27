@@ -1,8 +1,8 @@
 ---
 title: DungeonGen v1
 authority: normative
-document_status: draft
-capability_status: planned
+document_status: specified
+capability_status: specified
 api_stability: provisional
 ---
 
@@ -197,6 +197,163 @@ When present:
 
 ## Generation and conversion contract
 
+### First release dependency and protocol decision
+
+The first executable release freezes one immutable external production dependency and one EHP-SN reference generation protocol.
+These are the values that the implementation (`ehp_research/substrates/dungeongen/`) freezes and validates.
+
+| Identity                             | Frozen value                                                                 |
+| ------------------------------------ | ---------------------------------------------------------------------------- |
+| Upstream repository                  | `https://github.com/benjcooley/dungeongen`                                   |
+| Package                              | `dungeongen`                                                                 |
+| Package version                      | `0.1.14`                                                                     |
+| Upstream revision (exact Git commit) | `2d228f5d3f82ccaa4666b087942100e7800fb069` (message "v0.1.14")               |
+| Dependency reference identity        | `git:benjcooley/dungeongen@2d228f5d3f82ccaa4666b087942100e7800fb069`         |
+| Package-layer dependency             | `dungeongen==0.1.14` (verified to correspond to the frozen commit above)     |
+| Supported upstream API               | `GenerationParams → DungeonGenerator(params).generate(seed=<int>) → Dungeon` |
+| Reference generation protocol        | `dungeongen/generation/v1`                                                   |
+| First generator profile              | `dungeongen/profile/general/v1`                                              |
+| Conversion policy                    | `dungeongen:conversion/raster/v1`                                            |
+| Component-selection policy           | `dungeongen:selection/largest-component/v1`                                  |
+| Acceptance policy                    | `dungeongen:acceptance/size-and-connected/v1`                                |
+| Duplicate policy (`general` variant) | `allow`                                                                      |
+| Randomness role                      | `topology-candidate`                                                         |
+
+The reference generation protocol (`dungeongen/generation/v1`) freezes:
+
+- the exact upstream dependency identity above;
+- the supported upstream API surface (`GenerationParams`, `DungeonGenerator`, `generate(seed=…)`) over the structured layout subsystem (`dungeongen.layout` only; the renderer / webview / drawing subsystems are **excluded**);
+- the parameter interpretation — the full supported `GenerationParams` surface (below) and how each field maps to the upstream constructor, including the `size`/`room_count` mutual exclusion;
+- candidate-seed derivation (below);
+- the native output consumed (the `Dungeon` layout and its occupancy raster);
+- the conversion-policy reference;
+- failure behavior (a generator raise or an unexpected native structure is a controlled candidate rejection / build failure, never a silent substitution).
+
+The protocol explicitly excludes webview, PNG/SVG rendering, water rendering, decorative graphics, and filesystem output.
+The generator is a geometry source, not the public EHP topology representation.
+
+### Supported generator parameter surface and EHP-owned defaults
+
+The protocol's frozen contract is **how** generation works; the concrete scientific parameter values are **configuration** under the `general` variant (see [Variant model](#variant-model)).
+The first profile `dungeongen/profile/general/v1` therefore does **not** freeze one dungeon distribution.
+It defines the complete supported `GenerationParams` surface and the EHP-owned defaults that make any resolved configuration complete and explicit.
+
+For every supported field the contract fixes the EHP field name, the exact upstream `GenerationParams` field, the type, the allowed domain, whether it is required, the EHP-owned default, the mutual-exclusion rule, and its identity-bearing status.
+A configuration may set any subset of the scientific parameters; each omitted field resolves through its EHP-owned default, so the result is always a complete, explicit `GenerationParams` and no scientifically relevant parameter is ever silently inherited from a mutable upstream constructor default.
+
+| `GenerationParams` field  | Type                  | Allowed values / domain                            | EHP-owned default | Mutual exclusion      |
+| ------------------------- | --------------------- | -------------------------------------------------- | ----------------- | --------------------- |
+| `archetype`               | enum                  | `classic/warren/temple/crypt/cavern/fortress/lair` | `classic`         | —                     |
+| `size`                    | enum                  | `tiny/small/medium/large/xlarge`                   | `medium`          | excludes `room_count` |
+| `room_count`              | `[min, max]` int pair | `1 <= min <= max`                                  | absent (`None`)   | excludes `size`       |
+| `room_size_bias`          | float                 | `[-1.0, 1.0]`                                      | `0.0`             | —                     |
+| `round_room_chance`       | float                 | `[0.0, 1.0]`                                       | `0.15`            | —                     |
+| `hall_chance`             | float                 | `[0.0, 1.0]`                                       | `0.1`             | —                     |
+| `density`                 | float                 | `[0.0, 1.0]`                                       | `0.5`             | —                     |
+| `symmetry`                | enum                  | `none/bilateral/radial_2/radial_4/partial`         | `none`            | —                     |
+| `symmetry_break`          | float                 | `[0.0, 1.0]`                                       | `0.2`             | —                     |
+| `linearity`               | float                 | `[0.0, 1.0]`                                       | `0.3`             | —                     |
+| `loop_factor`             | float                 | `[0.0, 1.0]`                                       | `0.3`             | —                     |
+| `passage_width`           | positive integer      | `>= 1`                                             | `1`               | —                     |
+| `winding`                 | float                 | `[0.0, 1.0]`                                       | `0.0`             | —                     |
+| `extra_room_connections`  | float                 | `[0.0, 1.0]`                                       | `0.2`             | —                     |
+| `extra_passage_junctions` | float                 | `[0.0, 1.0]`                                       | `0.15`            | —                     |
+| `levels`                  | positive integer      | `>= 1`                                             | `1`               | —                     |
+| `stair_frequency`         | float                 | `[0.0, 1.0]`                                       | `0.1`             | —                     |
+| `water_enabled`           | boolean               | `true`/`false`                                     | `false`           | —                     |
+| `water_threshold`         | float                 | `[-1.0, 1.0]`                                      | `0.15`            | —                     |
+
+#### `size` vs `room_count` mutual exclusion
+
+`size` and `room_count` are mutually exclusive and jointly optional:
+
+- `size` set, `room_count` absent — **valid**.
+  Room count derives from `size` inside the frozen upstream dependency.
+  This derivation is upstream-owned (Correction 3); the EHP side does **not** reimplement a room-count formula.
+- `room_count` set, `size` absent — **valid**.
+  The explicit `room_count` pair overrides the size-derived count (`get_room_count_range` returns `room_count` when set).
+  `size` resolves to its EHP-owned default for completeness, but has no effect because `room_count` wins.
+- both set — **invalid** (conflict).
+  Resolution rejects the configuration.
+- both absent — **valid**; both fields resolve through EHP-owned defaults (`size=medium`, `room_count=None`).
+
+An absent `room_count` (`None`) is the explicit "derive from `size`" state.
+It is not identity-bearing beyond the `size` already encoded, whereas a set `room_count` is identity-bearing because it changes the generated output.
+
+#### Named presets
+
+Named reusable presets (for example `general-medium`, `general-large-dense`, `general-sparse`, `general-high-loop`) are **reusable parameter selections**, not variants, not protocols, and not separate framework capabilities.
+A preset is a documented named selection of supported-parameter values; a concrete configuration may select a preset and override permitted fields.
+After resolution, only the complete effective parameter set matters scientifically.
+
+The fixed profile reference `dungeongen/profile/general/v1` identifies the supported parameter contract and the `general` variant's EHP-owned defaults.
+Other named presets are reusable selections over that same surface; selecting a preset never changes the variant, the protocol, or the scientific identity of the concept, though the resolved parameter values (and therefore build-input identity) differ.
+
+#### Resolution invariant
+
+Every resolved configuration maps to a complete explicit `GenerationParams`.
+The invariant is:
+
+```text
+user config
++ EHP-owned defaults
+    ↓
+complete resolved parameter declaration
+    ↓
+GenerationParams(...)
+```
+
+No scientifically relevant parameter is inherited accidentally from the external constructor.
+
+### Candidate-seed derivation
+
+The upstream generator accepts a seed; EHP-SN defines how that seed is obtained.
+For logical topology index `i` and retry attempt `a` (see [Retry and exhaustion](#retry-and-exhaustion)), the candidate seed is a pure deterministic function:
+
+```text
+candidate_seed(i, a) = f(base_seed, protocol, profile, i, a, "topology-candidate")
+```
+
+where `f` is a stable hash (SHA-256) over the canonical concatenation of its arguments, reduced to a non-negative 31-bit integer accepted by the upstream generator's RNG.
+The protocol, profile, and randomness role are fixed strings; `base_seed` is the configured `generation.seed`.
+
+This scheme guarantees:
+
+- same `(i, a)` → same candidate seed;
+- a retry of index `i` (incrementing `a`) never consumes or alters the randomness of a different index, because each candidate seed depends only on its own `(i, a)`;
+- increasing requested record count does not alter earlier indexes;
+- worker count and scheduling do not alter output (the function is pure and parallel-safe);
+- filesystem / container enumeration order does not alter output.
+
+### Conversion policy (first release)
+
+For the first release, the conversion policy `dungeongen:conversion/raster/v1` reads the structured native `Dungeon` layout **occupancy raster** produced during `generate()` — the spatial mapping from native cells to occupancy types that the layout generator populates from rooms, passages, doors, stairs, and exits.
+It does **not** read rendered PNG/SVG and does not expose native room/door/object IDs as public content.
+
+The policy asserts the following exact interpretation:
+
+- **room interior cells** — the cells the occupancy raster classifies as `ROOM`; under the first conversion policy a rectangular room's bounded box is wholly `ROOM` (no separate interior/boundary distinction is emitted), and circular room discretization is already resolved by the generator into `ROOM` cells;
+- **room boundary cells** — no separate `WALL` ring is emitted under the first conversion policy; the rectangular bounding box is passable `ROOM` up to its edges;
+- **passage segments and width** — the cells the occupancy raster classifies as `PASSAGE` (including `passage_width` coverage);
+- **doors, stairs, exits** — connection cells that the occupancy raster classifies as `ROOM` or `PASSAGE` (their DOOR / STAIRS / EXIT status is a _modifier_, not a separate passability type); they are passable because their base cell type is passable;
+- **all other generator state** — `EMPTY`, `RESERVED`, `BLOCKED` (and any future `WALL`) cells are **non-passable**;
+- **coordinate orientation** — native `x` maps to the raster column and native `y` maps to the raster row (`x` increases right, `y` increases down), so a native room `(x, y, width, height)` spans columns `[x, x+width)` and rows `[y, y+height)`;
+- **unsupported native geometry** — unexpected cell kinds are treated as non-passable; a fully empty passable set is a controlled candidate failure.
+
+The canonical result is a boolean passability raster over the native coordinate space.
+
+### Semantic extent normalization (first release)
+
+The native occupancy grid uses an implementation-specific canvas origin whose coordinates may be negative (observed ranges such as `x ∈ [-18, 17]`, `y ∈ [-18, 15]`).
+Under `dungeongen:conversion/raster/v1` all cells lying strictly outside the tight bounding box of passable (`ROOM` / `PASSAGE`) cells are declared **non-semantic generator canvas margin**.
+The canonical origin translation therefore:
+
+1. recomputes the semantic extent as the tight bounding rectangle over passable cells;
+2. translates that rectangle to origin `(0, 0)`;
+3. emits the canonical row-major boolean passability over that extent.
+
+Equal native geometry at different irrelevant canvas offsets therefore yields the same normalized topology because the offset is declared non-semantic.
+
 ### Generator dependency
 
 A conforming release identifies the exact procedural generator dependency by immutable revision, source digest, package artifact, or equivalent stable coordinate.
@@ -261,6 +418,14 @@ The protocol must define:
 - exhaustion behavior;
 - the accepted-attempt lineage recorded for the final record.
 
+For the first release the protocol fixes:
+
+- **first attempt index** — `a = 0`;
+- **attempt range** — `a ∈ [0, attempt_budget)`; the candidate seed for `(i, a)` is `candidate_seed(i, a)` from [Candidate-seed derivation](#candidate-seed-derivation);
+- **retry driver** — a rejected candidate (under the resolved acceptance policy, and under the duplicate policy when it applies) increments `a` and derives a fresh candidate seed;
+- **rejection diagnostics** — every rejection carries the named acceptance condition (or duplicate condition) that rejected the candidate, so each rejection is attributable to a configured condition;
+- **exhaustion** — if `a` reaches `attempt_budget` without acceptance, the logical realization fails explicitly with an exhaustion error carrying the logical index, the attempt count, and the per-attempt rejection reasons; the builder never substitutes another realization index and never borrows a candidate seed from another index.
+
 Exhaustion fails the logical realization explicitly.
 The builder must not silently substitute another realization index.
 
@@ -305,6 +470,12 @@ Duplicate detection and reporting are required under both policies.
 
 The policy is identity-bearing because it changes the resulting record
 collection and, for `reject-exact`, retry behavior.
+
+For the first release, the first executable profile (`general` variant via `independent-realizations`) uses **`allow`**: independent generation outcomes remain separate records even when canonical topology content (extent + cell-wise passability) repeats, and such repetition is detected and reported.
+`allow` needs no cross-record retry machinery.
+
+`reject-exact` remains a reusable but **not-yet-implemented** policy for the first release.
+Because `reject-exact` requires prefix/parallel deterministic retry against earlier records, a configuration that declares it is rejected cleanly by the resolver until a release implements and registers it; it must not be silently downgraded and materialized as `allow`.
 
 ## Configuration and family-specific identity inputs
 
@@ -474,8 +645,10 @@ Downstream consumers must not treat accepted-attempt indexes, generator seeds, o
 
 ## Open issues
 
-- Stable reusable room, corridor, and door region semantics remain unverified; `region_id` therefore remains optional.
-- Exact generator dependency and reference protocol must be fixed against the implementation selected for the first release.
+- Stable reusable room, corridor, and door region semantics remain unverified; `region_id` therefore remains optional (and is **absent** by default in the first release, per the "Optional family extension" requirement).
+- `reject-exact` duplicate handling is defined but not implemented for the first release; the first executable profile uses `allow`, and a config declaring `reject-exact` is rejected cleanly until it is implemented and registered.
+
+are now fixed (see [First release dependency and protocol decision](#first-release-dependency-and-protocol-decision)).
 
 ## Related specifications
 

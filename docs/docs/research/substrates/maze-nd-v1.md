@@ -1,8 +1,8 @@
 ---
 title: Maze-ND v1
 authority: normative
-document_status: draft
-capability_status: planned
+document_status: specified
+capability_status: specified
 api_stability: provisional
 ---
 
@@ -207,6 +207,67 @@ A conforming release identifies the source through:
 
 A mutable repository or dataset name alone is insufficient.
 
+The initial release fixes these values:
+
+| Input              | Fixed value                                     |
+| ------------------ | ----------------------------------------------- |
+| `source.reference` | `huggingface:flaitenberger/maze_hard_augmented` |
+| `source.revision`  | `b1f344fb8d63eea8b602f5bd5ffdd8e146b6595f`      |
+| `source.schema`    | `maze-nd:extraction/raster/v1`                  |
+
+- `source.reference` is the stable logical source reference (`<platform>:<owner>/<repo>`).
+- `source.revision` is the immutable source coordinate: the dataset-repository git commit SHA as reported by the HF API `sha` field.
+  It pins the snapshot; it is not a content digest.
+- `source.fingerprint` is the verified content identity of the payload the extraction actually consumes: `sha256:<64-hex>` computed over the exact served bytes of `train.jsonl.gz` followed by `test.jsonl.gz` at the pinned revision (config `default`), in that order.
+  The two parquet mirrors are derived representations and are not consumed, so they are not covered.
+  The concrete digest value for the pinned revision is:
+
+```text
+sha256:b9efcf3b47a8f535d3e36f96656e71f0deb5d059bce380a4fcb5fafe65d827fe
+```
+
+The executor re-derives the digest from the served bytes at build time and fails the build on mismatch.
+
+`source.reference`, `source.revision`, and `source.fingerprint` are all identity-bearing build inputs.
+A release that changes any of them is a new release.
+
+### Extraction profile `maze-nd:extraction/raster/v1`
+
+The canonical extraction profile for the initial release.
+It classifies every source element.
+
+| Source element                | Classification          | Interpretation                                                                    |
+| ----------------------------- | ----------------------- | --------------------------------------------------------------------------------- |
+| `inputs` grid (30 × 30)       | topology-bearing base   | sole passability authority; one single-char token per cell                        |
+| `#`                           | wall                    | impassable                                                                        |
+| ` ` (space)                   | traversable             | passable                                                                          |
+| `S`                           | start overlay           | task-instance overlay on a passable cell; passable after removal                  |
+| `G`                           | goal overlay            | task-instance overlay on a passable cell; passable after removal                  |
+| `labels` grid (30 × 30)       | verification only       | must equal `inputs` passability after overlay removal; never a topology authority |
+| `o` (labels only)             | solution overlay        | task-instance overlay on a passable cell; passable after removal                  |
+| `puzzle_index`, `group_index` | source metadata         | carried in lineage only; never topology channels                                  |
+| `set`                         | source split metadata   | carried in lineage only; never a topology channel                                 |
+| train/test file membership    | source split provenance | carried in lineage only; never a topology channel                                 |
+| padding                       | none                    | no padding declared or observed; extent is exactly 30 × 30 for every row          |
+
+Passability rule: in `inputs`, a cell is passable iff its token is in {` `, `S`, `G`}; it is a wall iff `#`.
+Any other token is invalid and makes the row malformed.
+
+Overlay removal happens before topology identity is computed; `S`, `G`, and `o` cells retain their declared underlying passability.
+Maze-ND does not infer passability from an overlay without this declared rule.
+
+Base choice: `inputs` is the sole topology-bearing field.
+`labels` is a consistency cross-check — its derived raster (with `S`, `G`, `o` removed as passable) must equal the `inputs`-derived raster; a mismatch makes the row malformed.
+Using `inputs` avoids making topology depend on solution annotation coverage.
+
+Orientation is preserved as served (row-major, top-to-bottom, left-to-right).
+No rotation, reflection, transposition, or symmetry canonicalization is applied.
+
+Malformed rows — wrong extent, unknown token, `inputs`/`labels` disagreement — are rejected with a diagnostic under the malformed-source policy below.
+They are never silently repaired.
+
+The normalization reference `maze-nd:normalization/raster/v1` means exactly: apply this profile's interpretation, remove overlays, remove no padding (none declared), and emit the authoritative 30 × 30 boolean passability raster in preserved orientation.
+
 ### Source field classification
 
 The extraction profile must classify every source field or value as one of:
@@ -265,31 +326,46 @@ Compact-state arrays and movement tables are derived from this authoritative ras
 
 ### Selection and deduplication order
 
-The release must declare one selection policy that fixes whether source rows are:
+The initial release declares option (a): **source rows are selected first, then normalized, then deduplicated** (`selection_before_dedup = true`).
 
-1. selected first and then normalized/deduplicated; or
-2. fully normalized/deduplicated first and then unique topologies are selected.
+`selection_policy = "complete-source"` selects every source row of both split files at the pinned revision, in canonical order: `train.jsonl.gz` rows in file order, then `test.jsonl.gz` rows in file order.
+The deduplication universe is therefore the complete selected population, and source frequency is real: occurrence counts aggregate over all selected rows.
 
-These policies induce different topology distributions and are not interchangeable.
+Normalized topology identity is exact equality of normalized extent plus cell-wise passability in preserved orientation, under `maze-nd:dedup/orientation-preserving-raster/v1`.
+Record identity never depends on the first-encountered duplicate row, source enumeration order, or storage order.
 
-The initial release must record the selected policy explicitly.
-Source-row frequency must not be lost without preserving occurrence counts and lineage.
+Source occurrence identity is `(source split file, 0-based row ordinal)` at the pinned revision; `puzzle_index` and `group_index` are recorded as source metadata in lineage.
+Split membership derives from the file (`train.jsonl.gz` → `train`, `test.jsonl.gz` → `test`); the `set` column is recorded, not interpreted.
+
+Each topology record carries the bounded lineage summary (occurrence count, source split membership set) and references the complete source-lineage mapping resource, which stores the many-to-one occurrence-to-topology mapping.
+
+Source splits are not topology splits: records carry no `train`/`validation`/`test` label, the artifact reports topology overlap across source splits, and MN-ART-005/006 hold.
+
+Under `complete-source`, selecting source rows before normalization/deduplication (option (a)) and normalizing/deduplicating the complete source before selecting unique topologies (option (b)) currently produce the same topology collection because every row is selected.
+The declared semantics is still (a) so that a future deterministic subset (count and seed, both identity-bearing) operates on source rows without redefining normalization or deduplication.
 
 ### Connectivity and malformed-source policy
 
-Maze-ND does not silently select the largest component or delete source-passable cells.
+The execution operation implements both regimes:
 
-The source import policy must declare one of:
+- `preserve`: every normalized topology is retained and its component capabilities (`component_count`, `connected`) are exposed through `raster-topology/v1`.
+- `reject`: a source row whose normalized topology has `component_count > 1` is rejected with a diagnostic.
+  No source-passable component is silently discarded and no largest-component selection exists.
+  `component_count` is computed through the shared `raster-topology/v1` constructor, never re-enumerated by Maze-ND.
 
-| Policy     | Meaning                                                                                    |
-| ---------- | ------------------------------------------------------------------------------------------ |
-| `preserve` | Preserve disconnected normalized topology and expose its component capabilities            |
-| `reject`   | Reject source rows whose normalized topology violates a declared connectedness requirement |
+The gate is applied to each normalized topology after extraction and before deduplication.
 
-The correct initial policy depends on the verified source revision.
+First-release decision (Phase 5.2, Target 4): **`preserve`**.
+The mandatory pre-publication full-population component inspection was executed against the pinned revision (`b1f344fb8d63eea8b602f5bd5ffdd8e146b6595f`): `component_count` was computed via `raster-topology/v1` grid4 semantics over the full normalized passable set for every row of both splits.
+The inspection observed that **all 2000/2000 rows are disconnected** (no connected row exists; counts range roughly 18–38).
+Because `reject` would therefore reject the entire population and produce an empty artifact, the spec's reopen clause triggered and the decision is `preserve` for the first release.
+The release therefore contains every normalized topology and reports their component structure truthfully; no row is silently repaired or discarded.
 
-Malformed or unsupported source rows fail or are rejected under an explicit policy and diagnostic.
-They are not silently repaired.
+`reject` (`config/data/maze-nd/connected-source.toml` historically declared it) remains a fully implemented and tested regime, reusable for a future connected population under the same source identity or a different source revision.
+Changing the connectivity policy is a new release, not a new specification version.
+
+Malformed or unsupported source rows fail or are rejected under this explicit policy with a diagnostic.
+They are never silently repaired.
 
 ### Source problem preservation
 
@@ -337,16 +413,18 @@ A source-reproduction corpus may preserve original source-instance splits withou
 
 ### Semantic configuration
 
-| Key                             | Type                     | Requiredness | Meaning                                                         | Family-specific build input |
-| ------------------------------- | ------------------------ | ------------ | --------------------------------------------------------------- | --------------------------: |
-| `substrate.variant`             | enum                     | required     | `source-topology`                                               |                         Yes |
-| `source.reference`              | immutable reference      | required     | Exact upstream dataset revision                                 |                         Yes |
-| `source.fingerprint`            | digest                   | required     | Verified source content identity                                |                         Yes |
-| `source.schema`                 | schema/profile reference | required     | Source field interpretation                                     |                         Yes |
-| `source.selection_policy`       | policy reference         | required     | Source-row or unique-topology selection semantics               |                         Yes |
-| `normalization.policy`          | policy reference         | required     | Extraction, overlay, padding, extent, and orientation semantics |                         Yes |
-| `topology.connectivity_policy`  | enum                     | required     | `preserve` or `reject`                                          |                         Yes |
-| `topology.deduplication_policy` | fixed policy reference   | required     | Exact normalized raster equality in preserved orientation       |                         Yes |
+| Key                             | Type                     | Requiredness | Meaning                                                                             | Family-specific build input |
+| ------------------------------- | ------------------------ | ------------ | ----------------------------------------------------------------------------------- | --------------------------: |
+| `substrate.variant`             | enum                     | required     | `source-topology`                                                                   |                         Yes |
+| `source.reference`              | immutable reference      | required     | Stable logical source reference                                                     |                         Yes |
+| `source.revision`               | immutable revision       | required     | Pinned source coordinate (dataset git commit SHA)                                   |                         Yes |
+| `source.fingerprint`            | digest                   | required     | `sha256:` content digest of the consumed source payload, per the extraction profile |                         Yes |
+| `source.schema`                 | schema/profile reference | required     | `maze-nd:extraction/raster/v1`                                                      |                         Yes |
+| `source.selection_policy`       | policy reference         | required     | `complete-source` — all source rows of the pinned revision                          |                         Yes |
+| `source.selection_before_dedup` | bool                     | required     | `true` — select source rows before normalization/deduplication                      |                         Yes |
+| `normalization.policy`          | policy reference         | required     | Extraction, overlay, padding, extent, and orientation semantics                     |                         Yes |
+| `topology.connectivity_policy`  | enum                     | required     | `preserve` or `reject`                                                              |                         Yes |
+| `topology.deduplication_policy` | fixed policy reference   | required     | Exact normalized raster equality in preserved orientation                           |                         Yes |
 
 A deterministic source subset may additionally require a selection count and seed.
 Those values are identity-bearing.
@@ -362,7 +440,7 @@ Maze-ND contributes:
 - specification reference;
 - variant;
 - shared logical schema reference;
-- exact source reference and fingerprint;
+- exact source reference, revision, and fingerprint;
 - extraction schema;
 - selection policy and any deterministic sampling inputs;
 - normalization and orientation policy;
@@ -502,12 +580,6 @@ Family identity and source revision may remain explicit experimental selection c
 
 MazeHard may generate starts, goals, and canonical solutions over a Maze-ND topology.
 A source-reproduction corpus may instead resolve the original source problem occurrence through lineage.
-
-## Open issues
-
-- The authoritative source revision, fingerprint, and extraction profile must be verified and fixed for the initial release.
-- The selected source revision must be inspected to choose the initial `preserve` or `reject` connectivity policy.
-- The first release must decide and document whether selection occurs before or after topology deduplication.
 
 ## Related specifications
 

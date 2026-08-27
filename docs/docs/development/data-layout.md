@@ -63,10 +63,10 @@ data/interim/<family>/<variant>/v<N>/
 Examples:
 
 ```text
-data/interim/obsfield/default/v1/
-data/interim/dagflow/default/v1/
-data/interim/dungeongen/default/v1/
-data/interim/maze-nd/default/v1/
+data/interim/obsfield/categorical-complete/v1/
+data/interim/dagflow/single-terminal/v1/
+data/interim/dungeongen/general/v1/
+data/interim/maze-nd/source-topology/v1/
 ```
 
 Despite the directory name, a committed release is complete, immutable, validated, and reusable.
@@ -132,10 +132,12 @@ Example:
 
 ```console
 ehp-sn data plan obsfield \
-    --config config/data/obsfield/default.toml
+    --config config/data/obsfield/default.toml \
+    --release 1
 
 ehp-sn data build obsfield \
-    --config config/data/obsfield/default.toml
+    --config config/data/obsfield/default.toml \
+    --release 1
 
 ehp-sn tasks plan arena \
     --config config/tasks/arena/default.toml
@@ -143,6 +145,10 @@ ehp-sn tasks plan arena \
 ehp-sn tasks build arena \
     --config config/tasks/arena/default.toml
 ```
+
+The `--release` value selects the concrete publication coordinate; the reusable
+config profile describes only scientific parameterization. A `release` value
+declared in the config profile is a temporary compatibility fallback.
 
 The actual package-relative location from which `ehp_research` exposes these configuration assets must be documented by the package configuration convention. The paths above describe their logical monorepo-facing use.
 
@@ -162,7 +168,9 @@ arena/default/v2
 
 Any intentional change that produces different data requires a new release number, including a seed-only change.
 
-The version is declared in configuration. The framework does not auto-assign the next release.
+The release number is selected at the invocation layer (`--release N`) and is the highest authority for where a concrete publication is committed;
+a config profile may declare one only as a temporary compatibility fallback.
+The framework does not auto-assign the next release.
 
 A committed coordinate must never be overwritten with different content.
 

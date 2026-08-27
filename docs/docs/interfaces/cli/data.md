@@ -12,7 +12,8 @@ Generate, validate, and inspect immutable interim substrates.
 
 ## Overview
 
-Use `ehp-sn data` when a research workflow needs a versioned environment or topology artifact before task-specific episodes, targets, or supervision are created. The command consumes a substrate definition and generation configuration and produces an immutable artifact under the configured interim-data root.
+Use `ehp-sn data` when a research workflow needs a versioned environment or topology artifact before task-specific episodes, targets, or supervision are created.
+The command consumes a substrate definition and generation configuration and produces an immutable artifact under the configured interim-data root.
 
 ```text
 external or synthetic source
@@ -55,7 +56,8 @@ ehp-sn data list [--format text|json]
 
 ### Outputs
 
-The command prints each target name, substrate kind, maturity, default configuration when available, and a short description. It does not access or modify generated data.
+The command prints each target name, substrate kind, maturity, default configuration when available, and a short description.
+It does not access or modify generated data.
 
 ### Example
 
@@ -86,7 +88,8 @@ ehp-sn data show TARGET [--format text|json]
 
 ### Outputs
 
-The command reports the target reference, purpose, maturity, supported source kind, configuration fields, output artifact kind, and default path convention. Complete configuration schemas belong in the substrate specification and are not reproduced here.
+The command reports the target reference, purpose, maturity, supported source kind, configuration fields, output artifact kind, and default path convention.
+Complete configuration schemas belong in the substrate specification and are not reproduced here.
 
 ### Example
 
@@ -120,16 +123,24 @@ ehp-sn data plan TARGET --config PATH [OPTIONS]
 | Option                | Default                                            | Description                              |
 | --------------------- | -------------------------------------------------- | ---------------------------------------- |
 | `--config PATH`       | Required unless the target has an accepted default | Generation configuration                 |
+| `--release INT`       | Config value (temporary fallback)                  | Publication release number               |
 | `--set KEY=VALUE`     | None                                               | Typed configuration override; repeatable |
 | `--output PATH`       | Configuration value                                | Override the artifact destination        |
 | `--seed INT`          | Configuration value                                | Override the generation seed             |
 | `--format text\|json` | `text`                                             | Terminal output format                   |
 
-`--seed INT` overrides the configured substrate-generation seed and therefore participates in artifact content identity. Supplying both `--seed` and a `--set` override for the same seed field is rejected as ambiguous.
+`--seed INT` overrides the configured substrate-generation seed and therefore participates in artifact content identity.
+Supplying both `--seed` and a `--set` override for the same seed field is rejected as ambiguous.
+
+`--release INT` is the invocation-layer publication coordinate — _where_ this concrete build is committed.
+It is the highest authority for the intended coordinate and does not participate in scientific build-input identity.
+A `release` value declared in the reusable config profile is accepted only as a temporary compatibility fallback (deprecated).
+The release number must be a positive integer; `0`, a negative value, or a non-integer is rejected as invalid usage.
 
 ### Behavior
 
-The command loads and validates configuration, resolves source dependencies and the destination, computes the artifact identity or fingerprint, checks for conflicts, and lists the stages that `build` would execute. It does not create staging directories or output files.
+The command loads and validates configuration, resolves source dependencies and the destination, computes the artifact identity or fingerprint, checks for conflicts, and lists the stages that `build` would execute.
+It does not create staging directories or output files.
 
 ### Inputs
 
@@ -160,7 +171,8 @@ The command prints the resolved ObsField variant, split sizes, destination, and 
 - A source reference is malformed, unknown, or ambiguous.
 - An override names an unknown field or has the wrong type.
 
-A source whose identity resolves but whose payload is not currently available is reported as a warning. `data build` performs the required availability check.
+A source whose identity resolves but whose payload is not currently available is reported as a warning.
+`data build` performs the required availability check.
 
 ## `build TARGET`
 
@@ -181,11 +193,15 @@ ehp-sn data build TARGET --config PATH [OPTIONS]
 | Option                 | Default                                            | Description                                                       |
 | ---------------------- | -------------------------------------------------- | ----------------------------------------------------------------- |
 | `--config PATH`        | Required unless the target has an accepted default | Generation configuration                                          |
+| `--release INT`        | Config value (temporary fallback)                  | Publication release number                                        |
 | `--set KEY=VALUE`      | None                                               | Typed configuration override; repeatable                          |
 | `--output PATH`        | Configuration value                                | Override the artifact destination                                 |
 | `--seed INT`           | Configuration value                                | Override the generation seed                                      |
 | `--replace-incomplete` | Disabled                                           | Remove an incomplete or uncommitted destination before rebuilding |
 | `--format text\|json`  | `text`                                             | Terminal result format                                            |
+
+`--release INT` is the invocation-layer publication coordinate and the highest authority for where the build is committed; it does not participate in scientific build-input identity and must be a positive integer (invalid values are a controlled usage error).
+Building without a `--release` and without a fallback configured release is a controlled failure — the framework never auto-assigns a release number.
 
 ### Behavior
 
@@ -198,11 +214,16 @@ ehp-sn data build TARGET --config PATH [OPTIONS]
 7. Atomically publishes the completed artifact.
 8. Prints the resulting artifact reference.
 
-A failed build must not leave a destination that appears completed. An identical existing artifact may be reused when its manifest and fingerprint match; a semantically different artifact requires a different identity or version. `--replace-incomplete` applies only to failed staging state or an uncommitted invalid destination; it cannot replace a committed valid artifact.
+A failed build must not leave a destination that appears completed.
+An identical existing artifact may be reused when its manifest and fingerprint match; a semantically different artifact requires a different identity or version.
+`--replace-incomplete` applies only to failed staging state or an uncommitted invalid destination; it cannot replace a committed valid artifact.
 
 ### Reuse result
 
-An equivalent verified artifact is a successful `action = "reused"`. Existing content and provenance are not modified. If the equivalent artifact exists elsewhere, the command returns its logical reference rather than copying it. A different valid artifact at `--output` exits with code `8`.
+An equivalent verified artifact is a successful `action = "reused"`.
+Existing content and provenance are not modified.
+If the equivalent artifact exists elsewhere, the command returns its logical reference rather than copying it.
+A different valid artifact at `--output` exits with code `8`.
 
 ### Inputs
 
@@ -262,11 +283,14 @@ ehp-sn data validate ARTIFACT [--level quick|full] [--format text|json]
 
 ### Behavior
 
-`quick` checks the manifest, required files, and top-level invariants. `full` additionally checks checksums, shapes, value ranges, referential integrity, split declarations, and substrate-specific semantic invariants. Validation is read-only.
+`quick` checks the manifest, required files, and top-level invariants.
+`full` additionally checks checksums, shapes, value ranges, referential integrity, split declarations, and substrate-specific semantic invariants.
+Validation is read-only.
 
 ### Outputs
 
-A validation report containing pass/fail status, errors, warnings, and the artifact identity. The command exits with code `5` when validation fails.
+A validation report containing pass/fail status, errors, warnings, and the artifact identity.
+The command exits with code `5` when validation fails.
 
 ### Example
 
@@ -299,7 +323,8 @@ ehp-sn data inspect ARTIFACT [--samples N] [--format text|json]
 
 ### Outputs
 
-The command reports artifact identity, schema version, configuration fingerprint, split sizes, file sizes, channel summaries, and at most the requested number of representative records. It never dumps the full dataset by default.
+The command reports artifact identity, schema version, configuration fingerprint, split sizes, file sizes, channel summaries, and at most the requested number of representative records.
+It never dumps the full dataset by default.
 
 ### Example
 

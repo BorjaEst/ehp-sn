@@ -185,12 +185,12 @@ Unsupported upstream claims must not be promoted to normative substrate semantic
 
 ## Registered and proposed specifications
 
-| Family       | Specification                       | Classification                                                         | Component maturity |
-| ------------ | ----------------------------------- | ---------------------------------------------------------------------- | ------------------ |
-| `obsfield`   | [`obsfield/v1`](obsfield-v1.md)     | Procedural spatial substrate                                           | Planned            |
-| `dungeongen` | [`dungeongen/v1`](dungeongen-v1.md) | Procedural spatial substrate                                           | Planned            |
-| `dagflow`    | [`dagflow/v1`](dagflow-v1.md)       | Procedural directed-graph substrate                                    | Specified          |
-| `maze-nd`    | [`maze-nd/v1`](maze-nd-v1.md)       | Imported source-instance artifact; substrate classification unresolved | Planned            |
+| Family       | Specification                       | Classification                                       | Component maturity |
+| ------------ | ----------------------------------- | ---------------------------------------------------- | ------------------ |
+| `obsfield`   | [`obsfield/v1`](obsfield-v1.md)     | Procedural spatial substrate                         | Planned            |
+| `dungeongen` | [`dungeongen/v1`](dungeongen-v1.md) | Procedural spatial substrate                         | Planned            |
+| `dagflow`    | [`dagflow/v1`](dagflow-v1.md)       | Procedural directed-graph substrate                  | Specified          |
+| `maze-nd`    | [`maze-nd/v1`](maze-nd-v1.md)       | Imported normalized raster-topology source substrate | Implemented        |
 
 `Component maturity` reflects the component as a whole — specification, implementation, and validation evidence together — following the `planned → specified → implemented → validated → reference` progression.
 It is derived from each specification's own `document_status` (linked above) plus implementation/validation state, not restated independently.

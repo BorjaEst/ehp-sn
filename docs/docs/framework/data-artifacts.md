@@ -10,9 +10,11 @@ api_stability: provisional
 
 EHP-SN represents generated scientific data as immutable, manifest-governed artifacts.
 
-This document defines the framework contract shared by generated data artifacts and the additional requirements of substrate artifacts. Task-corpus-specific requirements are defined in [Corpora](corpora.md).
+This document defines the framework contract shared by generated data artifacts and the additional requirements of substrate artifacts.
+Task-corpus-specific requirements are defined in [Corpora](corpora.md).
 
-The generic rules for manifests, identity, digests, provenance, and references remain authoritative in their dedicated framework documents. This page applies those rules to generated data; it does not redefine them.
+The generic rules for manifests, identity, digests, provenance, and references remain authoritative in their dedicated framework documents.
+This page applies those rules to generated data; it does not redefine them.
 
 ## Scope
 
@@ -50,7 +52,8 @@ DataArtifact
 
 `SubstrateArtifact` adds the requirements of a task-neutral world or structure.
 
-`TaskCorpus` adds the requirements of task-specific cases, episodes, inputs, and targets. Its contract is defined in [Corpora](corpora.md).
+`TaskCorpus` adds the requirements of task-specific cases, episodes, inputs, and targets.
+Its contract is defined in [Corpora](corpora.md).
 
 A shared implementation may provide:
 
@@ -104,9 +107,11 @@ Committed task-corpus releases use:
 data/processed/<task>/<corpus>/v<N>/
 ```
 
-These paths are human-facing release coordinates. They do not, by themselves, verify content identity.
+These paths are human-facing release coordinates.
+They do not, by themselves, verify content identity.
 
-The physical placement convention belongs to the monorepo workspace. A logical artifact reference may resolve to another physical location when a configured persistence backend is used.
+The physical placement convention belongs to the monorepo workspace.
+A logical artifact reference may resolve to another physical location when a configured persistence backend is used.
 
 ## Release numbering
 
@@ -126,7 +131,8 @@ or:
 
 For example, `arena/default/v3` has no ordering relationship with `arena/dungeons/v2`.
 
-Any intentional change that produces different artifact content requires a new release number. This includes changes to:
+Any intentional change that produces different artifact content requires a new release number.
+This includes changes to:
 
 - schema or protocol;
 - channel definitions;
@@ -138,22 +144,30 @@ Any intentional change that produces different artifact content requires a new r
 - builder semantics;
 - generated payload content.
 
-Accidental mutation or corruption of a committed release does not create a new valid release. It makes the existing release invalid. A corrected artifact must be rebuilt from an explicit configuration and published under a new release coordinate.
+Accidental mutation or corruption of a committed release does not create a new valid release.
+It makes the existing release invalid.
+A corrected artifact must be rebuilt from an explicit configuration and published under a new release coordinate.
 
 ## Version source and overrides
 
-The release number is declared in configuration and becomes part of the resolved effective configuration.
+The release number selects _where a concrete publication is committed_.
+It is an invocation-layer publication coordinate, not a scientific configuration field: a reusable scientific profile describes _what_ data should be produced, while `--release N` (or the equivalent resolved release) describes _where_ a given publication is committed.
+The release number never participates in scientific build-input identity; two invocations with otherwise identical scientific inputs and different release numbers describe the same build semantics at different publication coordinates.
 
-Precedence is:
+Precedence for the release number is:
 
 ```text
-package default
-< configuration file
-< --set override
+--release N                 highest authority
+        ↓
+legacy config release       temporary compatibility fallback only
+        ↓
+missing release             unresolved coordinate
 ```
 
+The `--release` CLI parameter (or the equivalent resolved release value) is the highest authority.
+A `release` value declared in the effective configuration is accepted only as a temporary compatibility fallback so existing reusable profiles do not need immediate edits; it is not an equally canonical mechanism and is deprecated in favor of the invocation-layer selection.
+
 `--version` is a root-level CLI interface that reports the installed tool version; it is not a release-number override.
-The release number is set through configuration or `--set`.
 
 The framework must not auto-assign the next release number.
 
@@ -189,7 +203,8 @@ provenance.json
 index.jsonl
 ```
 
-Those filenames are conventional, not semantic. The manifest identifies the authoritative resource roles and their relative locations.
+Those filenames are conventional, not semantic.
+The manifest identifies the authoritative resource roles and their relative locations.
 
 A physical `splits/` directory is permitted and is the default local organization, but it is not required by the framework contract.
 Split membership and split-owned payloads are declared by the manifest and index.
@@ -303,13 +318,15 @@ Reuse trusts the committed artifact's validated resource digests; it does not re
 
 The coordinate contains a committed artifact whose build-input identity differs from the planned build-input identity, or whose kind or release declaration is incompatible.
 
-The build must fail. The user must select a new release number.
+The build must fail.
+The user must select a new release number.
 
 ### Invalid existing state
 
 The coordinate exists but is incomplete, uncommitted, unreadable, or fails required validation.
 
-It is not reusable. Removal or replacement is permitted only under the explicit incomplete-state policy; a committed valid release must never be replaced.
+It is not reusable.
+Removal or replacement is permitted only under the explicit incomplete-state policy; a committed valid release must never be replaced.
 
 ## Lifecycle
 
@@ -326,11 +343,13 @@ Only a committed artifact is available for normal framework consumption.
 
 ### Planned
 
-Configuration, version, inputs, destination, and build-input identity are resolved. No output is written.
+Configuration, version, inputs, destination, and build-input identity are resolved.
+No output is written.
 
 ### Staging
 
-Payloads are generated in an isolated temporary location. Staging output must not appear as committed data.
+Payloads are generated in an isolated temporary location.
+Staging output must not appear as committed data.
 
 ### Validated
 
