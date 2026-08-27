@@ -31,12 +31,16 @@ resource resolution (Capability 6) and is deliberately out of scope here.
 Fields are derived strictly from the authoritative specification
 ``docs/docs/research/substrates/maze-nd-v1.md`` § "Configuration and
 family-specific identity inputs" and from the actual reusable repository
-profiles under ``config/data/maze-nd/``. No field is invented, and where the
-draft specification leaves a required choice open (notably the source
-revision/fingerprint values and the ``preserve``/``reject`` connectivity
-policy), the resolver applies **no** guessed default — a genuinely unresolved
-required scientific choice remains a configuration failure unless explicitly
-declared.
+profiles under ``config/data/maze-nd/``. No field is invented. Where the
+specification leaves a required choice open, the resolver applies **no**
+guessed default — a genuinely unresolved required scientific choice remains a
+configuration failure unless explicitly declared.
+
+Since the Phase 5.2 source decision, the source revision/fingerprint values
+are fixed for the initial release, and the initial connectivity policy is
+``reject`` (``connected-source.toml``) with ``preserve`` retained as a reusable
+regime (``preserve-disconnected-source.toml``). The resolver carries these as
+declared requirement state; it never special-cases a particular value string.
 """
 
 from __future__ import annotations
@@ -51,9 +55,10 @@ from ehp_sn.configuration import LoadedConfiguration
 VALID_VARIANT: Final = "source-topology"
 
 #: Valid connectivity policies of maze-nd/v1. The source import policy must be
-#: one of these; the specification deliberately does not choose one for the
-#: user because the correct initial policy depends on the verified source
-#: revision (an open issue). No default is applied.
+#: one of these. The first release declares ``reject`` (``connected-source.toml``);
+#: ``preserve`` (``preserve-disconnected-source.toml``) remains a reusable
+#: regime for a future full-population analysis release. No default is applied;
+#: a profile must declare one explicitly.
 VALID_CONNECTIVITY_POLICIES: Final = ("preserve", "reject")
 
 _REQUIRED_TOP_LEVEL_TABLES: Final = ("substrate", "source", "normalization", "topology")
@@ -102,8 +107,8 @@ class MazeNDConfiguration:
     later framework concern (Capability 6).
 
     ``connectivity_policy`` is either ``preserve`` or ``reject``; it carries no
-    default because the correct initial policy depends on the verified source
-    revision (an open Maze-ND v1 issue). ``selection_before_dedup`` records the
+    default, and the initial release's choice is fixed per the Phase 5.2 source
+    decision in the specification. ``selection_before_dedup`` records the
     mandated selection vs. deduplication ordering.
     """
 
