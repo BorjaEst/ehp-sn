@@ -24,6 +24,13 @@ from .composition import (
     compose_planning_providers,
     effective_planning_composition,
 )
+from .coordinates import (
+    ReleaseCoordinate,
+    ReleaseCoordinateResolutionError,
+    release_from_config,
+    resolve_release_coordinate,
+    variant_from_identity_inputs,
+)
 from .digest import plan_identity
 from .identity import IdentityInput
 from .orchestration import (
@@ -42,6 +49,7 @@ from .resources import (
     ResourceResolutionError,
     ResourceResolver,
 )
+from .states import PlanningState, classify_planning_state
 
 __all__ = [
     "CARDINALITY_ONE",
@@ -54,15 +62,22 @@ __all__ = [
     "PlanningDeclaration",
     "PlanningError",
     "PlanningResolver",
+    "PlanningState",
     "ProducerResolutionError",
+    "ReleaseCoordinate",
+    "ReleaseCoordinateResolutionError",
     "ResolvedResource",
     "ResourceResolutionError",
     "ResourceRequirement",
     "ResourceResolver",
     "SubstratePlanningComposition",
     "SubstratePlanningRegistration",
+    "classify_planning_state",
     "compose_planning_providers",
     "effective_planning_composition",
     "plan_identity",
     "plan_substrate",
+    "release_from_config",
+    "resolve_release_coordinate",
+    "variant_from_identity_inputs",
 ]

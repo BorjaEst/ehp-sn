@@ -54,6 +54,13 @@ from ehp_sn.experiments import ComponentRef
 
 from .capability import PlanningDeclaration, PlanningResolver
 from .composition import SubstratePlanningComposition
+from .coordinates import (
+    ReleaseCoordinate,
+    ReleaseCoordinateResolutionError,
+    release_from_config,
+    resolve_release_coordinate,
+    variant_from_identity_inputs,
+)
 from .plan import ExecutionPlan
 from .resources import ResolvedResource, ResourceResolver
 
@@ -115,6 +122,7 @@ def plan_substrate(
     document: LoadedConfiguration,
     *,
     resource_resolver: ResourceResolver,
+    release: int | None = None,
 ) -> ExecutionPlan:
     """Plan one substrate build from a registered definition and a loaded document.
 
@@ -127,6 +135,17 @@ def plan_substrate(
     :class:`~ehp_sn.planning.capability.PlanningDeclaration`; this function then
     binds the declared resource requirements via ``resource_resolver`` and
     returns an immutable :class:`ExecutionPlan`.
+
+    ``release`` is the invocation-layer release selection (the ``--release``
+    CLI parameter). It is the *highest authority* for the intended publication
+    coordinate and never participates in scientific build identity: two plans
+    with the same scientific inputs but different ``release`` values describe
+    the same build semantics at different publication coordinates. When
+    ``release`` is ``None``, the framework falls back to a ``release`` value
+    declared in the effective configuration (a temporary compatibility
+    mechanism); when neither is present, the intended coordinate is left
+    unresolved (``plan`` still works), and the publication boundary requires an
+    explicit release.
 
     The expected output contract and selected target reference are derived from
     the registered definition (a single authority); variable scientific inputs
@@ -169,7 +188,70 @@ def plan_substrate(
         configuration=declaration.configuration,
         resources=resources,
         identity_inputs=declaration.identity_inputs,
+        release_coordinate=_resolve_coordinate_best_effort(ref, declaration, document, release),
     )
+
+
+def _resolve_coordinate_best_effort(
+    ref: ComponentRef,
+    declaration: PlanningDeclaration,
+    document: LoadedConfiguration,
+    release: int | None,
+) -> ReleaseCoordinate | None:
+    """Resolve the intended release coordinate when fully declared, else ``None``.
+
+    The release number is never auto-assigned (``data-artifacts.md`` § "Version
+    source and overrides"). The precedence for the release number is:
+
+    ```text
+    --release N                 highest authority
+            ↓
+    legacy config release       fallback only
+            ↓
+    missing release             unresolved coordinate
+    ```
+
+    ``release`` (the invocation-layer ``--release``) takes precedence over a
+    ``release`` value declared in the effective configuration, so existing
+    reusable profiles do not need to be edited to select a publication. When
+    the producer declares a canonical ``variant`` identity input and a release
+    is known, the framework resolves the intended logical coordinate. When
+    either is absent, the coordinate is left unresolved (the generic ``plan``
+    command and plans without a declared release still work); the
+    build/publication boundary enforces that a real publication requires the
+    coordinate.
+
+    An explicitly supplied invocation-level ``release`` is the caller's
+    authoritative selection: an *invalid* explicit value (for example a
+    non-positive integer) is a genuine error and propagates as
+    :class:`ReleaseCoordinateResolutionError` rather than being silently
+    downgraded to an unresolved coordinate. Best-effort swallowing applies only
+    to a release derived from configuration, where absence is an ordinary plan
+    condition.
+    """
+    try:
+        return resolve_release_coordinate(
+            family=ref.name,
+            variant=variant_from_identity_inputs(declaration.identity_inputs),
+            release=_effective_release(release, document),
+        )
+    except ReleaseCoordinateResolutionError:
+        if release is not None:
+            raise
+        return None
+
+
+def _effective_release(invocation_release: int | None, document: LoadedConfiguration) -> int | None:
+    """Return the highest-authority release number, or ``None`` when absent.
+
+    The invocation-level ``--release`` value wins; a ``release`` value declared
+    in the effective configuration is a temporary compatibility fallback only.
+    Neither is preferred over the other because release is a publication
+    coordinate, not a scientific identity input.
+    """
+    if invocation_release is not None:
+        return invocation_release
+    return release_from_config(document.values)
 
 
 def _resolve_declaration(

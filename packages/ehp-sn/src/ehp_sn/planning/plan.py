@@ -30,6 +30,7 @@ from dataclasses import dataclass
 
 from ehp_sn.experiments import ComponentRef
 
+from .coordinates import ReleaseCoordinate
 from .identity import IdentityInput
 from .resources import ResolvedResource
 
@@ -49,6 +50,12 @@ class ExecutionPlan:
     ``identity_inputs`` are the canonical, ordered identity-bearing inputs
     declared by the producer and incorporated into the plan by the framework.
 
+    ``release_coordinate`` is the intended committed release coordinate resolved
+    from framework artifact semantics (family + variant + configured release),
+    when the producer declares a variant and the configuration declares a
+    release. It is ``None`` when that information is not present. It is a
+    framework-owned artifact coordinate, never supplied by the producer.
+
     Value equality is structural, so two plans built from the same resolved
     components and identity inputs compare equal, and a different
     identity-bearing input yields a different plan (no hashing is invented).
@@ -59,6 +66,7 @@ class ExecutionPlan:
     configuration: object
     resources: tuple[ResolvedResource, ...]
     identity_inputs: tuple[IdentityInput, ...]
+    release_coordinate: ReleaseCoordinate | None = None
 
 
 __all__ = ["ExecutionPlan"]
