@@ -45,3 +45,10 @@
     warn_unused_configs      = false
     disallow_untyped_defs    = false
     disallow_incomplete_defs = false
+
+# The frozen upstream dungeongen production dependency is untyped.
+# Treat it as an opaque external.
+[[tool.mypy.overrides]]
+    module = ["dungeongen.*", "dungeongen"]
+    ignore_missing_imports = true
+
