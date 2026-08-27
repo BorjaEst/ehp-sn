@@ -1,42 +1,74 @@
-"""Reuse, conflict, and logical commit of a substrate data artifact.
+"""Reuse, conflict, and durable publication of a substrate data artifact.
 
-This module implements the framework-owned decision and commit semantics for the
-"correctness of edition" lifecycle:
+This module owns the framework publication decision and the durable commit step:
 
 * **reuse** — an existing committed artifact whose build-input identity *and*
   artifact fingerprint match the assembled candidate is returned unchanged
   (deterministic reuse). Reuse never modifies provenance and returns the
-  existing logical reference (``docs/docs/framework/artifacts.md`` § "Reuse").
-* **conflict** — an existing committed artifact that shares a build-input
-  identity but differs in fingerprint indicates the destination is occupied by
-  incompatible content; the build fails rather than publishing accidentally
-  (``data-artifacts.md`` § "Planning states").
-* **commit** — a freshly assembled candidate is frozen into an immutable
-  committed ``SubstrateArtifact`` only after full assembly and fingerprinting
-  succeed. A failed or partial build never yields an artifact that discovery
-  treats as valid.
+  existing logical reference (``data-artifacts.md`` § "Reuse").
+* **conflict** — a committed artifact that shares a build-input identity but
+  differs in fingerprint, or occupies the same immutable release coordinate with
+  different content, is a controlled conflict: the build fails rather than
+  publishing accidentally.
+* **publish** — a freshly assembled candidate is durably published to its
+  configured release coordinate through isolated staging, integrity
+  verification, and an atomic final transition. Only this establishes the
+  ``committed`` outcome (Target 12): an :class:`AssembledArtifact` alone is
+  "assembled", never "committed".
 
-Release-number allocation and physical coordinates are out of scope by design
-("no release, no git"); identity matching is based on framework identity/artifact
-semantics, never filename equality. The framework never invokes the producer
-during classification or commit.
+The producer never participates in conflict resolution and never supplies the
+final path; the artifact lifecycle is the sole release-coordinate authority.
 """
 
 from __future__ import annotations
 
 from collections.abc import Iterable
+from pathlib import Path
+
+from ehp_sn.planning import ReleaseCoordinate
 
 from .artifact import SubstrateArtifact
 from .assembly import AssembledArtifact
+from .resolve import load_release
+from .store import (
+    StoreError,
+    cleanup_staging,
+    finalize_manifest,
+    inspect_release,
+    publish_release,
+    release_path,
+    stage_release,
+    verify_staged,
+)
 
 
 class CommitConflictError(Exception):
-    """A committed artifact occupies a build-input identity with different content.
+    """A committed artifact occupies the target with different content.
 
-    Raised when an existing committed artifact shares the candidate's
-    build-input identity but differs in artifact fingerprint (or otherwise
-    carries incompatible content). The operation must fail rather than
-    accidentally publish a second authoritative release.
+    Raised when publication would overwrite or diverge from a committed
+    artifact: an existing committed artifact shares the candidate's build-input
+    identity but differs in fingerprint, or the immutable release coordinate is
+    already occupied by different content. The operation must fail rather than
+    publish a second authoritative release.
+    """
+
+
+class InvalidExistingStateError(Exception):
+    """The destination contains incomplete or corrupt content.
+
+    Raised when the destination at the selected release coordinate is not a
+    valid committed artifact and cannot be treated as either reusable or safely
+    available. Removal/replacement is permitted only under the explicit
+    incomplete-state policy; a committed valid release is never replaced.
+    """
+
+
+class ReleaseNotConfiguredError(Exception):
+    """The build has no configured release coordinate to publish to.
+
+    Raised when the framework cannot resolve an explicit release coordinate
+    (the configuration declares no release number, or the producer declares no
+    variant). The framework never auto-assigns a release number.
     """
 
 
@@ -52,7 +84,7 @@ def find_reusable(
     an existing artifact shares the build-input identity but has a *different*
     fingerprint, that is a conflict and raises :class:`CommitConflictError`.
     Returns ``None`` when no existing artifact matches and the candidate must be
-    committed fresh.
+    published fresh.
     """
     reusable: SubstrateArtifact | None = None
     for artifact in existing:
@@ -72,16 +104,69 @@ def find_reusable(
     return reusable
 
 
-def commit_artifact(candidate: AssembledArtifact) -> SubstrateArtifact:
-    """Freeze a fully assembled, identified candidate into a committed artifact.
+def publish_artifact(
+    candidate: AssembledArtifact,
+    *,
+    root: Path,
+    coordinate: ReleaseCoordinate,
+) -> SubstrateArtifact:
+    """Durably publish a fully assembled candidate to its configured release.
 
-    The candidate must already be fully assembled and fingerprinted (produced by
-    :func:`~ehp_sn.artifacts.assembly.assemble_artifact`). Commit is logical and
-    atomic: it constructs one immutable ``SubstrateArtifact`` from the complete
-    candidate, so no partial state is ever observable as a valid committed
-    artifact. The producer is never called here.
+    Crosses the persistence boundary: writes the assembled candidate into an
+    isolated framework staging area, finalizes the manifest, verifies the staged
+    candidate, and atomically publishes it to the configured release coordinate,
+    returning the durable committed :class:`SubstrateArtifact`.
+
+    The framework never auto-assigns a release: ``coordinate`` is the explicit
+    configured coordinate. If a committed valid artifact already occupies the
+    coordinate, callers should resolve reuse first; if different content
+    occupies it, publication raises :class:`CommitConflictError` (never
+    overwriting an immutable release).
     """
-    return SubstrateArtifact(assembly=candidate)
+    existing = inspect_release(root, coordinate)
+    if existing.committed_exists and existing.valid:
+        existing_artifact = load_release(release_path(root, coordinate))
+        if (
+            existing.build_input_identity == candidate.build_input_identity
+            and existing_artifact.artifact_fingerprint == candidate.artifact_fingerprint
+        ):
+            # Equivalent verified artifact already committed at the coordinate.
+            return existing_artifact
+        raise CommitConflictError(
+            f"release coordinate {coordinate.name!r} v{coordinate.release} already "
+            "commits different content; refusing to overwrite an immutable release"
+        )
+    if existing.committed_exists and not existing.valid:
+        raise InvalidExistingStateError(
+            f"release coordinate {coordinate.name!r} v{coordinate.release} contains "
+            "incomplete or corrupt content; it cannot be treated as committed or safely "
+            "available"
+        )
+
+    staging, resource_paths = stage_release(root, coordinate, candidate)
+    try:
+        finalize_manifest(
+            assembled=candidate,
+            coordinate=coordinate,
+            staging=staging,
+            resource_paths=resource_paths,
+        )
+        verify_staged(staging)
+        publish_release(root, coordinate, staging)
+    except StoreError:
+        cleanup_staging(staging)
+        raise
+    except Exception:
+        cleanup_staging(staging)
+        raise
+
+    return load_release(release_path(root, coordinate))
 
 
-__all__ = ["CommitConflictError", "commit_artifact", "find_reusable"]
+__all__ = [
+    "CommitConflictError",
+    "InvalidExistingStateError",
+    "ReleaseNotConfiguredError",
+    "find_reusable",
+    "publish_artifact",
+]

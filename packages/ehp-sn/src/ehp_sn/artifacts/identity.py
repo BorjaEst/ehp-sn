@@ -17,10 +17,12 @@ artifact           -> committed artifact as a whole, computed after
 record_id          -> one logical record (ehp_sn.execution.derive_record_id)
 ```
 
-Per the "correctness of edition" scope, release-number allocation and physical
-coordinates are deliberately out of scope: identity is computed from resolved
-semantic inputs only, never from release numbers, physical paths, or audit
-fields (``data-artifacts.md`` § "Artifact fingerprint" exclusions).
+Per the data-artifact identity contract, release-number allocation and physical
+coordinates are deliberately excluded from identity: identity is computed from
+resolved semantic inputs only, never from release numbers, physical paths, or
+audit fields (``data-artifacts.md`` § "Artifact fingerprint" exclusions). The
+release *number* is a configured coordinate, not an identity input; the
+artifact fingerprint never depends on it.
 """
 
 from __future__ import annotations

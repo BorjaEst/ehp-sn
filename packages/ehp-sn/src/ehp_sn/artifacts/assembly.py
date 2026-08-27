@@ -44,7 +44,11 @@ from .identity import artifact_fingerprint, build_input_identity
 from .provenance import build_semantic_provenance, provenance_resource_digest
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
-    from ehp_sn.planning import ExecutionPlan
+    from ehp_sn.planning import (
+        ExecutionPlan,
+        IdentityInput,
+        ResolvedResource,
+    )
 
 #: Canonical logical names of the framework-declared resources.
 _PAYLOADS_RESOURCE = "payloads"
@@ -88,6 +92,8 @@ class AssembledArtifact:
     provenance: dict[str, object]
     provenance_digest: str
     artifact_fingerprint: str
+    identity_inputs: tuple[IdentityInput, ...]
+    bound_resources: tuple[ResolvedResource, ...]
 
 
 def _payloads_digest(records: tuple[LogicalRecord, ...]) -> str:
@@ -245,6 +251,8 @@ def assemble_artifact(
         provenance=provenance,
         provenance_digest=provenance_digest,
         artifact_fingerprint=fingerprint,
+        identity_inputs=plan.identity_inputs,
+        bound_resources=plan.resources,
     )
 
 

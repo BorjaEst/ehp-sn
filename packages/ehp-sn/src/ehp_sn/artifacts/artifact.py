@@ -1,29 +1,38 @@
-"""The committed ``SubstrateArtifact`` (logical, edition-focused).
+"""The durable committed ``SubstrateArtifact``.
 
-This module defines the committed form of a substrate data artifact. Per the
-"correctness of edition" scope, commitment is logical and immutable rather than
-a physical publication to ``data/interim/<family>/<variant>/v<N>/``: a
-``SubstrateArtifact`` is the frozen, verified description of a committed
-materialization together with its logical resources for read access.
+Per the corrected lifecycle, an artifact is **committed** only when it has been
+durably published at its release coordinate (``data/interim/<family>/<variant>/
+v<N>/`` for the monorepo backend) and can subsequently be resolved independently
+of the in-memory object that created it. The class is the durable committed form:
 
-It is the **committed** counterpart of the uncommitted
-:class:`~ehp_sn.execution.MaterializationResult` and of the assembled candidate
-:class:`~ehp_sn.artifacts.assembly.AssembledArtifact`. A ``SubstrateArtifact``
-is never constructed from a partially assembled state: it carries its final
-artifact fingerprint and a lifecycle classification, so a failed or partial
-build never yields an artifact that framework discovery would treat as valid
-(``docs/docs/framework/artifacts.md`` § "Commitment and immutability").
+* it is created by publication (or reconstructed from a committed release), not
+  by merely wrapping an assembled candidate in a frozen object;
+* it carries the committed release coordinate, the canonical artifact reference,
+  and the physical location of the committed release;
+* it exposes the framework metadata (component/spec references, build-input
+  identity, artifact fingerprint, declared resource descriptors, and record
+  index) and logical read access to the opaque scientific content.
 
-This value object does not write files and does not manage a store. It is the
-logical, manifest-governed access surface to a committed substrate: declared
-logical resources, the record index, and the opaque scientific payloads.
+Distinct lifecycle states are not conflated:
+
+```text
+materialized   producer output exists but is uncommitted  (MaterializationResult)
+assembled      complete immutable artifact candidate       (AssembledArtifact)
+committed      candidate durably published and resolvable  (SubstrateArtifact)
+```
+
+A ``SubstrateArtifact`` is never constructed from an ``AssembledArtifact`` alone:
+publication (or resolution of an existing committed release) establishes the
+durable release. No physical publication implies no committed outcome.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 from ehp_sn.execution import LogicalRecord, LogicalResource
+from ehp_sn.planning import ReleaseCoordinate
 
 from .assembly import AssembledArtifact
 from .descriptors import LogicalResourceDescriptor, ProducerDescriptor, RecordIndexEntry
@@ -31,21 +40,23 @@ from .descriptors import LogicalResourceDescriptor, ProducerDescriptor, RecordIn
 
 @dataclass(frozen=True, slots=True)
 class SubstrateArtifact:
-    """The committed, immutable, logical substrate artifact.
+    """A durable, committed substrate artifact at a released coordinate.
 
     ``assembly`` carries the framework identity metadata (build-input identity,
-    artifact fingerprint) and framework-described resources; ``action`` records
-    the lifecycle outcome that produced this commitment (``committed`` when it
-    was newly assembled and committed, ``reused`` when an equivalent verified
-    artifact was returned). ``records`` and ``auxiliary`` give logical read
-    access to the opaque scientific content (they are not physical payloads).
+    artifact fingerprint) and framework-described resources plus the logical
+    scientific content; ``release_coordinate`` is the committed release
+    coordinate; ``artifact_ref`` is the canonical artifact reference; and
+    ``location`` is the physical location of the committed release directory.
 
-    Equality is structural, so two artifacts built from the same resolved
-    materialization compare equal; the immutable fields cannot change after
+    Equality is structural, so two artifacts resolved from the same committed
+    release compare equal; the immutable fields cannot change after
     construction.
     """
 
     assembly: AssembledArtifact
+    release_coordinate: ReleaseCoordinate
+    artifact_ref: str
+    location: Path
 
     @property
     def component_ref(self) -> str:
