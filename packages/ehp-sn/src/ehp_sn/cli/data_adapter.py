@@ -39,12 +39,15 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Protocol, cast
 
 from ehp_sn.artifacts import (
-    BuildError,
     BuildOutcome,
-    CommitConflictError,
+    ConflictBuildError,
+    InvalidExistingStateBuildError,
+    ReleaseNotConfiguredBuildError,
+    StoreError,
     build_substrate,
 )
 from ehp_sn.configuration import (
@@ -54,13 +57,14 @@ from ehp_sn.configuration import (
 )
 from ehp_sn.discovery import ComponentRegistry
 from ehp_sn.discovery.registry import UnknownReferenceError
-from ehp_sn.execution import SubstrateExecutionComposition
+from ehp_sn.execution import ExecutionError, SubstrateExecutionComposition
 from ehp_sn.experiments import ComponentRef, InvalidReferenceError
 from ehp_sn.planning import (
     ExecutionPlan,
     MissingPlanningCapabilityError,
     NotASubstrateError,
     ProducerResolutionError,
+    ReleaseCoordinateResolutionError,
     ResolvedResource,
     ResourceResolutionError,
     ResourceResolver,
@@ -71,6 +75,11 @@ from ehp_sn.planning.resources import ResourceRequirement
 
 #: The component kind this adapter's operations accept.
 _SUBSTRATE_KIND = "substrate"
+
+#: Default local artifact root (the "interim-data root") for committed substrate
+#: releases: ``<root>/<family>/<variant>/v<N>/``. The monorepo convention places
+#: committed substrates under ``data/interim/``.
+_DEFAULT_ARTIFACT_ROOT = Path("data/interim")
 
 # ---------------------------------------------------------------------------
 # Stable user-facing error categories
@@ -231,12 +240,15 @@ class BuildResult:
 
     This is a presentational, deterministic projection of the framework-domain
     :class:`~ehp_sn.artifacts.BuildOutcome`. It is **not** the framework result
-    and carries no exit code, CLI category, or physical location.
+    and carries no exit code.
 
     It exposes the stable lifecycle outcome (``committed`` or ``reused``), the
-    committed target, the output contract, and the committed artifact's
-    build-input identity and artifact fingerprint. The framework result remains
-    authoritative; this view is only what the CLI renders.
+    committed target, the output contract, the committed artifact's build-input
+    identity and artifact fingerprint, and — for a real new or reused
+    publication — the canonical artifact reference and the local physical
+    release coordinate (the CLI contract exposes the local coordinate for the
+    monorepo persistence binding). The framework result remains authoritative;
+    this view is only what the CLI renders.
     """
 
     action: str
@@ -244,6 +256,8 @@ class BuildResult:
     output_contract: str
     build_input_identity: str
     artifact_fingerprint: str
+    artifact_ref: str | None = None
+    location: str | None = None
 
 
 class _RegisteredSubstrate(Protocol):
@@ -361,11 +375,15 @@ class FrameworkDataAdapter:
         planning_composition: SubstratePlanningComposition,
         execution_composition: SubstrateExecutionComposition,
         resource_resolver: ResourceResolver | None = None,
+        root: Path | None = None,
     ) -> None:
         self._registry = registry
         self._planning_composition = planning_composition
         self._execution_composition = execution_composition
         self._resource_resolver = resource_resolver or _DeclaredResourceResolver()
+        # The artifact root under which committed substrate releases are placed
+        # (the "interim-data root": `data/interim/<family>/<variant>/v<N>/`).
+        self._root = root or _DEFAULT_ARTIFACT_ROOT
 
     def _resolve_substrate(self, target: str) -> _RegisteredSubstrate:
         """Resolve ``target`` and ensure it denotes a substrate.
@@ -397,7 +415,7 @@ class FrameworkDataAdapter:
         definition = self._resolve_substrate(target)
         return _project_show_result(definition)
 
-    def plan(self, target: str, config: str | None) -> PlanResult:
+    def plan(self, target: str, config: str | None, release: int | None = None) -> PlanResult:
         """Resolve and project a substrate build plan without writing any data.
 
         Delegates the complete resolution path to the single generic framework
@@ -410,6 +428,11 @@ class FrameworkDataAdapter:
 
         ``config`` is required: an explicit reusable profile must be supplied.
         A ``None`` configuration is rejected as invalid.
+
+        ``release`` selects the intended publication coordinate (``--release``).
+        It is the highest authority for the coordinate and never participates in
+        scientific build identity. A ``release`` value declared in the effective
+        configuration is a temporary compatibility fallback.
 
         Performs no producer execution and no artifact mutation.
         """
@@ -432,6 +455,7 @@ class FrameworkDataAdapter:
                 target,
                 document,
                 resource_resolver=self._resource_resolver,
+                release=release,
             )
         except (UnknownReferenceError, InvalidReferenceError) as exc:
             raise UnknownSubstrateError(f"unknown substrate: {target}") from exc
@@ -441,10 +465,12 @@ class FrameworkDataAdapter:
             raise DataOperationError(str(exc)) from exc
         except ProducerResolutionError as exc:
             raise ConfigurationInvalidError(str(exc)) from exc
+        except ReleaseCoordinateResolutionError as exc:
+            raise ConfigurationInvalidError(str(exc)) from exc
 
         return _project_plan(plan)
 
-    def build(self, target: str, config: str | None) -> BuildResult:
+    def build(self, target: str, config: str | None, release: int | None = None) -> BuildResult:
         """Run one generic substrate build and project the framework outcome.
 
         Delegates the complete lifecycle to the single generic framework build
@@ -455,6 +481,18 @@ class FrameworkDataAdapter:
 
         ``config`` is required: an explicit reusable profile must be supplied. A
         ``None`` configuration is rejected as invalid.
+
+        ``release`` selects the intended publication coordinate (``--release``),
+        passed through to the build exactly once; a build must not re-resolve a
+        different release than the one selected here. It is the highest
+        authority for the coordinate and never participates in scientific build
+        identity.
+
+        Controlled framework execution failures (:class:`ExecutionError`,
+        including a missing execution capability) are translated here into a
+        controlled :class:`DataOperationError` (exit 6) with no traceback, so a
+        target with no execution capability fails cleanly instead of leaking the
+        framework hierarchy.
 
         This method does not re-implement any lifecycle stage; it only wires the
         injected compositions, delegates, translates controlled framework
@@ -473,8 +511,18 @@ class FrameworkDataAdapter:
                 target=target,
                 config=config,
                 resource_resolver=self._resource_resolver,
+                root=self._root,
+                release=release,
             )
-        except BuildError as exc:
+        except ReleaseNotConfiguredBuildError as exc:
+            raise DataOperationError(str(exc)) from exc
+        except ConflictBuildError as exc:
+            raise DataOperationError(str(exc)) from exc
+        except InvalidExistingStateBuildError as exc:
+            raise DataOperationError(str(exc)) from exc
+        except StoreError as exc:
+            raise DataOperationError(str(exc)) from exc
+        except ExecutionError as exc:
             raise DataOperationError(str(exc)) from exc
         except ConfigurationAccessError as exc:
             raise ConfigurationUnreadableError(str(exc)) from exc
@@ -486,8 +534,8 @@ class FrameworkDataAdapter:
             raise UnknownSubstrateError(str(exc)) from exc
         except (ProducerResolutionError, ResourceResolutionError) as exc:
             raise ConfigurationInvalidError(str(exc)) from exc
-        except CommitConflictError as exc:
-            raise DataOperationError(str(exc)) from exc
+        except ReleaseCoordinateResolutionError as exc:
+            raise ConfigurationInvalidError(str(exc)) from exc
 
         return _project_build_result(outcome)
 
@@ -496,9 +544,10 @@ def _project_build_result(outcome: BuildOutcome) -> BuildResult:
     """Project the framework build outcome into a CLI ``build`` result.
 
     A lossy presentation projection (never the framework result). Selects the
-    lifecycle outcome, target, output contract, and the committed artifact's
-    build-input identity and artifact fingerprint; discards everything else and
-    exposes no physical location.
+    lifecycle outcome, target, output contract, the committed artifact's
+    build-input identity and artifact fingerprint, and — for a real committed or
+    reused release — the canonical artifact reference and the local release
+    coordinate.
     """
     artifact = outcome.artifact
     return BuildResult(
@@ -507,4 +556,6 @@ def _project_build_result(outcome: BuildOutcome) -> BuildResult:
         output_contract=artifact.output_contract,
         build_input_identity=artifact.build_input_identity,
         artifact_fingerprint=artifact.artifact_fingerprint,
+        artifact_ref=artifact.artifact_ref,
+        location=str(artifact.location),
     )

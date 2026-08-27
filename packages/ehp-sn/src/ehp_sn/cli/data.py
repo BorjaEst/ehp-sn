@@ -98,6 +98,21 @@ def _error_envelope(error: DataCliError) -> str:
     return json.dumps(envelope)
 
 
+def _require_positive_release(release: int | None) -> None:
+    """Reject an out-of-range invocation ``--release`` value as invalid usage.
+
+    A release number selects a concrete publication coordinate and must be a
+    positive integer. ``0`` and negative values are invalid option values and
+    are rejected here as a controlled CLI usage error (exit 2), consistent with
+    how other option-value violations (for example ``--samples -1``) are
+    handled. A non-integer ``--release`` is rejected earlier by typer's integer
+    option typing as the same control usage error.
+    """
+    if release is not None and release < 1:
+        typer.echo("Error: --release must be a positive integer.", err=True)
+        raise typer.Exit(code=2)
+
+
 # ---------------------------------------------------------------------------
 # Adapter wiring
 #
@@ -254,6 +269,8 @@ def _emit_build(result: BuildResult, fmt: str) -> None:
                         "output_contract": result.output_contract,
                         "build_input_identity": result.build_input_identity,
                         "artifact_fingerprint": result.artifact_fingerprint,
+                        "artifact_ref": result.artifact_ref,
+                        "location": result.location,
                     },
                 }
             )
@@ -264,6 +281,10 @@ def _emit_build(result: BuildResult, fmt: str) -> None:
     typer.echo(f"output: {result.output_contract}")
     typer.echo(f"build-input-identity: {result.build_input_identity}")
     typer.echo(f"artifact-fingerprint: {result.artifact_fingerprint}")
+    if result.artifact_ref:
+        typer.echo(f"artifact: {result.artifact_ref}")
+    if result.location:
+        typer.echo(f"location: {result.location}")
 
 
 # ---------------------------------------------------------------------------
@@ -308,15 +329,29 @@ def show_command(
 def plan_command(
     target: Annotated[str, typer.Argument(help="Substrate generator reference.")],
     config: Annotated[str, typer.Option("--config", help="Generation configuration file.")],
+    release: Annotated[
+        int | None,
+        typer.Option(
+            "--release",
+            help="Publication release number (where this concrete build is committed).",
+        ),
+    ] = None,
     fmt: Annotated[str, typer.Option("--format", help="Output format.")] = "text",
 ) -> None:
-    """Resolve a build without writing data."""
+    """Resolve a build without writing data.
+
+    ``--release`` selects the intended publication coordinate. It is the
+    highest authority for where a concrete build is committed: it is not a
+    scientific configuration field and does not participate in scientific build
+    identity.
+    """
     global _json_requested  # noqa: PLW0603
     _json_requested = fmt == "json"
     global _current_action  # noqa: PLW0603
     _current_action = "plan"
+    _require_positive_release(release)
     try:
-        result = _get_adapter().plan(target, config)
+        result = _get_adapter().plan(target, config, release)
     except Exception as exc:  # noqa: BLE001
         _fail(exc)
     _emit_plan(result, fmt)
@@ -326,21 +361,32 @@ def plan_command(
 def build_command(
     target: Annotated[str, typer.Argument(help="Substrate generator reference.")],
     config: Annotated[str, typer.Option("--config", help="Generation configuration file.")],
+    release: Annotated[
+        int | None,
+        typer.Option(
+            "--release",
+            help="Publication release number (where this concrete build is committed).",
+        ),
+    ] = None,
     fmt: Annotated[str, typer.Option("--format", help="Output format.")] = "text",
 ) -> None:
     """Build one immutable substrate artifact.
 
     Delegates to the generic framework build lifecycle and renders the projected
     framework build outcome (committed or reused) with the committed artifact's
-    identity. Physical destination publication is a deferred concern; this
-    command reports the logical, edition-bearing outcome.
+    identity. ``--release`` is the invocation-layer publication coordinate and
+    is not a scientific configuration field.
+
+    Physical destination publication is a deferred concern; this command reports
+    the logical, edition-bearing outcome.
     """
     global _json_requested  # noqa: PLW0603
     _json_requested = fmt == "json"
     global _current_action  # noqa: PLW0603
     _current_action = "build"
+    _require_positive_release(release)
     try:
-        result = _get_adapter().build(target, config)
+        result = _get_adapter().build(target, config, release)
     except Exception as exc:  # noqa: BLE001
         _fail(exc)
     _emit_build(result, fmt)
