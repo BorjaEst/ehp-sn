@@ -81,7 +81,7 @@ def _plan(document: LoadedConfiguration) -> PlanningDeclaration:
 
 
 @pytest.fixture()
-def adapter() -> FrameworkDataAdapter:
+def adapter(tmp_path) -> FrameworkDataAdapter:
     """A production adapter over synthetic generic dependencies."""
     registry = ComponentRegistry()
     alpha = _Definition(
@@ -104,7 +104,10 @@ def adapter() -> FrameworkDataAdapter:
         (SubstrateExecutionRegistration(definition=alpha, execute=_execute),)
     )
     return FrameworkDataAdapter(
-        registry, planning_composition=composition, execution_composition=execution
+        registry,
+        planning_composition=composition,
+        execution_composition=execution,
+        root=tmp_path,
     )
 
 
@@ -262,17 +265,18 @@ def test_build_delegates_to_real_backend(use_adapter: None, tmp_path) -> None:
     "not implemented".
     """
     config = tmp_path / "alpha.toml"
-    config.write_text("[generation]\nseed = 42\n")
+    config.write_text("release = 1\n[generation]\nseed = 42\n")
     result = runner.invoke(app, ["data", "build", "substrate:alpha/v1", "--config", str(config)])
     assert result.exit_code == 0
     assert "action: committed" in result.stdout
     assert "artifact-fingerprint:" in result.stdout
+    assert "artifact: artifact:alpha/default/v1" in result.stdout
     assert "not yet implemented" not in result.stdout
 
 
 def test_build_json(use_adapter: None, tmp_path) -> None:
     config = tmp_path / "alpha.toml"
-    config.write_text("[generation]\nseed = 42\n")
+    config.write_text("release = 1\n[generation]\nseed = 42\n")
     result = runner.invoke(
         app, ["data", "build", "substrate:alpha/v1", "--config", str(config), "--format", "json"]
     )
@@ -282,12 +286,130 @@ def test_build_json(use_adapter: None, tmp_path) -> None:
     assert payload["action"] == "build"
     assert payload["result"]["action"] == "committed"
     assert payload["result"]["target"] == "substrate:alpha/v1"
+    assert payload["result"]["artifact_ref"] == "artifact:alpha/default/v1"
 
 
 def test_build_missing_config_is_controlled() -> None:
     """Building with an unreadable config maps to a controlled exit, no traceback."""
     result = runner.invoke(app, ["data", "build", "substrate:alpha/v1", "--config", "x.toml"])
     assert result.exit_code == 4
+    assert "Traceback" not in result.stderr
+
+
+# ---------------------------------------------------------------------------
+# --release: invocation-layer publication coordinate (Target 9)
+# ---------------------------------------------------------------------------
+
+
+def test_build_missing_release_is_controlled(use_adapter: None, tmp_path) -> None:
+    """A build with no config release and no --release is a controlled failure.
+
+    Release selection is not auto-assigned: without an invocation-level
+    ``--release`` (the canonical source; a config-declared value is only a
+    legacy fallback) the build fails cleanly (exit 6) rather than inventing a
+    coordinate, and the error points at the canonical source.
+    """
+    config = tmp_path / "alpha.toml"
+    # Scientific config only — no release field, no --release.
+    config.write_text('[substrate]\nvariant = "default"\n[generation]\nseed = 42\n')
+    result = runner.invoke(app, ["data", "build", "substrate:alpha/v1", "--config", str(config)])
+    assert result.exit_code == 6
+    assert "requires --release" in result.stderr
+    assert "Traceback" not in result.stderr
+
+
+def test_build_unreadable_config_is_controlled_before_release() -> None:
+    """An unreadable config maps to exit 4 before release-coordinate checks."""
+    config = "dangling.toml"
+    result = runner.invoke(app, ["data", "build", "substrate:alpha/v1", "--config", config])
+    assert result.exit_code == 4
+    assert "Traceback" not in result.stderr
+
+
+def test_plan_accepts_release_option(use_adapter: None, tmp_path) -> None:
+    """``plan --release 1`` is accepted and delegates to the real adapter."""
+    config = tmp_path / "alpha.toml"
+    # Scientific config only: no release field.
+    config.write_text('[substrate]\nvariant = "default"\n[generation]\nseed = 42\n')
+    result = runner.invoke(
+        app,
+        ["data", "plan", "substrate:alpha/v1", "--config", str(config), "--release", "1"],
+    )
+    assert result.exit_code == 0
+    assert "target: substrate:alpha/v1" in result.stdout
+    assert "Traceback" not in result.stderr
+
+
+def test_build_release_option_selects_the_coordinate(use_adapter: None, tmp_path) -> None:
+    """``build --release 1`` with a config containing no release commits to v1.
+
+    Release is selected at the invocation layer, not required in the reusable
+    scientific config.
+    """
+    config = tmp_path / "alpha.toml"
+    config.write_text('[substrate]\nvariant = "default"\n[generation]\nseed = 42\n')
+    result = runner.invoke(
+        app,
+        ["data", "build", "substrate:alpha/v1", "--config", str(config), "--release", "1"],
+    )
+    assert result.exit_code == 0
+    assert "action: committed" in result.stdout
+    assert "artifact: artifact:alpha/default/v1" in result.stdout
+    assert "not yet implemented" not in result.stdout
+
+
+def test_build_release_overrides_config_release(use_adapter: None, tmp_path) -> None:
+    """``--release`` is the highest authority over a config-level release field."""
+    config = tmp_path / "alpha.toml"
+    config.write_text('release = 9\n[substrate]\nvariant = "default"\n[generation]\nseed = 42\n')
+    result = runner.invoke(
+        app,
+        ["data", "build", "substrate:alpha/v1", "--config", str(config), "--release", "1"],
+    )
+    assert result.exit_code == 0
+    assert "action: committed" in result.stdout
+    # The invocation release wins, not the config-level fallback.
+    assert "artifact: artifact:alpha/default/v1" in result.stdout
+    assert "artifact: artifact:alpha/default/v9" not in result.stdout
+
+
+@pytest.mark.parametrize("bad", ["0", "-1"])
+def test_build_invalid_release_is_a_controlled_usage_error(
+    use_adapter: None, tmp_path, bad: str
+) -> None:
+    """``--release 0`` / ``--release -1`` are controlled CLI errors (exit 2)."""
+    config = tmp_path / "alpha.toml"
+    config.write_text('[substrate]\nvariant = "default"\n[generation]\nseed = 42\n')
+    result = runner.invoke(
+        app,
+        ["data", "build", "substrate:alpha/v1", "--config", str(config), "--release", bad],
+    )
+    assert result.exit_code == 2
+    assert "--release must be a positive integer" in result.stderr
+    assert "Traceback" not in result.stderr
+
+
+def test_build_non_integer_release_is_a_controlled_usage_error(use_adapter: None, tmp_path) -> None:
+    """A non-integer ``--release`` is rejected by typer as a controlled usage error."""
+    config = tmp_path / "alpha.toml"
+    config.write_text('[substrate]\nvariant = "default"\n[generation]\nseed = 42\n')
+    result = runner.invoke(
+        app,
+        ["data", "build", "substrate:alpha/v1", "--config", str(config), "--release", "abc"],
+    )
+    assert result.exit_code == 2
+    assert "Traceback" not in result.stderr
+
+
+def test_plan_invalid_release_is_a_controlled_usage_error(use_adapter: None, tmp_path) -> None:
+    """Invalid ``--release`` on ``plan`` is a controlled usage error (exit 2)."""
+    config = tmp_path / "alpha.toml"
+    config.write_text('[substrate]\nvariant = "default"\n')
+    result = runner.invoke(
+        app,
+        ["data", "plan", "substrate:alpha/v1", "--config", str(config), "--release", "0"],
+    )
+    assert result.exit_code == 2
     assert "Traceback" not in result.stderr
 
 

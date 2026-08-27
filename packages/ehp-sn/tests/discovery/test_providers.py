@@ -114,7 +114,8 @@ def test_no_installed_providers_yields_empty_effective_registry(
 
 
 def test_effective_registry_picks_up_installed_research_provider() -> None:
-    """When ``ehp_research`` is installed, the effective registry gets Dagflow + Maze-ND.
+    """When ``ehp_research`` is installed, the effective registry gets the research
+    substrate definitions.
 
     This proves the production composition path: research definitions reach the
     registry through the generic entry-point provider mechanism, not through a
@@ -128,4 +129,9 @@ def test_effective_registry_picks_up_installed_research_provider() -> None:
     registry = effective_registry()
 
     canonical_refs = sorted(d.ref.canonical for d in registry.iter(kind="substrate"))
-    assert canonical_refs == ["substrate:dagflow/v1", "substrate:maze-nd/v1"]
+    assert canonical_refs == [
+        "substrate:dagflow/v1",
+        "substrate:dungeongen/v1",
+        "substrate:maze-nd/v1",
+        "substrate:obsfield/v1",
+    ]

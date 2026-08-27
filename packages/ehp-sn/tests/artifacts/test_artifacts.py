@@ -1,20 +1,20 @@
 """Behavioral tests for the generic substrate-artifact lifecycle (Phase 4B).
 
-These tests exercise the framework artifact assembly, identity, and commit
-semantics with **synthetic in-test producers and definitions** — never a runtime
-research component. Four structurally different producer shapes (procedural +
-intrinsic split; complete field + no split + auxiliary domain; source import +
-lineage; retry/acceptance + no split) all run through the *same*
-:func:`assemble_artifact` / :func:`find_reusable` / :func:`commit_artifact`
-path, proving the lifecycle is generic.
+These tests exercise the framework artifact assembly, identity, and durable
+publication semantics with **synthetic in-test producers and definitions** —
+never a runtime research component. Four structurally different producer shapes
+(procedural + intrinsic split; complete field + no split + auxiliary domain;
+source import + lineage; retry/acceptance + no split) all run through the *same*
+:func:`assemble_artifact` / :func:`publish_artifact` / resolution path, proving
+the lifecycle is generic.
 
 Covered invariants:
 
 * assembly consumes the authoritative plan + plan-bound materialization and
   never invokes the producer (the producer callable is prohibited inside the
   artifact layer by the architecture guard);
-* ``SubstrateArtifact`` is never a ``MaterializationResult`` and never a partial
-  assembly; it is immutable and committed;
+* ``SubstrateArtifact`` is never a ``MaterializationResult``; an assembled
+  candidate alone is not committed — durable publication establishes it;
 * ``PlanId != build_input_identity != artifact_fingerprint != record_id``;
 * the artifact fingerprint is exact-JCS and independent of physical paths;
 * auxiliary logical resources are first-class; splits are optional (present only
@@ -39,8 +39,9 @@ from ehp_sn.artifacts import (
     SubstrateArtifact,
     artifact_fingerprint,
     assemble_artifact,
-    commit_artifact,
-    find_reusable,
+    publish_artifact,
+    release_path,
+    resolve_release,
 )
 from ehp_sn.configuration import LoadedConfiguration
 from ehp_sn.discovery import ComponentRegistry
@@ -58,6 +59,7 @@ from ehp_sn.planning import (
     IdentityInput,
     PlanningDeclaration,
     PlanningResolver,
+    ReleaseCoordinate,
     ResolvedResource,
     ResourceRequirement,
     SubstratePlanningComposition,
@@ -292,48 +294,84 @@ def test_plan_build_input_and_fingerprint_are_distinct() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Commit + reuse / conflict
+# Commit = durable publication (Targets 4, 8, 10)
 # --------------------------------------------------------------------------- #
 
 
-def test_commit_frees_immutable_artifact() -> None:
+def _coord(assembled: AssembledArtifact, release: int = 3) -> ReleaseCoordinate:
+    """A framework release coordinate for the assembled artifact."""
+    family = assembled.component_ref.split(":")[1].split("/")[0]
+    return ReleaseCoordinate(family=family, variant="single-terminal", release=release)
+
+
+def test_publish_creates_durable_committed_artifact(tmp_path) -> None:
+    """Publishing crosses the persistence boundary: a real release dir exists."""
     registry = ComponentRegistry()
     definition = _register(registry, "substrate:synthetic-d/v1", "raster-topology/v1")
     plan = _plan(registry, definition, _identity_plan("generator_revision", "dungeon/v2"))
     assembled = _build_artifact(registry, definition, _producer_d, plan)
-    artifact = commit_artifact(assembled)
+    coordinate = _coord(assembled)
+
+    artifact = publish_artifact(assembled, root=tmp_path, coordinate=coordinate)
 
     assert isinstance(artifact, SubstrateArtifact)
-    assert artifact.artifact_fingerprint == assembled.artifact_fingerprint
-    assert [r.record_id for r in artifact.records] == [r.record_id for r in assembled.records]
+    assert artifact.artifact_ref == f"artifact:{coordinate.name}/v{coordinate.release}"
+    # A physical committed release now exists at data/interim/.../v<N>/
+    final = release_path(tmp_path, coordinate)
+    assert final.is_dir()
+    assert (final / "manifest.json").is_file()
+    assert (final / "config.resolved.toml").is_file()
+    assert (final / "provenance.json").is_file()
+    # The committed artifact is durable and resolvable independently.
+    resolved = resolve_release(tmp_path, coordinate)
+    assert resolved.build_input_identity == artifact.build_input_identity
+    assert resolved.artifact_fingerprint == artifact.artifact_fingerprint
     # Committed artifact exposes a declared resource / record read surface.
     assert artifact.logical_resource("payloads") is not None
     assert artifact.logical_resource("does-not-exist") is None
 
 
-def test_same_build_twice_yields_deterministic_reuse() -> None:
-    """The same scientific build performed twice reuses, never duplicates."""
+def test_assembled_artifact_alone_is_not_committed(tmp_path) -> None:
+    """An AssembledArtifact alone has no durable release and doesn't resolve."""
     registry = ComponentRegistry()
     definition = _register(registry, "substrate:synthetic-a/v1", "simple-digraph/v1")
     plan = _plan(registry, definition, _identity_plan("seed", 7))
     assembled = _build_artifact(registry, definition, _producer_a, plan)
-    first = commit_artifact(assembled)
+    coordinate = _coord(assembled)
 
-    # A second identical build against the ledger reuse-detects deterministically.
-    reused = find_reusable([first], assembled)
-    assert reused is not None
-    assert reused is first or reused.build_input_identity == first.build_input_identity
+    # Not published: no committed release exists at the coordinate.
+    from ehp_sn.artifacts import inspect_release
+
+    assert not inspect_release(tmp_path, coordinate).committed_exists
+    assert not release_path(tmp_path, coordinate).exists()
 
 
-def test_conflicting_build_identity_fails() -> None:
+def test_same_build_publication_reuses_and_reuse_is_durable(tmp_path) -> None:
+    """The same scientific build published twice reuses the existing release."""
+    registry = ComponentRegistry()
+    definition = _register(registry, "substrate:synthetic-a/v1", "simple-digraph/v1")
+    plan = _plan(registry, definition, _identity_plan("seed", 7))
+    assembled = _build_artifact(registry, definition, _producer_a, plan)
+    coordinate = _coord(assembled)
+    first = publish_artifact(assembled, root=tmp_path, coordinate=coordinate)
+
+    # A second identical publication reuses the existing committed release.
+    second = publish_artifact(assembled, root=tmp_path, coordinate=coordinate)
+    assert second.build_input_identity == first.build_input_identity
+    assert second.artifact_fingerprint == first.artifact_fingerprint
+    assert second.location == first.location
+
+
+def test_conflicting_publish_fails(tmp_path) -> None:
+    """A different artifact cannot overwrite an immutable committed release."""
     registry = ComponentRegistry()
     definition = _register(registry, "substrate:synthetic-c/v1", "raster-topology/v1")
     plan = _plan(registry, definition, _identity_plan("seed", 7))
     assembled = _build_artifact(registry, definition, _producer_c, plan)
-    first = commit_artifact(assembled)
+    coordinate = _coord(assembled)
+    publish_artifact(assembled, root=tmp_path, coordinate=coordinate)
 
-    # A different producer producing different content under the same build-input
-    # identity conflicts (build-input identity matches, fingerprint differs).
+    # A different producer producing different content conflicts on publish.
     def other(session: MaterializationSession) -> None:
         session.add_record(
             GeneratedRecordBody(
@@ -345,7 +383,7 @@ def test_conflicting_build_identity_fails() -> None:
     other_assembled = _build_artifact(registry, definition, other, plan)
     assert other_assembled.build_input_identity == assembled.build_input_identity
     with pytest.raises(CommitConflictError):
-        find_reusable([first], other_assembled)
+        publish_artifact(other_assembled, root=tmp_path, coordinate=coordinate)
 
 
 def _producer_c(session: MaterializationSession) -> None:

@@ -24,7 +24,12 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from ehp_sn.artifacts import BuildError, SubstrateArtifact, build_substrate
+from ehp_sn.artifacts import (
+    BuildError,
+    SubstrateArtifact,
+    build_substrate,
+    release_path,
+)
 from ehp_sn.configuration import LoadedConfiguration
 from ehp_sn.discovery import ComponentRegistry
 from ehp_sn.execution import (
@@ -39,6 +44,7 @@ from ehp_sn.planning import (
     IdentityInput,
     PlanningDeclaration,
     PlanningResolver,
+    ReleaseCoordinate,
     ResolvedResource,
     ResourceRequirement,
     SubstratePlanningComposition,
@@ -91,10 +97,22 @@ def _plan_resolver(name: str, value: Any) -> PlanningResolver:
         return PlanningDeclaration(
             configuration={"value": value},
             resources=(),
-            identity_inputs=(IdentityInput(name, value),),
+            identity_inputs=(
+                IdentityInput(name, value),
+                IdentityInput("variant", "single-terminal"),
+            ),
         )
 
     return plan
+
+
+def _write_config(seed: int = 7) -> str:
+    import tempfile
+
+    with tempfile.NamedTemporaryFile("w", suffix=".toml", delete=False) as f:
+        # release is a framework-owned root-level artifact-coordinate field.
+        f.write("release = 1\n[generation]\nseed = 7\n")
+        return f.name
 
 
 def _compositions(
@@ -139,18 +157,24 @@ def test_build_plans_and_resolves_exactly_once(monkeypatch: pytest.MonkeyPatch) 
         calls["load"] += 1
         return real_load(path)
 
-    def counting_plan(registry, planning_composition, target, document, *, resource_resolver):
+    def counting_plan(
+        registry, planning_composition, target, document, *, resource_resolver, release=None
+    ):
         calls["plan"] += 1
         return real_plan(
-            registry, planning_composition, target, document, resource_resolver=resource_resolver
+            registry,
+            planning_composition,
+            target,
+            document,
+            resource_resolver=resource_resolver,
+            release=release,
         )
 
     monkeypatch.setattr(build_mod, "load_configuration", counting_load)
     monkeypatch.setattr(build_mod, "plan_substrate", counting_plan)
 
-    with tempfile.NamedTemporaryFile("w", suffix=".toml", delete=False) as f:
-        f.write("[generation]\nseed = 7\n")
-        config_path = f.name
+    config_path = _write_config()
+    root = Path(tempfile.mkdtemp())
 
     registry = ComponentRegistry()
     _, planning, execution, _ = _compositions(registry)
@@ -161,21 +185,20 @@ def test_build_plans_and_resolves_exactly_once(monkeypatch: pytest.MonkeyPatch) 
         target="substrate:synthetic-a/v1",
         config=config_path,
         resource_resolver=_ResourceResolver(),
+        root=root,
     )
 
     assert calls["load"] == 1
     assert calls["plan"] == 1
-    assert outcome.action in ("committed", "reused")
+    assert outcome.action == "committed"
     assert isinstance(outcome.artifact, SubstrateArtifact)
 
 
 def test_build_committed_outcome_shape() -> None:
     import tempfile
 
-    cached: list[SubstrateArtifact] = []
-    with tempfile.NamedTemporaryFile("w", suffix=".toml", delete=False) as f:
-        f.write("[generation]\nseed = 7\n")
-        config_path = f.name
+    config_path = _write_config()
+    root = Path(tempfile.mkdtemp())
 
     registry = ComponentRegistry()
     _, planning, execution, _ = _compositions(registry)
@@ -186,22 +209,24 @@ def test_build_committed_outcome_shape() -> None:
         target="substrate:synthetic-a/v1",
         config=config_path,
         resource_resolver=_ResourceResolver(),
-        existing=cached,
+        root=root,
     )
 
     assert outcome.action == "committed"
-    cached.append(outcome.artifact)
+    # A durable committed release exists (Targets 4/8).
+    final = release_path(
+        root, ReleaseCoordinate(family="synthetic-a", variant="single-terminal", release=1)
+    )
+    assert final.is_dir()
 
 
-def test_build_second_identical_build_reuses() -> None:
-    import tempfile
-
-    with tempfile.NamedTemporaryFile("w", suffix=".toml", delete=False) as f:
-        f.write("[generation]\nseed = 7\n")
-        config_path = f.name
+def test_build_second_identical_build_reuses_without_producer(tmp_path) -> None:
+    """Same build twice: second resolves reusable and does NOT re-invoke producer."""
+    config_path = _write_config()
+    producer = _Producer("a")
 
     registry = ComponentRegistry()
-    _, planning, execution, _ = _compositions(registry)
+    _, planning, execution, _ = _compositions(registry, producer=producer)
     first = build_substrate(
         registry=registry,
         planning_composition=planning,
@@ -209,9 +234,10 @@ def test_build_second_identical_build_reuses() -> None:
         target="substrate:synthetic-a/v1",
         config=config_path,
         resource_resolver=_ResourceResolver(),
-        existing=(),
+        root=tmp_path,
     )
     assert first.action == "committed"
+    assert producer.invocations == 1
 
     second = build_substrate(
         registry=registry,
@@ -220,18 +246,49 @@ def test_build_second_identical_build_reuses() -> None:
         target="substrate:synthetic-a/v1",
         config=config_path,
         resource_resolver=_ResourceResolver(),
-        existing=(first.artifact,),
+        root=tmp_path,
     )
     assert second.action == "reused"
+    # Reuse resolves the existing committed release without producer execution.
+    assert producer.invocations == 1
     assert second.artifact.artifact_fingerprint == first.artifact.artifact_fingerprint
+    assert second.artifact.location == first.artifact.location
 
 
-def test_producer_exception_is_translated_to_build_error(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_build_needs_configured_release(tmp_path) -> None:
+    """A build without a release coordinate fails (framework never auto-assigns).
+
+    ``--release N`` is the canonical source; the error message points at it
+    rather than at a config-declared value.
+    """
     import tempfile
 
     with tempfile.NamedTemporaryFile("w", suffix=".toml", delete=False) as f:
         f.write("[generation]\nseed = 7\n")
         config_path = f.name
+
+    from ehp_sn.artifacts import ReleaseNotConfiguredBuildError
+
+    registry = ComponentRegistry()
+    _, planning, execution, _ = _compositions(registry)
+    with pytest.raises(ReleaseNotConfiguredBuildError) as excinfo:
+        build_substrate(
+            registry=registry,
+            planning_composition=planning,
+            execution_composition=execution,
+            target="substrate:synthetic-a/v1",
+            config=config_path,
+            resource_resolver=_ResourceResolver(),
+            root=tmp_path,
+        )
+    assert "requires --release" in str(excinfo.value)
+
+
+def test_producer_exception_is_translated_to_build_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    import tempfile
+
+    config_path = _write_config()
+    root = Path(tempfile.mkdtemp())
 
     def exploding_producer(session: MaterializationSession) -> None:
         raise ValueError("producer internal failure")
@@ -247,6 +304,7 @@ def test_producer_exception_is_translated_to_build_error(monkeypatch: pytest.Mon
             target="substrate:synthetic-a/v1",
             config=config_path,
             resource_resolver=_ResourceResolver(),
+            root=root,
         )
 
 
