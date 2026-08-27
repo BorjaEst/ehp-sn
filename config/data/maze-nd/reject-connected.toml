@@ -1,11 +1,10 @@
-# Maze-ND `preserve-disconnected-source` — full source population: disconnected
-# normalized source topologies are preserved and their component capabilities
-# exposed (`preserve` policy).
+# Maze-ND `reject-connected` — connected-only source population: disconnected
+# normalized source topologies are rejected with diagnostics (`reject` policy).
 #
 # Reusable concrete realization of substrate:maze-nd/v1 (source-topology
 # variant), selected by the generic `ehp-sn data` lifecycle:
 #
-#   ehp-sn data plan substrate:maze-nd/v1 --config config/data/maze-nd/preserve-disconnected-source.toml
+#   ehp-sn data plan substrate:maze-nd/v1 --config config/data/maze-nd/reject-connected.toml
 #
 # NOTE (provisional identity): the authoritative source reference/revision/fingerprint
 # are a maze-nd/v1 open issue and are left unresolved below.
@@ -14,16 +13,16 @@
     variant = "source-topology"
 
 [source]
-    reference              = "UNRESOLVED-EXTERNAL-SOURCE"
-    revision               = "UNRESOLVED-EXTERNAL-SOURCE"
-    fingerprint            = "UNRESOLVED-EXTERNAL-SOURCE"
+    reference              = "huggingface:flaitenberger/maze_hard_augmented"
+    revision               = "b1f344fb8d63eea8b602f5bd5ffdd8e146b6595f"
+    fingerprint            = "sha256:b9efcf3b47a8f535d3e36f96656e71f0deb5d059bce380a4fcb5fafe65d827fe"
     schema                 = "maze-nd:extraction/raster/v1"
     selection_policy       = "complete-source"
-    selection_before_dedup = false
+    selection_before_dedup = true
 
 [normalization]
     policy = "maze-nd:normalization/raster/v1"
 
 [topology]
-    connectivity_policy  = "preserve"
+    connectivity_policy  = "reject"
     deduplication_policy = "maze-nd:dedup/orientation-preserving-raster/v1"

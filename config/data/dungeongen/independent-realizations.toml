@@ -1,42 +1,72 @@
 # DungeonGen `independent-realizations` — independent irregular raster topologies
-# from generation outcomes that may repeat (allow duplicate policy), a larger
-# population within the reference random-walk generator's normalized reachable band
-# (8x8..16x16).
+# from the frozen external production dependency, in the general variant,
+# under the `allow` duplicate policy (independent outcomes remain separate
+# records even when canonical content repeats).
 #
-# Reusable concrete realization of substrate:dungeongen/v1 (general
-# variant), selected by the generic `ehp-sn data` lifecycle:
+# Reusable concrete realization of substrate:dungeongen/v1 (general variant),
+# selected by the generic `ehp-sn data` lifecycle:
 #
-#   ehp-sn data plan substrate:dungeongen/v1 --config config/data/dungeongen/independent-realizations.toml
+#   ehp-sn data build substrate:dungeongen/v1 \
+#       --config config/data/dungeongen/independent-realizations.toml --release 1
 #
-# NOTE (provisional identity): the generator dependency and reference protocol are a
-# dungeongen/v1 open issue; the injected reference random-walk generator is used.
+# Dependency identity frozen (Phase 5.3): dungeongen==0.1.14 at upstream Git
+# revision 2d228f5d3f82ccaa4666b087942100e7800fb069. See
+# docs/docs/research/substrates/dungeongen-v1.md § "First release dependency and
+# protocol decision".
 
 [substrate]
     variant = "general"
 
 [generator]
-    dependency = "injected:reference_random_walk_generator"
-    protocol   = "dungeongen/provisional/v1"
-    profile    = "connected-random-walk"
+    dependency = "git:benjcooley/dungeongen@2d228f5d3f82ccaa4666b087942100e7800fb069"
+    protocol   = "dungeongen/generation/v1"
+    profile    = "dungeongen/profile/general/v1"
+
+# Resolved generator parameter declaration — the complete effective
+# `GenerationParams` surface for this realizing profile. Each value below is the
+# EHP-owned default; a configuration may omit any field and resolve through the
+# EHP-owned default, so a change to an upstream constructor default can never
+# silently alter EHP-SN output. `size` and `room_count` are mutually exclusive.
+[generator.params]
+    archetype               = "classic"
+    size                    = "medium"
+    room_size_bias          = 0.0
+    round_room_chance       = 0.15
+    hall_chance             = 0.1
+    density                 = 0.5
+    symmetry                = "none"
+    symmetry_break          = 0.2
+    linearity               = 0.3
+    loop_factor             = 0.3
+    passage_width           = 1
+    winding                 = 0.0
+    extra_room_connections  = 0.2
+    extra_passage_junctions = 0.15
+    levels                  = 1
+    stair_frequency         = 0.1
+    water_enabled           = false
+    water_threshold         = 0.15
 
 [conversion]
     policy = "dungeongen:conversion/raster/v1"
 
 [acceptance]
+    policy            = "dungeongen:acceptance/size-and-connected/v1"
     require_connected = true
 
 [generation]
     attempt_budget = 100
     seed           = 0
-    record_count   = 10000
+    record_count   = 500
+    role           = "topology-candidate"
 
 [topology]
     duplicate_policy = "allow"
 
 [topology.size_policy]
-    minimum_height = 8
-    maximum_height = 16
-    minimum_width  = 8
-    maximum_width  = 16
-    minimum_states = 16
-    maximum_states = 256
+    minimum_height = 4
+    maximum_height = 128
+    minimum_width  = 4
+    maximum_width  = 128
+    minimum_states = 32
+    maximum_states = 1024
