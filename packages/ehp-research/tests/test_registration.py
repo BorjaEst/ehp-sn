@@ -49,7 +49,12 @@ def test_register_components_yields_exactly_the_provider_set() -> None:
     register_components(registry)
 
     canonical_refs = sorted(definition.ref.canonical for definition in registry.iter())
-    assert canonical_refs == ["substrate:dagflow/v1", "substrate:maze-nd/v1"]
+    assert canonical_refs == [
+        "substrate:dagflow/v1",
+        "substrate:dungeongen/v1",
+        "substrate:maze-nd/v1",
+        "substrate:obsfield/v1",
+    ]
 
 
 def test_register_components_populates_a_fresh_registry() -> None:
@@ -60,7 +65,9 @@ def test_register_components_populates_a_fresh_registry() -> None:
     assert list(registry.iter()) == []
     register_components(registry)
     assert registry.contains("substrate:dagflow/v1")
+    assert registry.contains("substrate:dungeongen/v1")
     assert registry.contains("substrate:maze-nd/v1")
+    assert registry.contains("substrate:obsfield/v1")
 
 
 def test_register_components_registers_into_the_given_registry_only() -> None:
@@ -73,7 +80,9 @@ def test_register_components_registers_into_the_given_registry_only() -> None:
 
     assert sorted(d.ref.canonical for d in registry_a.iter()) == [
         "substrate:dagflow/v1",
+        "substrate:dungeongen/v1",
         "substrate:maze-nd/v1",
+        "substrate:obsfield/v1",
     ]
     assert list(registry_b.iter()) == []
 
@@ -148,7 +157,9 @@ def test_planning_registrations_bind_each_definition_to_its_resolver() -> None:
     # The composition matches the exact authoritative definitions by identity.
     assert composition.resolver(registry.resolve("substrate:dagflow/v1")) is not None
     assert composition.resolver(registry.resolve("substrate:maze-nd/v1")) is not None
-    assert len(composition) == 2
+    assert composition.resolver(registry.resolve("substrate:obsfield/v1")) is not None
+    assert composition.resolver(registry.resolve("substrate:dungeongen/v1")) is not None
+    assert len(composition) == 4
 
 
 # ---------------------------------------------------------------------------

@@ -297,7 +297,7 @@ def test_missing_topology_table_is_rejected() -> None:
 
 @pytest.mark.parametrize(
     "profile_name",
-    ["connected-source.toml", "preserve-disconnected-source.toml"],
+    ["reject-connected.toml", "preserve-disconnected.toml"],
 )
 def test_real_maze_nd_profiles_load_and_resolve(profile_name: str) -> None:
     """The committed repository profiles resolve as valid Maze-ND configurations."""
@@ -309,12 +309,17 @@ def test_real_maze_nd_profiles_load_and_resolve(profile_name: str) -> None:
     effective = resolve_configuration(load_configuration(profile))
 
     assert effective.variant == "source-topology"
-    assert effective.source_reference
-    assert effective.source_revision
-    assert effective.source_fingerprint
+    # The authoritative source identity is fixed per maze-nd/v1 § "Authoritative
+    # source identity".
+    assert effective.source_reference == "huggingface:flaitenberger/maze_hard_augmented"
+    assert effective.source_revision == "b1f344fb8d63eea8b602f5bd5ffdd8e146b6595f"
+    # The fingerprint is a non-empty sha256:-prefixed declared value; the concrete
+    # digest is computed before the first release and is never fabricated here.
+    assert effective.source_fingerprint.startswith("sha256:")
+    assert effective.source_fingerprint != "sha256:"
     assert effective.source_schema == "maze-nd:extraction/raster/v1"
     assert effective.source_selection_policy == "complete-source"
-    assert effective.selection_before_dedup is False
+    assert effective.selection_before_dedup is True
     assert effective.normalization_policy == "maze-nd:normalization/raster/v1"
     assert effective.connectivity_policy in {"preserve", "reject"}
     assert effective.deduplication_policy == "maze-nd:dedup/orientation-preserving-raster/v1"
