@@ -275,6 +275,7 @@ Rejected. The initial interface accepts only statically declared schema fields a
 - [Resource requirements](resource-requirements.md)
 - [Resolution](resolution.md)
 - [Identities and provenance](identities-and-provenance.md)
+- [Figure configuration](figures.md)
 
 ## Related interfaces
 

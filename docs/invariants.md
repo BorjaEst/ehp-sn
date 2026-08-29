@@ -41,7 +41,7 @@ Registration:
 
 ### ARCH-004 — Research package holds reusable scientific components only
 
-`ehp_research` contains reusable scientific building blocks (substrates, tasks, models, objectives, controllers, metrics, analyses, configuration, registration).
+`ehp_research` contains reusable scientific building blocks (substrates, tasks, models, objectives, controllers, metrics, analyses, figures, configuration, registration).
 
 It must not contain repository-level concrete experiment compositions.
 
@@ -291,6 +291,35 @@ Artifact-producing operations must stage, validate, and commit without leaving i
 
 Provenance may reference parent/build inputs without requiring those resources for normal use of a self-contained committed artifact.
 
+## Figures
+
+### FIG-001 — Figures are cross-cutting
+
+Figures are a projection capability used by existing EHP-SN operations.
+
+They must not introduce an independent scientific lifecycle stage between, alongside, or inside the established data/task/train/evaluate/analyze/report lifecycle.
+
+### FIG-002 — Figures do not establish authoritative science
+
+Figure selection, preparation, visual encoding, and rendering may operate only on authoritative scientific information already produced by the owning scientific operation.
+
+Figure code must not establish new independently authoritative scientific quantities through model inference, metric computation, statistical estimation, probe fitting, hypothesis testing, or scientific analysis.
+
+### FIG-003 — Figure execution does not interfere with scientific execution
+
+Figure processing must not mutate scientific state, model state, optimizer state, recurrent state, authoritative scientific results, or scientific RNG streams.
+
+A source participating in figure selection or preparation must represent a stable point-in-time scientific state for the duration of the projection.
+Mutable or live scientific state must cross the figure boundary only through an appropriate stable or detached representation.
+
+Where deterministic testing is feasible, equivalent scientific execution with figures enabled and disabled must preserve scientific state transitions and scientific RNG state.
+
+### FIG-004 — Parent operations retain operational ownership
+
+The requesting operation or runtime retains ownership of diagnostic inference, scheduling, queueing/backpressure, requiredness, failure policy, artifact lifecycle, and destination ownership.
+
+The generic figure framework consumes figure requests and produces projections/realizations; it must not create an independent scheduling engine, scientific inference path, or artifact lifecycle.
+
 ## Documentation
 
 ### DOC-001 — README projection
@@ -311,17 +340,21 @@ Status, component references, catalogue membership, and similar derivable metada
 
 Quick starts and examples must use the currently specified CLI, Python, configuration, reference, and artifact semantics.
 
-### DOC-005 — Docs development and published docs are distinct
+### DOC-005 — Docs development, publication, and semantic authority are distinct
 
 `docs/README.md` documents the documentation project and contributor workflow.
 
 `docs/docs/index.md` is the published MkDocs documentation landing page.
 
 They must not be treated as interchangeable authorities.
+Publication in the MkDocs source tree does not itself establish normative authority, and a repository-authoritative specification may exist outside `docs/docs/` only when `docs/authority.md` explicitly admits that normative location.
 
-### DOC-006 — Specification frontmatter is present and valid
+### DOC-006 — Specification location and frontmatter are present and valid
+
+A document is normative only when its frontmatter declares `authority: normative` and its path is an explicitly governed normative file or lies beneath a specification root admitted by `docs/authority.md`.
 
 Every normative specification carries the frontmatter contract defined in `docs/authority.md` § "Specification frontmatter".
+Normative frontmatter outside an admitted normative location is invalid.
 
 Each maturity/stability dimension listed there has exactly one canonical vocabulary and one canonical home.
 A dimension must not reuse or conflate another dimension's field name or values, and a new dimension must not be introduced outside that section.
@@ -394,9 +427,13 @@ These invariants are checked only by review; each is backlog to promote to an au
 | BIND-001   | resolved binding output preserves public/withheld split, truth, targets, splits, and metric meaning |
 | CONFIG-001 | scientific definitions declare requirements; configuration binds them                               |
 | CLI-001    | CLI modules define no scientific semantics                                                          |
+| FIG-001    | no planner, CLI lifecycle, or artifact lifecycle treats figures as a scientific lifecycle stage      |
+| FIG-002    | figure implementations perform no scientific inference/analysis or authoritative metric computation |
+| FIG-003    | figure inputs are stable/detached; figure code mutates no scientific state or scientific RNG        |
+| FIG-004    | figure framework owns no diagnostic inference, scheduler, queue policy, or artifact lifecycle       |
 | DOC-001    | README files introduce no `authority: normative` claim                                              |
 | DOC-002    | target undecided: record unresolved in `docs/decisions.md`; target established: realign in place    |
-| DOC-005    | `docs/README.md` and `docs/docs/index.md` are not cross-referenced as equivalents                   |
+| DOC-005    | publication paths and repository-authority paths are not treated as equivalent authorities          |
 | DOC-007    | no `.github/instructions/` file declares `authority: normative` or enumerates domain semantics      |
 | DOC-009    | every published table is multi-dimensional, self-introduced, and uses sentence-case headers         |
 
@@ -437,7 +474,7 @@ No check exists yet for these invariants; each is backlog for `tests/architectur
 | ART-002    | normal use of a committed artifact opens no parent artifact                                     |
 | DOC-003    | catalogue and status metadata match specification frontmatter                                   |
 | DOC-004    | documented examples use current CLI, configuration, and reference syntax                        |
-| DOC-006    | every `authority: normative` document under a specification root carries valid frontmatter      |
+| DOC-006    | every normative document is in an admitted normative location and carries valid frontmatter      |
 
 An entry's state records the check that exists today, not the check that is intended, and is updated in the same change that adds or removes one.
 

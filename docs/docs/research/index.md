@@ -8,7 +8,7 @@ api_stability: provisional
 
 # Research
 
-This section contains the `ehp_research` specifications: reusable scientific building blocks — substrates, tasks, models, and (as they are added) objectives, controllers, metrics, and analyses.
+This section contains the `ehp_research` specifications: reusable scientific building blocks — substrates, tasks, models, and (as they are added) objectives, controllers, metrics, analyses, and figures.
 It mirrors the scientific ownership model of the `ehp_research` package.
 
 ```text
@@ -26,6 +26,7 @@ task
 - [`controllers/`](controllers/index.md) — reusable control mechanisms (as written).
 - [`metrics/`](metrics/index.md) — reusable scientific metrics (as written).
 - [`analyses/`](analyses/index.md) — reusable analyses (as written).
+- [`figures/`](figures/index.md) — reusable scientific visualization capabilities (as written).
 
 A resolved binding — one task, one model, and their configured `InputAdapter`/`OutputAdapter` pair — is not an independent research artifact.
 The framework owns the [`Binding`](../framework/components/binding.md) abstraction; a concrete binding is assembled by an experiment definition from the generic adapter contracts in [Adapters](../framework/adapters/index.md) and belongs to a repository-level experiment under `experiments/`, not to `ehp_research`.

@@ -326,6 +326,18 @@ ehp-sn data inspect ARTIFACT [--samples N] [--format text|json]
 The command reports artifact identity, schema version, configuration fingerprint, split sizes, file sizes, channel summaries, and at most the requested number of representative records.
 It never dumps the full dataset by default.
 
+### Figure inspection (`--figure`)
+
+`data inspect` may optionally render a compatible figure over a selected
+committed record:
+
+```console
+ehp-sn data inspect ARTIFACT --record RECORD_ID --figure figure:<name>/v<N> [--output PATH] [--format png|svg|pdf]
+```
+
+Figure handling is **figure-owner agnostic**: the command resolves the requested figure through the normal figure catalogue and renders it through the generic figure pipeline, regardless of which installed provider supplied that figure (framework, research, or a future plugin).
+It must not branch on substrate family (for example it must not contain an `if family == ...` plot path), and it requires an explicit figure reference — it never infers a default figure from registration order.
+
 ### Example
 
 ```console

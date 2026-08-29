@@ -250,6 +250,7 @@ The initial interface does not define asynchronous job handles, remote futures, 
 - [Artifacts](artifacts.md)
 - [Shared conventions](conventions.md)
 - [Analysis](analysis.md)
+- [Figures](figures.md)
 
 ## Python and CLI equivalence
 
