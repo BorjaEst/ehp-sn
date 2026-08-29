@@ -37,7 +37,7 @@ from typer.testing import CliRunner
 #: Repo root, located relative to this test file (…/tests/integration/ → repo).
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DAGFLOW_PROFILE = _REPO_ROOT / "config" / "data" / "dagflow" / "constructive-dense.toml"
-_MAZE_ND_PROFILE = _REPO_ROOT / "config" / "data" / "maze-nd" / "connected-source.toml"
+_MAZE_ND_PROFILE = _REPO_ROOT / "config" / "data" / "maze-nd" / "reject-connected.toml"
 _INTERIM_ROOT = _REPO_ROOT / "data" / "interim"
 _ARTIFACTS_ROOT = _REPO_ROOT / "artifacts"
 
@@ -90,10 +90,10 @@ def test_python_maze_nd_plan_projection(service) -> None:
     assert len(result.resources) == 1
     bound = result.resources[0]
     assert bound.requirement_ref == "requirement:substrate/maze-nd-source/v1"
-    assert bound.resource_ref == "UNRESOLVED-EXTERNAL-SOURCE"
+    assert bound.resource_ref == "huggingface:flaitenberger/maze_hard_augmented"
     assert bound.resolution_source == "definition"
     names = {i.name for i in result.identity}
-    assert {"source_reference", "source_fingerprint", "source_schema"} <= names
+    assert {"source_reference", "source_revision", "source_fingerprint", "source_schema"} <= names
 
 
 def test_python_and_cli_share_one_planning_path(service) -> None:
@@ -163,9 +163,10 @@ def test_cli_plan_json_is_deterministic() -> None:
     assert result_body["target"] == "substrate:maze-nd/v1"
     assert result_body["output_contract"] == "raster-topology/v1"
     assert len(result_body["resources"]) == 1
-    assert result_body["resources"][0]["resource_ref"] == "UNRESOLVED-EXTERNAL-SOURCE"
+    assert result_body["resources"][0]["resource_ref"] == "huggingface:flaitenberger/maze_hard_augmented"
     names = {item["name"] for item in result_body["identity"]}
     assert "source_reference" in names
+    assert "source_revision" in names
 
 
 # ---------------------------------------------------------------------------

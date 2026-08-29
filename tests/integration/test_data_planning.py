@@ -49,7 +49,7 @@ from ehp_sn.planning import (
 #: Repo root, located relative to this test file (…/tests/integration/ → repo).
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DAGFLOW_PROFILE = _REPO_ROOT / "config" / "data" / "dagflow" / "constructive-dense.toml"
-_MAZE_ND_PROFILE = _REPO_ROOT / "config" / "data" / "maze-nd" / "connected-source.toml"
+_MAZE_ND_PROFILE = _REPO_ROOT / "config" / "data" / "maze-nd" / "reject-connected.toml"
 
 
 class _GenericResolver:
@@ -148,16 +148,24 @@ def test_maze_plan_declares_source_requirement_and_binds_it(registry_and_composi
     bound = plan.resources[0]
     assert bound.requirement_ref == "requirement:substrate/maze-nd-source/v1"
     # The exact source reference declared by the producer is bound.
-    assert bound.resource_ref == "UNRESOLVED-EXTERNAL-SOURCE"
+    assert bound.resource_ref == "huggingface:flaitenberger/maze_hard_augmented"
 
 
 def test_maze_plan_carries_source_identity(registry_and_composition) -> None:
     plan = _plan(registry_and_composition, "substrate:maze-nd/v1", _maze_document())
 
     names = {input_.name for input_ in plan.identity_inputs}
-    assert {"source_reference", "source_fingerprint", "source_schema"} <= names
+    assert {"source_reference", "source_revision", "source_fingerprint", "source_schema"} <= names
+    reference = next(i for i in plan.identity_inputs if i.name == "source_reference")
+    revision = next(i for i in plan.identity_inputs if i.name == "source_revision")
     fingerprint = next(i for i in plan.identity_inputs if i.name == "source_fingerprint")
-    assert fingerprint.value == "UNRESOLVED-EXTERNAL-SOURCE"
+    assert reference.value == "huggingface:flaitenberger/maze_hard_augmented"
+    assert revision.value == "b1f344fb8d63eea8b602f5bd5ffdd8e146b6595f"
+    # The fingerprint is the value declared by the profile; it is a non-empty
+    # sha256:-prefixed value (the concrete digest is computed before release).
+    assert isinstance(fingerprint.value, str)
+    assert fingerprint.value.startswith("sha256:")
+    assert fingerprint.value != "sha256:"
 
 
 # ---------------------------------------------------------------------------
