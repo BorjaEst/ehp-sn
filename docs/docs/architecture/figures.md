@@ -278,17 +278,3 @@ a parallel figure resource hierarchy
 ```
 
 Any future addition requires a demonstrated generic requirement rather than symmetry with the rest of the design.
-
-## First validation slice
-
-The first intended validation slice is an HPC place-summary figure consuming already-authoritative:
-
-```text
-rate_maps
-spatial_information
-field_centres
-```
-
-The slice should exercise deterministic selection, stable source handling, projection identity, scientific visual semantics, panel/layout binding, nested Matplotlib layout, style isolation, serialization, provider discovery, projection non-mutation, and scientific non-interference.
-
-Implementation evidence from that slice should determine whether currently conceptual framework types deserve stable public Python APIs.

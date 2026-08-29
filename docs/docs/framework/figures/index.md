@@ -56,15 +56,6 @@ interactive output or serialization
 parent-operation destination
 ```
 
-## Maturity
-
-The framework specifications are currently specified targets with planned capability status.
-
-They define the intended semantic boundary before the first validated vertical implementation.
-They must be revised if the HPC place-summary slice demonstrates that a proposed framework abstraction is unnecessary or insufficient.
-
-A conceptual architectural term does not automatically require a stable public Python class.
-
 ## Non-goals
 
 The current framework deliberately does not define:

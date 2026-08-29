@@ -2,7 +2,7 @@
 title: Research figures
 authority: normative
 document_status: draft
-capability_status: planned
+capability_status: partial
 api_stability: provisional
 ---
 
