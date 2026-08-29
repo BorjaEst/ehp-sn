@@ -45,11 +45,19 @@ from dataclasses import dataclass, field
 from typing import Any, Protocol
 
 from ehp_sn.experiments import ComponentRef
-from ehp_sn.figures.projection import FigureProjection
+from ehp_sn.figures.projection import FigureProjection, ResolvedFigureSelection
 
 #: The component kind under which a ``FigureSpec`` registers in the ordinary
 #: component catalogue.
 FIGURE_KIND = "figure"
+
+#: The selection-resolver protocol a ``FigureSpec`` projection partition may
+#: expose. A figure without scientific selection leaves ``select`` as ``None``.
+#: It receives the validated authoritative source and returns the exact, fully
+#: resolved selection (authored semantics + resolved identities) as projection
+#: provenance. It must be deterministic (see ``projection.md`` § "Deterministic
+#: selection").
+FigureSelectionResolver = Callable[[object], ResolvedFigureSelection]
 
 
 class FigureInputCompatibilityError(ValueError):
@@ -89,9 +97,11 @@ class _ProjectionPartition:
     """The projection (scientific-view) partition of a ``FigureSpec``.
 
     Holds the figure's declared semantic input requirement, its projection
-    semantics version, its preparation semantics version, and the ``prepare()``
+    semantics version, its preparation semantics version, the ``prepare()``
     implementation that converts a validated authoritative source into a stable
-    prepared scientific view.
+    prepared scientific view, and (when the figure performs scientific
+    selection) the ``select()`` resolver that turns the authoritative source
+    into an exact ``ResolvedFigureSelection``.
 
     None of this references visual/Matplotlib/presentation concepts.
     """
@@ -100,6 +110,7 @@ class _ProjectionPartition:
     preparation_version: int
     requirement: FigureInputRequirement
     prepare: Callable[[object], object]
+    select: FigureSelectionResolver | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -109,12 +120,21 @@ class _VisualPartition:
     Holds the figure's visual-semantics version and the ``realize()``
     implementation that draws a ``FigureProjection`` as a Matplotlib Figure.
 
+    ``protected_rc_params`` names Matplotlib rc-parameter keys whose value is
+    **scientific visual semantics** owned by the figure (for example an
+    ``image.cmap`` or colormap-normalization default the visual semantics hard
+    codes). A :class:`~ehp_sn.figures.render_profile.RenderProfile` or framework
+    override must not silently replace these: doing so would change scientific
+    meaning. The framework rejects such a conflict explicitly (Phase-4 ·
+    P4-T11), rather than letting presentation reinterpret the science.
+
     It does not own physical publication dimensions, serialization format, or
     projection selection.
     """
 
     semantics_version: int
     realize: Callable[[FigureProjection], Any]
+    protected_rc_params: frozenset[str] = frozenset()
 
 
 @dataclass(frozen=True, slots=True)
@@ -162,5 +182,6 @@ __all__ = [
     "FIGURE_KIND",
     "FigureInputCompatibilityError",
     "FigureInputRequirement",
+    "FigureSelectionResolver",
     "FigureSpec",
 ]

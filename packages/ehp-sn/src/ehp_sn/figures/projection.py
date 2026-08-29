@@ -13,13 +13,18 @@ semantic source role
 exact artifact/resource identity
 exact record identity
 logical contract
+authored + resolved selection (Phase 3)
 preparation semantics/version
 prepared stable view
 ```
 
-There is deliberately **no figure-specific selection field** in this first
-slice (Phase-1 § 12 · P1-T10). Real authored versus resolved scientific selection
-is first exercised in the later HPC validation slice.
+Phase 1 deliberately shipped no figure-specific selection field (P1-T10); the
+Phase-1 specification records that real authored versus resolved scientific
+selection is first exercised by the HPC validation slice. Phase 3 therefore adds
+generic selection provenance to the projection: ``ResolvedFigureSelection``
+carries the authored selection semantics (identity/version + parameters) and the
+exact resolved identities. A figure without a selection resolver declares
+``selection=None`` and its projection identity is unchanged.
 
 ``ProjectionIdentity`` is computed only from semantic/provenance inputs. It never
 reads visual, defaults, Matplotlib, typography, dimensions, backend, or
@@ -54,6 +59,38 @@ class SourceRoleBinding:
 
 
 @dataclass(frozen=True, slots=True)
+class ResolvedFigureSelection:
+    """Authored and resolved selection provenance for one projection (Phase 3).
+
+    ``selection_ref`` and ``selection_version`` identify the authored selection
+    semantics (for example ``top-spatial-information-cells`` at version 1);
+    ``parameters`` is the authored parameter set (for example ``{"count": 8}``);
+    ``resolved_identities`` is the exact, deterministically ordered set of
+    entities resolved against the exact authoritative source.
+
+    Both the authored semantics and the exact resolved identities are
+    projection provenance: two different authored policies that resolve to the
+    same identities remain different provenance (``projection.md`` §
+    ``ResolvedFigureSelection``). ``parameters`` must be JSON-canonicalizable
+    so it can participate in identity (``projection.md`` § "Projection identity").
+    """
+
+    selection_ref: str
+    selection_version: int
+    parameters: object
+    resolved_identities: tuple[object, ...]
+
+    def identity_input(self) -> object:
+        """The canonical identity-relevant value of this selection."""
+        return {
+            "selection_ref": self.selection_ref,
+            "selection_version": self.selection_version,
+            "parameters": self.parameters,
+            "resolved_identities": list(self.resolved_identities),
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class FigureProjection:
     """The provenance-bearing boundary for one exact prepared scientific view.
 
@@ -65,6 +102,10 @@ class FigureProjection:
     ``content`` is the prepared stable scientific/structural view (opaque to the
     generic framework). Once incorporated into the projection it is immutable by
     contract; renderers must not mutate it.
+
+    ``selection`` carries authored + resolved selection provenance when the
+    figure declares a selection resolver; it is ``None`` for figures without
+    scientific selection (Phase 3).
     """
 
     figure_ref: str
@@ -72,6 +113,7 @@ class FigureProjection:
     preparation_version: int
     source: SourceRoleBinding
     content: object
+    selection: ResolvedFigureSelection | None = None
 
     def identity(self) -> ProjectionIdentity:
         """Compute the projection identity from semantic/provenance inputs only."""
@@ -82,12 +124,13 @@ class FigureProjection:
             artifact_ref=self.source.artifact_ref,
             record_id=self.source.record_id,
             logical_contract=self.source.logical_contract,
+            selection=self.selection,
         )
 
 
 @dataclass(frozen=True, slots=True)
 class ProjectionIdentity:
-    """A figure's exact semantic/provenance identity (Phase 1).
+    """A figure's exact semantic/provenance identity (Phase 1 + Phase 3 selection).
 
     Determined by projection-semantic inputs:
 
@@ -95,6 +138,8 @@ class ProjectionIdentity:
     figure projection semantics (reference + version)
     preparation semantics/version
     exact authoritative source identities (artifact, record, logical contract)
+    authored selection semantics/version + parameters (when selection applies)
+    exact resolved selected identities (when selection applies)
     ```
 
     Changing any of these creates a new projection. Presentation-only changes
@@ -112,22 +157,25 @@ class ProjectionIdentity:
     artifact_ref: str
     record_id: str
     logical_contract: str
+    selection: ResolvedFigureSelection | None = None
 
     def __str__(self) -> str:
-        return canonical_digest(
-            {
-                "figure_ref": self.figure_ref,
-                "projection_semantics_version": self.projection_semantics_version,
-                "preparation_version": self.preparation_version,
-                "artifact_ref": self.artifact_ref,
-                "record_id": self.record_id,
-                "logical_contract": self.logical_contract,
-            }
-        )
+        payload: dict[str, object] = {
+            "figure_ref": self.figure_ref,
+            "projection_semantics_version": self.projection_semantics_version,
+            "preparation_version": self.preparation_version,
+            "artifact_ref": self.artifact_ref,
+            "record_id": self.record_id,
+            "logical_contract": self.logical_contract,
+        }
+        if self.selection is not None:
+            payload["selection"] = self.selection.identity_input()
+        return canonical_digest(payload)
 
 
 __all__ = [
     "FigureProjection",
     "ProjectionIdentity",
+    "ResolvedFigureSelection",
     "SourceRoleBinding",
 ]

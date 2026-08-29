@@ -47,6 +47,7 @@ from ehp_sn.figures.contracts import (
 )
 from ehp_sn.figures.projection import FigureProjection, SourceRoleBinding
 from ehp_sn.figures.providers import effective_figure_registry
+from ehp_sn.figures.render_profile import RenderProfile
 from ehp_sn.planning import ReleaseCoordinate
 
 
@@ -185,16 +186,22 @@ def prepare_figure(
         ↓
     semantic input validation
         ↓
+    select()  — when the figure declares a selection resolver (Phase 3)
+        ↓
     prepare()
         ↓
     FigureProjection
     ```
 
-    Returns a ``FigureProjection`` carrying exact source provenance and the
-    prepared stable view (Phase-1 § 12 · P1-T10).
+    Returns a ``FigureProjection`` carrying exact source provenance, the exact
+    authored + resolved selection (when declared), and the prepared stable view
+    (Phase-1 § 12 · P1-T10 · Phase 3).
     """
     spec = _resolve_figure(registry, figure_ref)
     _validate_input_requirement(spec, source)
+    selection = None
+    if spec.projection.select is not None:
+        selection = spec.projection.select(source.content)
     prepared = spec.projection.prepare(source.content)
     binding = SourceRoleBinding(
         role=spec.projection.requirement.role,
@@ -209,31 +216,52 @@ def prepare_figure(
         preparation_version=spec.projection.preparation_version,
         source=binding,
         content=prepared,
+        selection=selection,
     )
 
 
 def render_figure_projection(
     projection: FigureProjection,
     registry: ComponentRegistry | None = None,
+    *,
+    presentation: RenderProfile | None = None,
 ) -> Any:
     """Realize a ``FigureProjection`` directly as a Matplotlib Figure.
 
-    Resolves the figure (already resolved in :func:`prepare_figure`) to obtain
-    its visual partition, applies the figure's private/provisional presentation
-    defaults within a temporary Matplotlib rc context, and delegates drawing to
-    the figure-owned visual implementation. Returns the transient
-    ``matplotlib.figure.Figure``.
+    This is the **interactive/transient** realization path: ownership of the
+    returned ``matplotlib.figure.Figure`` transfers to the caller, who controls
+    its interactive lifetime (Phase-4 · P4-T8). It is the transient counterpart
+    of :func:`~ehp_sn.figures.realization.realize_projection`.
+
+    It resolves the same canonical realization request as the persistent path
+    (Phase-4 · P4-T9), validates realization inputs before Matplotlib
+    (P4-T15), and enforces scientific-visual precedence over presentation
+    (P4-T11). The resulting effective presentation is applied within a temporary
+    Matplotlib rc context, and drawing is delegated to the figure-owned visual
+    implementation.
+
+    A caller that also needs the transient realization's semantic identity (with
+    serialization excluded; P4-T14) resolves via
+    :func:`~ehp_sn.figures.realization.resolve_figure_realization` with
+    ``serialization=None``.
 
     ``registry`` is optional: it re-resolves the ``FigureSpec`` from the
     catalogue when provided. When omitted, the figure is located through the
     effective framework catalogue by canonical reference.
     """
+    from ehp_sn.figures.realization import resolve_figure_realization
+
     effective = registry if registry is not None else effective_figure_registry()
     spec = cast(FigureSpec, _resolve_figure(effective, projection.figure_ref))
-
+    resolved = resolve_figure_realization(
+        projection,
+        presentation=presentation,
+        serialization=None,
+        registry=effective,
+    )
     import matplotlib
 
-    with matplotlib.rc_context(dict(spec.defaults.rc_params)):
+    with matplotlib.rc_context(resolved.to_rc_params()):  # type: ignore[arg-type]
         return spec.visual.realize(projection)
 
 

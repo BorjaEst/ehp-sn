@@ -263,7 +263,32 @@ _ADVERTISED_PROVIDER_GROUPS = (
     "ehp_sn.providers",
     "ehp_sn.planning.providers",
     "ehp_sn.execution.providers",
+    "ehp_sn.figures.providers",
 )
+
+
+def test_research_figure_provider_advertised_under_figure_group() -> None:
+    """The research figure provider is advertised under the framework figure-provider
+    entry-point group ``ehp_sn.figures.providers`` (P3-T1 · G1)."""
+    import pathlib
+    from importlib import metadata
+
+    from ehp_sn.figures.providers import FIGURE_PROVIDER_ENTRY_POINT_GROUP
+
+    pyproject = pathlib.Path(__file__).resolve().parents[1] / "pyproject.toml"
+    pyproject_text = pyproject.read_text(encoding="utf-8")
+    assert FIGURE_PROVIDER_ENTRY_POINT_GROUP in pyproject_text
+    assert "ehp_research.figures.providers:figure_provider" in pyproject_text
+
+    # The advertised entry point must resolve to a loadable real provider.
+    figure_eps = [
+        ep
+        for ep in metadata.entry_points(group=FIGURE_PROVIDER_ENTRY_POINT_GROUP)
+        if ep.value.startswith("ehp_research.")
+    ]
+    assert figure_eps, "research figure provider is not advertised under the figure group"
+    for entry_point in figure_eps:
+        entry_point.load()  # raises if module/attribute is absent
 
 
 def test_all_advertised_provider_entry_points_load() -> None:
@@ -289,24 +314,26 @@ def test_obsolete_figure_and_analysis_providers_are_not_advertised() -> None:
     """``ehp_research`` must not advertise provider groups it does not implement.
 
     The framework-owned figure-provider group ``ehp_sn.figures.providers`` is an
-    active group (Phase 2 contributes external figures through it), but
-    ``ehp_research`` itself must not point it at non-existent
-    ``ehp_research.figures.providers`` / ``ehp_research.analysis.providers``
-    modules. ``ehp_sn.analysis.providers`` remains an unfilled later-phase group.
-    Advertising a provider module that does not exist would break provider
-    discovery (P0R-1).
+    active group (Phase 2 contributes external figures through it). Phase 3 adds
+    a real ``ehp_research.figures.providers:figure_provider`` module, so the
+    figure group legitimately advertises it and the module must load. The
+    ``ehp_sn.analysis.providers`` group remains an unfilled later-phase group
+    and must stay unadvertised. Advertising a provider module that does not
+    exist would break provider discovery (P0R-1).
     """
     from importlib import metadata
 
-    for group in ("ehp_sn.figures.providers", "ehp_sn.analysis.providers"):
-        # Whatever contributes to these groups (including the Phase-2 test
-        # fixture distribution for the figure group), ehp_research must never
-        # name an obsolete ehp_research provider module in them.
-        for entry_point in metadata.entry_points(group=group):
-            assert "ehp_research.figures.providers" not in entry_point.value
-            assert "ehp_research.analysis.providers" not in entry_point.value
+    for entry_point in metadata.entry_points(group="ehp_sn.figures.providers"):
+        if entry_point.value.startswith("ehp_research."):
+            # Phase 3: the research figure provider is real and must load.
+            entry_point.load()
 
-    # The analysis group remains genuinely unadvertised (later phase).
+    # No ehp_research entry point in the figures group may point at an obsolete
+    # analysis-provider module, and the analysis group remains unadvertised
+    # (later phase).
+    for entry_point in metadata.entry_points(group="ehp_sn.figures.providers"):
+        assert "ehp_research.analysis.providers" not in entry_point.value
+        assert "ehp_research.figures.analysis" not in entry_point.value
     assert list(metadata.entry_points(group="ehp_sn.analysis.providers")) == [], (
         "old ehp_sn.analysis.providers group is still advertised"
     )

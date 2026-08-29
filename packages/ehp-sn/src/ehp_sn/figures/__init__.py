@@ -25,12 +25,42 @@ from .contracts import (
     FigureInputRequirement,
     FigureSpec,
 )
-from .projection import FigureProjection, ProjectionIdentity, SourceRoleBinding
+from .persistence import FigureContentIntegrityError, verify_content_digest
+from .projection import (
+    FigureProjection,
+    ProjectionIdentity,
+    ResolvedFigureSelection,
+    SourceRoleBinding,
+)
 from .providers import (
     FIGURE_PROVIDER_ENTRY_POINT_GROUP,
     effective_figure_registry,
     register_builtin_figures,
     register_installed_figure_providers,
+)
+from .realization import (
+    ContentDigest,
+    RealizationError,
+    RealizationIdentity,
+    RealizedFigure,
+    RenderingEnvironmentProvenance,
+    ResolvedFigureRealization,
+    realize_projection,
+    record_rendering_environment,
+    resolve_figure_realization,
+)
+from .render_profile import (
+    PresentationError,
+    RenderProfile,
+    ResolvedPresentation,
+    default_render_profile,
+)
+from .serialization import (
+    FORMAT_PNG,
+    FORMAT_SVG,
+    ResolvedSerializationPolicy,
+    SerializationError,
+    resolve_serialization_policy,
 )
 from .service import (
     FigureResult,
@@ -42,21 +72,42 @@ from .service import (
 )
 
 __all__ = [
+    "ContentDigest",
     "FIGURE_KIND",
     "FIGURE_PROVIDER_ENTRY_POINT_GROUP",
+    "FORMAT_PNG",
+    "FORMAT_SVG",
+    "FigureContentIntegrityError",
     "FigureInputCompatibilityError",
     "FigureInputRequirement",
     "FigureProjection",
     "FigureResult",
     "FigureServiceError",
     "FigureSpec",
+    "PresentationError",
     "ProjectionIdentity",
+    "RealizationError",
+    "RealizationIdentity",
+    "RealizedFigure",
+    "RenderProfile",
+    "RenderingEnvironmentProvenance",
+    "ResolvedFigureRealization",
+    "ResolvedFigureSelection",
+    "ResolvedPresentation",
+    "ResolvedSerializationPolicy",
+    "SerializationError",
     "SourceRoleBinding",
     "UnknownFigureError",
+    "default_render_profile",
     "effective_figure_registry",
     "inspect_figure",
     "prepare_figure",
+    "realize_projection",
+    "record_rendering_environment",
     "register_builtin_figures",
     "register_installed_figure_providers",
     "render_figure_projection",
+    "resolve_figure_realization",
+    "resolve_serialization_policy",
+    "verify_content_digest",
 ]

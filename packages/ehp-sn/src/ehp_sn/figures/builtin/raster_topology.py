@@ -128,6 +128,11 @@ class RasterTopologyInspectionFigure:
         default_factory=lambda: _VisualPartition(
             semantics_version=_VISUAL_SEMANTICS_VERSION,
             realize=_realize_topology_inspection,
+            # The passability colour mapping is scientific visual semantics: the
+            # figure encodes traversable vs non-traversable meaning, so a
+            # presentation policy must not silently replace it (Phase-4 ·
+            # P4-T11). ``image.cmap`` is therefore protected.
+            protected_rc_params=frozenset({"image.cmap"}),
         )
     )
     defaults: _DefaultsPartition = field(

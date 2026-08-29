@@ -20,6 +20,6 @@ imports a concrete research package (``ARCH-001``).
 from __future__ import annotations
 
 from .canonicalization import canonicalize
-from .digest import canonical_digest
+from .digest import canonical_digest, sha256_bytes_digest
 
-__all__ = ["canonical_digest", "canonicalize"]
+__all__ = ["canonical_digest", "canonicalize", "sha256_bytes_digest"]
