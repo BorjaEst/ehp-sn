@@ -15,21 +15,24 @@ error categories are data-CLI-specific and are exercised only through this
 adapter boundary.
 
 :class:`FrameworkDataAdapter` adapts real framework objects to the CLI.
-``list``/``show`` are backed by the effective application registry, and
-``plan`` delegates to the single generic framework planning orchestration
+``list``/``show`` are backed by the effective application registry; ``plan``
+delegates to the single generic framework planning orchestration
 (``ehp_sn.planning.plan_substrate``) — the same machinery the Python API uses —
 injecting the producer planning composition, then projects the authoritative
-immutable framework plan into a CLI-facing :class:`PlanResult`. The future
-execution/artifact lifecycle (``build``/``validate``/``inspect``) is not part
-of this adapter's surface; those commands are reported by the CLI itself as
-unsupported until real framework capabilities exist.
+immutable framework plan into a CLI-facing :class:`PlanResult`; ``build``
+delegates to the generic build lifecycle (``ehp_sn.artifacts.build_substrate``)
+and projects the committed/reused outcome; ``inspect`` resolves a committed
+artifact through the generic durable artifact machinery and projects the exact
+logical record selected by ``record_id``. ``validate`` remains unsupported and
+is reported by the CLI itself until a real validation capability exists.
 
 The adapter holds no producer-specific branches, metadata maps, or error
 classes. It translates only generic framework failures: unknown/malformed
 references, generic configuration-loading failures (access/parse), generic
 planning failures (not-a-substrate, missing capability, producer resolution),
-and generic resource-resolution failures into the stable CLI error categories.
-It never imports a concrete research package (ARCH-001).
+generic resource-resolution failures, and generic artifact/record-resolution
+failures into the stable CLI error categories. It never imports a concrete
+research package (ARCH-001).
 
 The adapter consumes the effective application registry; it does not own or
 construct one.
@@ -49,7 +52,10 @@ from ehp_sn.artifacts import (
     ReleaseNotConfiguredBuildError,
     StoreError,
     build_substrate,
+    load_release,
+    resolve_release,
 )
+from ehp_sn.artifacts.manifest import ManifestParseError
 from ehp_sn.configuration import (
     ConfigurationAccessError,
     ConfigurationParseError,
@@ -57,7 +63,11 @@ from ehp_sn.configuration import (
 )
 from ehp_sn.discovery import ComponentRegistry
 from ehp_sn.discovery.registry import UnknownReferenceError
-from ehp_sn.execution import ExecutionError, SubstrateExecutionComposition
+from ehp_sn.execution import (
+    ExecutionError,
+    LogicalRecord,
+    SubstrateExecutionComposition,
+)
 from ehp_sn.experiments import ComponentRef, InvalidReferenceError
 from ehp_sn.planning import (
     ExecutionPlan,
@@ -152,6 +162,42 @@ class DataNotImplementedError(DataCliError):
 
     exit_code = 1  # unexpected internal or operational failure
     category = "operation_not_implemented"
+
+
+class UnknownArtifactError(DataCliError):
+    """The requested artifact is absent or cannot be read as a committed release.
+
+    Raised when the supplied artifact (physically or by ``artifact:`` reference)
+    does not resolve to a committed substrate release.
+    """
+
+    exit_code = 4  # referenced input not found or unreadable
+    category = "unknown_artifact"
+
+
+class ArtifactInvalidError(DataCliError):
+    """The requested artifact exists but is not a valid committed release.
+
+    A present but uncommitted, corrupt, or structurally incomplete release (for
+    example a missing or unparseable manifest, or a digest-inconsistent
+    resource) surfaces as this controlled category rather than a raw filesystem
+    or parse exception.
+    """
+
+    exit_code = 4  # referenced input not found or unreadable
+    category = "artifact_invalid"
+
+
+class RecordNotFoundError(DataCliError):
+    """The requested ``record_id`` does not exist in the artifact.
+
+    A valid committed artifact that contains no record with the requested
+    record identifier surfaces as this controlled category, never a raw index
+    error.
+    """
+
+    exit_code = 4  # referenced input not found
+    category = "record_not_found"
 
 
 # ---------------------------------------------------------------------------
@@ -260,6 +306,34 @@ class BuildResult:
     location: str | None = None
 
 
+@dataclass(frozen=True)
+class InspectResult:
+    """A ``data inspect`` projection of one exact logical record.
+
+    This is a presentational, deterministic projection of one framework
+    :class:`~ehp_sn.execution.LogicalRecord` from a committed
+    :class:`~ehp_sn.artifacts.SubstrateArtifact`. It is **not** the framework
+    value object.
+
+    It carries enough information for generic textual inspection:
+
+    * ``artifact_ref`` — the committed artifact's canonical ``artifact:``
+      reference (its identity/reference);
+    * ``record_id`` — the exact framework record identifier;
+    * ``schema_ref`` — the schema the record conforms to;
+    * ``content`` — the opaque generic record content (never interpreted by a
+      producer-specific or contract-specific branch).
+
+    No raster/producer/contract-specific presentation is introduced here
+    (``docs/invariants.md`` ARCH-014); presentation is a CLI concern.
+    """
+
+    artifact_ref: str
+    record_id: str
+    schema_ref: str
+    content: object
+
+
 class _RegisteredSubstrate(Protocol):
     """Structural shape of a registered substrate definition the adapter projects.
 
@@ -353,19 +427,23 @@ class FrameworkDataAdapter:
     immutable plan into a CLI-facing :class:`PlanResult`; ``build`` delegates to
     the single generic framework build orchestration
     (``ehp_sn.artifacts.build_substrate``) and projects the framework build
-    outcome into a CLI-facing :class:`BuildResult`.
+    outcome into a CLI-facing :class:`BuildResult`; ``inspect`` resolves a
+    committed substrate artifact through the existing durable artifact machinery
+    (``ehp_sn.artifacts.load_release`` / ``resolve_release``) and projects the
+    exact logical record selected by ``record_id`` into a generic
+    :class:`InspectResult`.
 
-    The build path intentionally does little more than invoke the generic build,
-    translate controlled framework errors, and project the result: it does not
-    load TOML except through the established generic path, does not inspect
-    producer configuration, does not select execution operations, does not
-    allocate releases, does not compute fingerprints, and does not publish or
+    The build and inspect paths intentionally do little more than invoke the
+    generic lifecycles, translate controlled framework errors, and project the
+    result: they do not load TOML except through the established generic path,
+    do not inspect producer configuration, do not select execution operations,
+    do not allocate releases, do not compute fingerprints, and do not publish or
     understand logical-resource formats — those are all framework
     responsibilities.
 
-    ``validate``/``inspect`` are deliberately absent: they remain unsupported
-    until the corresponding framework capabilities exist, so no placeholder
-    method pretends they do.
+    ``validate`` is deliberately absent: it remains unsupported until the
+    corresponding framework capability exists, so no placeholder method pretends
+    it does.
     """
 
     def __init__(
@@ -414,6 +492,71 @@ class FrameworkDataAdapter:
         """Describe one registered substrate definition, resolved via the registry."""
         definition = self._resolve_substrate(target)
         return _project_show_result(definition)
+
+    def _resolve_artifact(self, artifact: str):
+        """Resolve a user-supplied ``ARTIFACT`` into a committed substrate artifact.
+
+        ``artifact`` is either a physical path to a committed release directory
+        or a canonical ``artifact:<name>/v<N>`` reference. It reuses the
+        existing durable artifact-resolution machinery
+        (``ehp_sn.artifacts.load_release`` / ``resolve_release``); it does not
+        build a parallel artifact resolver (``docs/invariants.md`` ARCH-014).
+
+        Controlled framework failures (an absent artifact, a corrupt/uncommitted
+        release, a malformed reference) are translated into the CLI-facing
+        categories, never leaked as raw filesystem or parse exceptions.
+        """
+        from ehp_sn.planning import ReleaseCoordinate
+
+        reference = artifact.strip()
+        if reference.lower().startswith("artifact:"):
+            try:
+                parsed = ComponentRef.parse(reference)
+            except InvalidReferenceError as exc:
+                raise UnknownArtifactError(f"malformed artifact reference: {artifact}") from exc
+            if parsed.kind != "artifact":
+                raise UnknownArtifactError(f"reference {artifact} does not denote an artifact")
+            try:
+                family, _, variant = parsed.name.partition("/")
+                if not variant:
+                    raise UnknownArtifactError(
+                        f"artifact reference {artifact} must name <family>/<variant>"
+                    )
+                coordinate = ReleaseCoordinate(family=family, variant=variant, release=parsed.version)
+                return resolve_release(self._root, coordinate)
+            except (StoreError, ManifestParseError) as exc:
+                raise UnknownArtifactError(str(exc)) from exc
+
+        location = Path(reference)
+        try:
+            return load_release(location)
+        except (StoreError, ManifestParseError) as exc:
+            raise UnknownArtifactError(str(exc)) from exc
+
+    def inspect(self, artifact: str, record_id: str) -> InspectResult:
+        """Inspect exactly one logical record of a committed substrate artifact.
+
+        The deterministic bootstrap path: a user-supplied ``ARTIFACT`` (path or
+        ``artifact:`` reference) is resolved to its committed
+        :class:`~ehp_sn.artifacts.SubstrateArtifact`, the exact ``record_id`` is
+        looked up through the existing record-identity mechanism, and the exact
+        :class:`~ehp_sn.execution.LogicalRecord` is projected generically.
+
+        This is a single deterministic lookup: one committed artifact, one
+        explicit ``record_id``, one exact logical record. No implicit ordering,
+        RNG, or representative sampling is performed (``docs/invariants.md``
+        ARCH-014; Phase 0R P0R-3).
+
+        The projection is generic: no producer-specific or contract-specific
+        branch decides how the record is presented.
+        """
+        committed = self._resolve_artifact(artifact)
+        record = committed.record(record_id)
+        if record is None:
+            raise RecordNotFoundError(
+                f"record {record_id!r} not found in committed artifact {committed.artifact_ref}"
+            )
+        return _project_inspect_result(committed, record)
 
     def plan(self, target: str, config: str | None, release: int | None = None) -> PlanResult:
         """Resolve and project a substrate build plan without writing any data.
@@ -538,6 +681,25 @@ class FrameworkDataAdapter:
             raise ConfigurationInvalidError(str(exc)) from exc
 
         return _project_build_result(outcome)
+
+
+def _project_inspect_result(committed: object, record: LogicalRecord) -> InspectResult:
+    """Project one exact logical record into a generic ``data inspect`` result.
+
+    A lossy presentation projection (never the framework value object). Selects
+    the committed artifact's canonical reference, the exact record identifier,
+    the record's schema reference, and the opaque generic content. It performs
+    no producer-specific or contract-specific branching.
+    """
+    from ehp_sn.artifacts import SubstrateArtifact
+
+    committed_typed = cast("SubstrateArtifact", committed)
+    return InspectResult(
+        artifact_ref=committed_typed.artifact_ref,
+        record_id=record.record_id,
+        schema_ref=record.schema_ref,
+        content=record.content,
+    )
 
 
 def _project_build_result(outcome: BuildOutcome) -> BuildResult:

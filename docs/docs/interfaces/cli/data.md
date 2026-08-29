@@ -308,48 +308,48 @@ The command reports whether the complete ObsField artifact satisfies its declare
 
 ## `inspect ARTIFACT`
 
-Display substrate metadata and bounded content without modifying the artifact.
+Display substrate metadata and the exact logical record selected by `--record` without modifying the artifact.
 
 ```console
-ehp-sn data inspect ARTIFACT [--samples N] [--format text|json]
+ehp-sn data inspect ARTIFACT --record RECORD_ID [--format text|json]
 ```
+
+`ARTIFACT` is either a physical path to a committed release directory (for example `data/interim/dagflow/single-terminal/v1`) or a canonical `artifact:<name>/v<N>` reference.
 
 ### Options
 
-| Option                | Default | Description                                 |
-| --------------------- | ------- | ------------------------------------------- |
-| `--samples N`         | `0`     | Number of representative records to include |
-| `--format text\|json` | `text`  | Terminal result format                      |
+| Option                | Default | Description                             |
+| --------------------- | ------- | --------------------------------------- |
+| `--record RECORD_ID`  | —       | Exact logical record identifier to show |
+| `--format text\|json` | `text`  | Terminal result format                  |
 
 ### Outputs
 
-The command reports artifact identity, schema version, configuration fingerprint, split sizes, file sizes, channel summaries, and at most the requested number of representative records.
-It never dumps the full dataset by default.
+The command reports the committed artifact identity (`artifact:` reference), the exact `record_id`, the record's `schema_ref`, and the generic record content.
+It is producer-neutral: it performs no producer-specific or contract-specific branch, and it never dumps the full dataset.
 
-### Figure inspection (`--figure`)
+The record is selected by exactly one deterministic lookup of `--record` through the existing record-identity mechanism; no implicit ordering, RNG, or representative sampling is used.
 
-`data inspect` may optionally render a compatible figure over a selected
-committed record:
+### Figure rendering (`--figure`)
 
-```console
-ehp-sn data inspect ARTIFACT --record RECORD_ID --figure figure:<name>/v<N> [--output PATH] [--format png|svg|pdf]
-```
-
-Figure handling is **figure-owner agnostic**: the command resolves the requested figure through the normal figure catalogue and renders it through the generic figure pipeline, regardless of which installed provider supplied that figure (framework, research, or a future plugin).
-It must not branch on substrate family (for example it must not contain an `if family == ...` plot path), and it requires an explicit figure reference — it never infers a default figure from registration order.
+Figure rendering over a selected record (`data inspect ARTIFACT --record RECORD_ID --figure figure:<name>/v<N>`) is a later figure phase.
+When it lands it must be **figure-owner agnostic**: resolve the requested figure through the normal figure catalogue and render it through the generic figure pipeline, with no substrate-family branch and no default figure inferred from registration order.
 
 ### Example
 
 ```console
-ehp-sn data inspect data/interim/obsfield/default/v1 --samples 3
+ehp-sn data inspect data/interim/dagflow/single-terminal/v1 --record sha256:...
 ```
 
-The result includes metadata and three bounded sample records.
+The result includes the committed artifact identity, the exact record
+identifier, the schema reference, and the generic record content.
 
 ### Errors
 
-- Artifact or manifest cannot be read.
-- Artifact kind is not an interim substrate.
+- Artifact or manifest cannot be read (`unknown_artifact`, exit 4).
+- Artifact reference is malformed (`unknown_artifact`, exit 4).
+- `record_id` does not exist in the artifact (`record_not_found`, exit 4).
+- `--samples` with a positive value (`operation_not_implemented`, exit 1).
 
 ## Related commands
 

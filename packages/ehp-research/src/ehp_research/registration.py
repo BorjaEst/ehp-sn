@@ -5,9 +5,8 @@ This module is the single semantic registration and composition authority for
 but remain separate concerns (``docs/invariants.md`` ARCH-001/ARCH-003):
 
 * **component registration** — registering every authoritative reusable
-  scientific definition (substrates and figures) into the generic ``ehp_sn``
-  component registry, through the single entry point
-  (:func:`register_components`);
+  scientific substrate definition into the generic ``ehp_sn`` component
+  registry, through the single entry point (:func:`register_components`);
 * **planning composition** — binding each authoritative substrate definition to
   its demonstrated producer planning operation, as planning registrations
   (:func:`planning_registrations`);
@@ -16,12 +15,15 @@ but remain separate concerns (``docs/invariants.md`` ARCH-001/ARCH-003):
   (:func:`execution_registrations`).
 
 ``register_components`` is the one entry point through which reusable
-scientific semantic definitions are registered. There is no separate figure
-registration path: ``FigureSpec`` definitions enter the same generic component
-catalogue as substrate definitions and are owned here. The provider manifest
+scientific semantic definitions are registered. The provider manifest
 (``_COMPONENTS``) lists which definitions this package exposes and never
 redefines what a definition means; the scientific facts live with each family's
 authoritative definition object (its ``ref``, description, and output contract).
+
+Only currently implemented reusable scientific definitions are admitted to
+discovery. Reusable scientific ``FigureSpec`` definitions belong to a later
+figure phase and are not advertised until a legitimate implementation exists.
+The repository must not advertise modules that do not exist.
 
 Registration is explicit and side-effect free: importing ``ehp_research`` does
 not mutate any registry. Population happens only when a consumer calls
@@ -38,30 +40,20 @@ from ehp_sn.discovery import ComponentRegistry
 from ehp_sn.execution import SubstrateExecutionRegistration
 from ehp_sn.planning import SubstratePlanningRegistration
 
-from .figures.arena_task_overview import ARENA_TASK_OVERVIEW_SPEC
-from .figures.dagflow_overview import DAGFLOW_OVERVIEW_SPEC
-from .figures.graph_degree_view import GRAPH_DEGREE_VIEW_SPEC
-from .figures.hpc_place_summary import HPC_PLACE_SUMMARY_SPEC
-from .figures.hrm_latent_dynamics import HRM_LATENT_DYNAMICS_SPEC
 from .substrates import dagflow, dungeongen, maze_nd, obsfield
 from .substrates.dagflow import DAGFLOW_DEFINITION
 from .substrates.dungeongen import DUNGEONGEN_DEFINITION
 from .substrates.maze_nd import MAZE_ND_DEFINITION
 from .substrates.obsfield import OBSFIELD_DEFINITION
 
-#: Authoritative reusable scientific definitions admitted to discovery: the
-#: Dagflow, Maze-ND, ObsField and DungeonGen substrates plus the reusable
-#: scientific figure specs. This is the one registration authority.
+#: Authoritative reusable scientific substrate definitions admitted to
+#: discovery: Dagflow, Maze-ND, ObsField and DungeonGen. This is the one
+#: registration authority for currently implemented reusable definitions.
 _COMPONENTS = (
     DAGFLOW_DEFINITION,
     MAZE_ND_DEFINITION,
     OBSFIELD_DEFINITION,
     DUNGEONGEN_DEFINITION,
-    ARENA_TASK_OVERVIEW_SPEC,
-    DAGFLOW_OVERVIEW_SPEC,
-    GRAPH_DEGREE_VIEW_SPEC,
-    HPC_PLACE_SUMMARY_SPEC,
-    HRM_LATENT_DYNAMICS_SPEC,
 )
 
 
@@ -74,10 +66,10 @@ def register_components(registry: ComponentRegistry) -> None:
     same canonical reference twice raises the generic
     :class:`DuplicateRegistrationError` (``ehp_sn.discovery``).
 
-    This is the single registration path for reusable scientific semantics: it
-    installs both substrate definitions and ``FigureSpec`` definitions. It does
-    not store producer behavior; planning and execution composition are exposed
-    separately via :func:`planning_registrations` and
+    This is the single registration path for currently implemented reusable
+    scientific semantics: it installs the reusable substrate definitions. It
+    does not store producer behavior; planning and execution composition are
+    exposed separately via :func:`planning_registrations` and
     :func:`execution_registrations`.
     """
     for definition in _COMPONENTS:

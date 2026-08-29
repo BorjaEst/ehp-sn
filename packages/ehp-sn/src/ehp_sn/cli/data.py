@@ -38,6 +38,7 @@ from ehp_sn.cli.data_adapter import (
     DataCliError,
     DataNotImplementedError,
     FrameworkDataAdapter,
+    InspectResult,
     ListedSubstrate,
     PlanResult,
     ShowResult,
@@ -287,6 +288,33 @@ def _emit_build(result: BuildResult, fmt: str) -> None:
         typer.echo(f"location: {result.location}")
 
 
+def _emit_inspect(result: InspectResult, fmt: str) -> None:
+    if fmt == "json":
+        import json
+
+        typer.echo(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "status": "success",
+                    "action": "inspect",
+                    "warnings": [],
+                    "result": {
+                        "artifact": result.artifact_ref,
+                        "record_id": result.record_id,
+                        "schema_ref": result.schema_ref,
+                        "content": result.content,
+                    },
+                }
+            )
+        )
+        return
+    typer.echo(f"artifact: {result.artifact_ref}")
+    typer.echo(f"record_id: {result.record_id}")
+    typer.echo(f"schema_ref: {result.schema_ref}")
+    typer.echo(f"content: {result.content!r}")
+
+
 # ---------------------------------------------------------------------------
 # Commands
 # ---------------------------------------------------------------------------
@@ -417,20 +445,45 @@ def validate_command(
 @app.command("inspect")
 def inspect_command(
     artifact: Annotated[str, typer.Argument(help="Path or artifact reference.")],
+    record: Annotated[
+        str | None,
+        typer.Option("--record", help="Exact record identifier to inspect."),
+    ] = None,
     samples: Annotated[int, typer.Option("--samples", help="Number of representative records.")] = 0,
     fmt: Annotated[str, typer.Option("--format", help="Output format.")] = "text",
 ) -> None:
-    """Display artifact metadata and bounded samples.
+    """Display metadata and one exact logical record of a committed artifact.
 
-    Currently unsupported: artifact inspection is a future framework
-    capability. The command is part of the established surface but is reported
-    here as a controlled not-implemented failure.
+    The deterministic Phase-0R inspection path resolves a committed substrate
+    artifact (by physical path or ``artifact:`` reference) and inspects exactly
+    the logical record selected by ``--record RECORD_ID`` through the existing
+    record-identity mechanism. This is a single deterministic lookup; no
+    implicit ordering, RNG, or representative sampling is performed.
+
+    ``--samples`` remains separate and intentionally unsupported until its
+    ordering/selection semantics are explicitly specified: a positive value is
+    reported as a controlled not-yet-specified failure rather than invented
+    here.
     """
     global _json_requested  # noqa: PLW0603
     _json_requested = fmt == "json"
     global _current_action  # noqa: PLW0603
     _current_action = "inspect"
+    if record is None:
+        if samples > 0:
+            _fail(
+                DataNotImplementedError(
+                    "data inspect --samples representative sampling is not yet specified; "
+                    "use --record RECORD_ID to inspect an exact record."
+                )
+            )
+        typer.echo("Error: data inspect requires --record RECORD_ID.", err=True)
+        raise typer.Exit(code=2)
     if samples < 0:
         typer.echo("Error: --samples must be non-negative.", err=True)
         raise typer.Exit(code=2)
-    _fail(DataNotImplementedError("data inspect is not yet implemented."))
+    try:
+        result = _get_adapter().inspect(artifact, record)
+    except Exception as exc:  # noqa: BLE001
+        _fail(exc)
+    _emit_inspect(result, fmt)

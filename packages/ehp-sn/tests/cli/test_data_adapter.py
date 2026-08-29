@@ -8,36 +8,56 @@ The adapter projects registered definitions directly (identity, not copies),
 enumerates substrates deterministically, and translates generic framework
 failures (unknown / malformed / wrong-kind) into the CLI-facing
 :class:`UnknownSubstrateError`. The ``plan`` projection returns explicit CLI
-presentation DTOs and never leaks framework value objects, and ``build``
-delegates to the generic lifecycle and projects the outcome. ``validate`` and
-``inspect`` are not part of the adapter surface (they remain reported unsupported
-by the CLI itself); no fake lifecycle method pretends they exist.
+presentation DTOs and never leaks framework value objects, and ``build`` and
+``inspect`` delegate to the generic framework lifecycles and project their
+outcomes.
+
+``data inspect ARTIFACT --record RECORD_ID`` (Phase 0R) is the deterministic
+generic exact-record inspection path: committed substrate artifacts built over
+synthetic producers resolve the exact record through the existing record-identity
+mechanism with no producer-specific or contract-specific branch. The adapter
+tests here prove this is producer-neutral by inspecting records originating from
+two differently-shaped synthetic producers.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 import pytest
+from ehp_sn.artifacts import publish_artifact
 from ehp_sn.cli.data_adapter import (
     ConfigurationInvalidError,
     ConfigurationUnreadableError,
     FrameworkDataAdapter,
     IdentityInputView,
+    InspectResult,
+    RecordNotFoundError,
     ResolvedResourceView,
+    UnknownArtifactError,
     UnknownSubstrateError,
 )
 from ehp_sn.configuration import LoadedConfiguration
 from ehp_sn.discovery import ComponentRegistry
-from ehp_sn.execution import SubstrateExecutionComposition
+from ehp_sn.execution import (
+    GeneratedRecordBody,
+    MaterializationSession,
+    RealizationKey,
+    SubstrateExecutionComposition,
+    SubstrateExecutionRegistration,
+    execute_substrate,
+)
 from ehp_sn.experiments import ComponentRef
 from ehp_sn.planning import (
     IdentityInput,
     PlanningDeclaration,
     PlanningResolver,
+    ReleaseCoordinate,
     ResourceRequirement,
     SubstratePlanningComposition,
     SubstratePlanningRegistration,
+    plan_substrate,
 )
 
 
@@ -388,6 +408,29 @@ def test_adapter_source_has_no_producer_conditionals() -> None:
         assert token not in source
 
 
+def test_adapter_source_has_no_figure_branches_or_imports() -> None:
+    """Generic inspection must be free of figure-specific branches and imports.
+
+    ``data inspect`` (P0R-3) must not require any figure framework import and
+    must not branch on a figure concept; figure semantics belong downstream in
+    the figure phases, not in the generic inspection path.
+    """
+    import inspect
+
+    from ehp_sn.cli import data_adapter
+
+    source = inspect.getsource(data_adapter)
+    import_lines = [
+        line for line in source.splitlines() if line.lstrip().startswith(("import ", "from "))
+    ]
+    assert not any(
+        line.lstrip().startswith(("from ehp_sn.figures", "from matplotlib", "import matplotlib"))
+        for line in import_lines
+    )
+    for token in ("FigureSpec", "FigureProjection", "matplotlib", "renderer"):
+        assert token.lower() not in source.lower()
+
+
 def test_adapter_never_imports_ehp_research() -> None:
     """The adapter couples to the registry, not to a research package."""
     import inspect
@@ -399,3 +442,201 @@ def test_adapter_never_imports_ehp_research() -> None:
         line for line in source.splitlines() if line.lstrip().startswith(("import ", "from "))
     ]
     assert not any("ehp_research" in line for line in import_lines)
+
+
+# ---------------------------------------------------------------------------
+# inspect: deterministic generic exact-record path (Phase 0R P0R-3)
+# ---------------------------------------------------------------------------
+
+
+class _Resolver:
+    """Minimal generic resource resolver (definitions with no resource deps)."""
+
+    def resolve(self, requirement: ResourceRequirement):
+        from ehp_sn.planning import ResolvedResource, ResourceResolutionError
+
+        if requirement.definition_resource_ref is None:
+            raise ResourceResolutionError(f"no declared reference for {requirement.ref!r}")
+        return ResolvedResource(
+            requirement_ref=requirement.ref,
+            resource_ref=requirement.definition_resource_ref,
+            resolution_source="definition",
+        )
+
+
+def _producer_family(interim_root: Path, family: str, *, records_by_index, output_contract: str):
+    """Build and commit a synthetic substrate artifact under ``interim_root``.
+
+    The producer carries no resource requirements and derives a deterministic
+    ``record_id`` for each record through the existing framework record-identity
+    mechanism, so the committed artifact's records are addressable by
+    ``record_id``. Returns ``(release_dir, adapter)`` where ``release_dir`` is
+    the physical committed release directory under ``interim_root`` and
+    ``adapter`` is a :class:`FrameworkDataAdapter` rooted at ``interim_root``.
+    """
+    from ehp_sn.artifacts import assemble_artifact
+
+    registry = ComponentRegistry()
+    ref = ComponentRef.parse(f"substrate:{family}/v1")
+    definition = _Definition(
+        ref=ref,
+        description=f"{family} substrate",
+        output_contract=output_contract,
+    )
+    registry.register(definition)
+    variant = family
+
+    def _plan(document: LoadedConfiguration) -> PlanningDeclaration:
+        return PlanningDeclaration(
+            configuration={"value": 1},
+            resources=(),
+            identity_inputs=(IdentityInput("variant", variant),),
+        )
+
+    def _execute(session: MaterializationSession) -> None:
+        for index, content in records_by_index.items():
+            session.add_record(
+                GeneratedRecordBody(
+                    content=content,
+                    realization_key=RealizationKey(inputs=(IdentityInput("realization_index", index),)),
+                )
+            )
+
+    planning = SubstratePlanningComposition(
+        (SubstratePlanningRegistration(definition=definition, plan=_plan),)
+    )
+    execution = SubstrateExecutionComposition(
+        (SubstrateExecutionRegistration(definition=definition, execute=_execute),)
+    )
+    document = LoadedConfiguration(
+        source=Path("x.toml"),
+        values={"substrate": {"variant": variant}, "release": 1},
+    )
+    plan = plan_substrate(registry, planning, ref, document, resource_resolver=_Resolver())
+    result = execute_substrate(registry, execution, plan)
+    assembled = assemble_artifact(plan, result)
+    coordinate = ReleaseCoordinate(family=family, variant=variant, release=1)
+    publish_artifact(assembled, root=interim_root, coordinate=coordinate)
+    adapter = FrameworkDataAdapter(
+        ComponentRegistry(),
+        planning_composition=SubstratePlanningComposition(()),
+        execution_composition=SubstrateExecutionComposition(()),
+        root=interim_root,
+    )
+    return interim_root / family / variant / "v1", adapter
+
+
+def _adapter(interim_root: Path) -> FrameworkDataAdapter:
+    return FrameworkDataAdapter(
+        ComponentRegistry(),
+        planning_composition=SubstratePlanningComposition(()),
+        execution_composition=SubstrateExecutionComposition(()),
+        root=interim_root,
+    )
+
+
+def _record_ids(release_dir: Path) -> list[str]:
+    from ehp_sn.artifacts import load_release
+
+    return [r.record_id for r in load_release(release_dir).records]
+
+
+def test_inspect_resolves_exact_record(tmp_path: Path) -> None:
+    """Given a committed artifact and an exact record_id, inspect returns exactly it."""
+    release_dir, adapter = _producer_family(
+        tmp_path / "interim",
+        "alpha",
+        records_by_index={1: {"kind": "graph", "nodes": 4}, 2: {"kind": "graph", "nodes": 8}},
+        output_contract="graph-v1",
+    )
+    first_id = _record_ids(release_dir)[0]
+
+    result = adapter.inspect(str(release_dir), first_id)
+
+    assert isinstance(result, InspectResult)
+    assert result.record_id == first_id
+    assert result.schema_ref == "graph-v1"
+    # The content is the exact record for the first realization_index.
+    assert result.content in ({"kind": "graph", "nodes": 4}, {"kind": "graph", "nodes": 8})
+
+
+def test_inspect_by_artifact_reference_matches_path_lookup(tmp_path: Path) -> None:
+    """Inspecting by ``artifact:`` reference resolves the same record as the path."""
+    release_dir, adapter = _producer_family(
+        tmp_path / "interim",
+        "beta",
+        records_by_index={7: {"value": "beta-7"}},
+        output_contract="beta-v1",
+    )
+    only_id = _record_ids(release_dir)[0]
+
+    by_path = adapter.inspect(str(release_dir), only_id)
+    by_ref = adapter.inspect("artifact:beta/beta/v1", only_id)
+
+    assert by_ref.artifact_ref == "artifact:beta/beta/v1"
+    assert by_ref.record_id == by_path.record_id
+    assert by_ref.content == by_path.content
+
+
+def test_inspect_unknown_record_raises_record_not_found(tmp_path: Path) -> None:
+    release_dir, adapter = _producer_family(
+        tmp_path / "interim",
+        "gamma",
+        records_by_index={1: {"value": 1}},
+        output_contract="gamma-v1",
+    )
+
+    with pytest.raises(RecordNotFoundError):
+        adapter.inspect(str(release_dir), "sha256:no-such-record")
+
+
+def test_inspect_unknown_artifact_raises_unknown_artifact(tmp_path: Path) -> None:
+    adapter = _adapter(tmp_path / "interim")
+    with pytest.raises(UnknownArtifactError):
+        adapter.inspect(str(tmp_path / "interim" / "missing"), "any")
+    with pytest.raises(UnknownArtifactError):
+        adapter.inspect("artifact:missing/missing/v1", "any")
+    # A malformed artifact reference is also a controlled unknown-artifact error.
+    with pytest.raises(UnknownArtifactError):
+        adapter.inspect("artifact:missing/v1", "any")
+
+
+def test_inspect_is_producer_neutral(tmp_path: Path) -> None:
+    """Records from two differently-shaped producers inspect through one generic path."""
+    release_a, _ = _producer_family(
+        tmp_path / "interim",
+        "producer-a",
+        records_by_index={1: {"edges": [[0, 1]]}},
+        output_contract="graph-v1",
+    )
+    release_b, adapter = _producer_family(
+        tmp_path / "interim",
+        "producer-b",
+        records_by_index={3: {"field": {"r": 1, "c": 2}, "class": 4}},
+        output_contract="field-v1",
+    )
+
+    a = adapter.inspect(str(release_a), _record_ids(release_a)[0])
+    b = adapter.inspect(str(release_b), _record_ids(release_b)[0])
+
+    # No branch changed the generic shape: artifact+record+schema+content only.
+    assert a.schema_ref == "graph-v1" and b.schema_ref == "field-v1"
+    assert a.content == {"edges": [[0, 1]]}
+    assert b.content == {"field": {"r": 1, "c": 2}, "class": 4}
+
+
+def test_inspect_deterministic_lookup(tmp_path: Path) -> None:
+    """Repeated inspection of the same artifact+record resolves the same record."""
+    release_dir, adapter = _producer_family(
+        tmp_path / "interim",
+        "delta",
+        records_by_index={1: {"a": 1}, 2: {"a": 2}},
+        output_contract="delta-v1",
+    )
+    first_id = _record_ids(release_dir)[0]
+
+    first = adapter.inspect(str(release_dir), first_id)
+    second = adapter.inspect(str(release_dir), first_id)
+
+    assert first == second
+    assert first.record_id == first_id

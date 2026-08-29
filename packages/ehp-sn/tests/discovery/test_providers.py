@@ -108,6 +108,21 @@ def test_no_installed_providers_yields_empty_effective_registry(
     assert list(effective_registry().iter()) == []
 
 
+def test_canonical_component_provider_group_matches_default_discovery_group() -> None:
+    """The discovery consumer's configured group must be the canonical value.
+
+    ``effective_registry`` / ``register_installed_providers`` discover installed
+    providers under ``PROVIDER_ENTRY_POINT_GROUP`` by default. Provider
+    publishers (package metadata) and consumer tests must use exactly this one
+    value, so the component catalogue and package advertising agree (P0R-2).
+    """
+    assert PROVIDER_ENTRY_POINT_GROUP == "ehp_sn.providers"
+    # Effective discovery (the default path) must use exactly the canonical
+    # group; an application must never need to override the group.
+    assert effective_registry.__kwdefaults__ == {"group": PROVIDER_ENTRY_POINT_GROUP}
+    assert register_installed_providers.__kwdefaults__ == {"group": PROVIDER_ENTRY_POINT_GROUP}
+
+
 # ---------------------------------------------------------------------------
 # Real installed provider (integration)
 # ---------------------------------------------------------------------------
@@ -135,3 +150,24 @@ def test_effective_registry_picks_up_installed_research_provider() -> None:
         "substrate:maze-nd/v1",
         "substrate:obsfield/v1",
     ]
+
+
+def test_installed_component_provider_group_is_the_only_canonical_one() -> None:
+    """The installed research package advertises under exactly the canonical group.
+
+    ``effective_registry`` discovers under ``PROVIDER_ENTRY_POINT_GROUP``. The
+    installed provider must advertise under that group and not under a
+    conflicting ``ehp_sn.components.providers`` group (P0R-2: group mismatch=0).
+    """
+    try:
+        import ehp_research  # noqa: F401
+    except ImportError:  # pragma: no cover - skipping when not installed
+        pytest.skip("ehp_research is not installed")
+
+    from importlib import metadata
+
+    components = list(metadata.entry_points(group=PROVIDER_ENTRY_POINT_GROUP))
+    assert components, "no component provider advertised under the canonical group"
+    assert list(metadata.entry_points(group="ehp_sn.components.providers")) == [], (
+        "conflicting ehp_sn.components.providers group is still advertised"
+    )

@@ -5,16 +5,23 @@ option interfaces, help text, delegation through the production
 :class:`~ehp_sn.cli.data_adapter.FrameworkDataAdapter`, output formatting,
 failure formatting, and exit codes.
 
-The implemented commands (``list``/``show``/``plan``) run against a real
-``FrameworkDataAdapter`` built over **synthetic** generic dependencies (a
-registry with neutral ``alpha``/``beta`` substrate definitions and a composed
-planning resolver). No research package is imported; no test-local fake service
-stands in for the adapter boundary.
+The implemented commands (``list``/``show``/``plan``/``build``/``inspect``) run
+against a real ``FrameworkDataAdapter`` built over **synthetic** generic
+dependencies (a registry with neutral ``alpha``/``beta`` substrate definitions
+and a composed planning resolver). No research package is imported; no
+test-local fake service stands in for the adapter boundary.
+
+``data inspect ARTIFACT --record RECORD_ID`` is the deterministic generic
+exact-record inspection path (Phase 0R): it provides a committed artifact (or a
+stubbed adapter) and an explicit record identifier, and asserts the exact record
+is projected. ``--samples`` representative sampling remains intentionally
+unsupported until its selection semantics are specified, and is reported by the
+CLI as a controlled not-yet-specified failure (exit 1) rather than invented.
 
 The commands that are part of the established surface but intentionally
-unsupported (``build``/``validate``/``inspect``) are asserted to produce the
-documented controlled not-implemented response (exit 1), which the CLI owns
-directly rather than delegating to a placeholder adapter method.
+unsupported (``validate``) are asserted to produce the documented controlled
+not-implemented response (exit 1), which the CLI owns directly rather than
+delegating to a placeholder adapter method.
 """
 
 from __future__ import annotations
@@ -31,6 +38,9 @@ from ehp_sn.cli.data_adapter import (
     DataCliError,
     DataNotImplementedError,
     FrameworkDataAdapter,
+    InspectResult,
+    RecordNotFoundError,
+    UnknownArtifactError,
     UnknownSubstrateError,
 )
 from ehp_sn.configuration import LoadedConfiguration
@@ -420,13 +430,6 @@ def test_validate_is_controlled_not_implemented() -> None:
     assert "Traceback" not in result.stderr
 
 
-def test_inspect_is_controlled_not_implemented() -> None:
-    result = runner.invoke(app, ["data", "inspect", "example-substrate/v7"])
-    assert result.exit_code == 1
-    assert "not yet implemented" in result.stderr
-    assert "Traceback" not in result.stderr
-
-
 def test_validate_invalid_level_exit_2() -> None:
     result = runner.invoke(app, ["data", "validate", "x", "--level", "deep"])
     assert result.exit_code == 2
@@ -435,6 +438,94 @@ def test_validate_invalid_level_exit_2() -> None:
 def test_inspect_negative_samples_exit_2() -> None:
     result = runner.invoke(app, ["data", "inspect", "x", "--samples", "-1"])
     assert result.exit_code == 2
+
+
+def test_inspect_without_record_exit_2() -> None:
+    result = runner.invoke(app, ["data", "inspect", "data/interim/x/v1"])
+    assert result.exit_code == 2
+    assert "requires --record" in result.stderr
+    assert "Traceback" not in result.stderr
+
+
+def test_inspect_positive_samples_is_not_yet_specified() -> None:
+    result = runner.invoke(app, ["data", "inspect", "data/interim/x/v1", "--samples", "3"])
+    assert result.exit_code == 1
+    assert "not yet specified" in result.stderr
+    assert "Traceback" not in result.stderr
+
+
+# ---------------------------------------------------------------------------
+# inspect: exact-record deterministic path
+# ---------------------------------------------------------------------------
+
+
+class _StubInspectAdapter(FrameworkDataAdapter):
+    """Adapter whose ``inspect`` returns a fixed generic projection.
+
+    Proves the CLI delegates to the adapter and renders the projection without
+    any figure code; the exact-artifact/record mechanics are covered at the
+    adapter layer.
+    """
+
+    def __init__(self, *, missing: bool = False) -> None:
+        self._missing = missing
+
+    def inspect(self, artifact: str, record_id: str) -> InspectResult:
+        if self._missing:
+            raise RecordNotFoundError(f"record {record_id!r} not found in committed artifact {artifact}")
+        return InspectResult(
+            artifact_ref="artifact:alpha/v1",
+            record_id=record_id,
+            schema_ref="alpha-contract/v1",
+            content={"value": 7},
+        )
+
+
+@pytest.fixture()
+def use_stub_inspect_adapter() -> None:
+    data_module._set_adapter(_StubInspectAdapter())  # type: ignore[arg-type]
+    yield
+    data_module._reset_adapter()
+
+
+def test_inspect_exact_record_text(use_stub_inspect_adapter: None) -> None:
+    result = runner.invoke(app, ["data", "inspect", "artifact:alpha/v1", "--record", "abc123"])
+    assert result.exit_code == 0
+    assert "artifact: artifact:alpha/v1" in result.stdout
+    assert "record_id: abc123" in result.stdout
+    assert "schema_ref: alpha-contract/v1" in result.stdout
+
+
+def test_inspect_exact_record_json(use_stub_inspect_adapter: None) -> None:
+    result = runner.invoke(
+        app, ["data", "inspect", "artifact:alpha/v1", "--record", "abc123", "--format", "json"]
+    )
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["status"] == "success"
+    assert payload["action"] == "inspect"
+    assert payload["result"]["record_id"] == "abc123"
+    assert payload["result"]["artifact"] == "artifact:alpha/v1"
+    assert payload["result"]["schema_ref"] == "alpha-contract/v1"
+
+
+def test_inspect_delegates_exact_record_id(use_stub_inspect_adapter: None) -> None:
+    """The exact record identifier is passed through unchanged (one lookup)."""
+    result = runner.invoke(app, ["data", "inspect", "artifact:alpha/v1", "--record", "exact-record-9"])
+    assert result.exit_code == 0
+    assert "record_id: exact-record-9" in result.stdout
+
+
+def test_inspect_unknown_record_maps_to_controlled_error() -> None:
+    """A missing record surfaces as the controlled ``record_not_found`` (exit 4)."""
+    data_module._set_adapter(_StubInspectAdapter(missing=True))  # type: ignore[arg-type]
+    try:
+        result = runner.invoke(app, ["data", "inspect", "artifact:alpha/v1", "--record", "missing"])
+    finally:
+        data_module._reset_adapter()
+    assert result.exit_code == 4
+    assert "not found" in result.stderr
+    assert "Traceback" not in result.stderr
 
 
 def test_default_backend_plan_is_real_not_not_implemented() -> None:
@@ -461,6 +552,8 @@ def test_default_backend_plan_is_real_not_not_implemented() -> None:
         (UnknownSubstrateError("no such substrate"), 4, "no such substrate"),
         (ConfigurationUnreadableError("cannot read config"), 4, "cannot read config"),
         (ConfigurationInvalidError("bad schema"), 3, "bad schema"),
+        (UnknownArtifactError("no such artifact"), 4, "no such artifact"),
+        (RecordNotFoundError("record missing"), 4, "record missing"),
         (DataNotImplementedError("not implemented"), 1, "not implemented"),
     ],
 )
@@ -494,3 +587,24 @@ def test_cli_source_has_no_producer_conditionals() -> None:
     source = _inspect.getsource(data_module)
     for producer in ("dagflow", "maze-nd"):
         assert producer not in source.lower()
+
+
+def test_cli_source_has_no_figure_branches_or_imports() -> None:
+    """The ``data inspect`` CLI must be free of figure-specific branches and imports.
+
+    ``data inspect ARTIFACT --record RECORD_ID`` (P0R-3) is generic: it must
+    not require a figure framework import and must not branch on a figure
+    concept. Figure rendering is a separate, later figure phase.
+    """
+    import inspect as _inspect
+
+    source = _inspect.getsource(data_module)
+    import_lines = [
+        line for line in source.splitlines() if line.lstrip().startswith(("import ", "from "))
+    ]
+    assert not any(
+        line.lstrip().startswith(("from ehp_sn.figures", "from matplotlib", "import matplotlib"))
+        for line in import_lines
+    )
+    for token in ("FigureSpec", "FigureProjection", "matplotlib", "renderer"):
+        assert token.lower() not in source.lower()

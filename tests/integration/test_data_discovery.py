@@ -19,6 +19,8 @@ semantic fact strongly at its owner; downstream tests derive from it).
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from ehp_research.substrates.dagflow import DAGFLOW_DEFINITION
 from ehp_research.substrates.maze_nd import MAZE_ND_DEFINITION
@@ -138,3 +140,78 @@ def test_cli_data_show_unknown_substrate_is_controlled() -> None:
     assert result.exit_code == 4
     assert "unknown substrate" in result.stderr
     assert "Traceback" not in result.stderr
+
+
+# ---------------------------------------------------------------------------
+# Real CLI exact-record data inspect over a committed artifact (P0R-3)
+# ---------------------------------------------------------------------------
+
+
+def _build_committed_dagflow(tmp_path: Path) -> tuple[Path, str]:
+    """Commit a small deterministic Dagflow artifact and return ``(release, record_id)``.
+
+    Uses the real installed research producer and the generic build lifecycle
+    rooted at ``tmp_path`` — no fixture replaces the provider's execution path.
+    """
+    import tomli_w
+    from ehp_sn.artifacts import build_substrate
+    from ehp_sn.planning import ResolvedResource, ResourceResolutionError
+
+    class _Resolver:
+        def resolve(self, requirement):
+            if requirement.definition_resource_ref is None:
+                raise ResourceResolutionError(f"no exact reference for {requirement.ref!r}")
+            return ResolvedResource(
+                requirement_ref=requirement.ref,
+                resource_ref=requirement.definition_resource_ref,
+                resolution_source="definition",
+            )
+
+    profile = {
+        "substrate": {"variant": "single-terminal"},
+        "generation": {"protocol": "constructive-forward/v1", "seed": 7},
+        "graph": {"node_count": 6, "additional_edge_probability": 0.20},
+        "splits": {"train": {"count": 2}, "validation": {"count": 1}, "test": {"count": 1}},
+        "release": 1,
+    }
+    config_path = tmp_path / "dagflow.toml"
+    config_path.write_text(tomli_w.dumps(profile), encoding="utf-8")
+
+    outcome = build_substrate(
+        registry=effective_registry(),
+        planning_composition=effective_planning_composition(),
+        execution_composition=effective_execution_composition(),
+        target="substrate:dagflow/v1",
+        config=str(config_path),
+        resource_resolver=_Resolver(),
+        root=tmp_path / "interim",
+        release=1,
+    )
+    artifact = outcome.artifact
+    return artifact.location, artifact.records[0].record_id
+
+
+def test_cli_data_inspect_committed_artifact_exact_record(tmp_path) -> None:
+    """A real ``ehp-sn data inspect`` returns the exact record of a committed artifact.
+
+    Exercises the full required path: installed provider entry points →
+    effective registry → committed substrate artifact → generic exact-record
+    ``data inspect ARTIFACT --record RECORD_ID`` → exact logical record — with
+    no figure framework import required anywhere in the path.
+    """
+    release_dir, record_id = _build_committed_dagflow(tmp_path)
+
+    result = runner.invoke(
+        app, ["data", "inspect", str(release_dir), "--record", record_id, "--format", "json"]
+    )
+
+    assert result.exit_code == 0, result.stderr
+    assert "Traceback" not in result.stderr
+    import json
+
+    payload = json.loads(result.stdout)
+    assert payload["status"] == "success"
+    assert payload["action"] == "inspect"
+    assert payload["result"]["record_id"] == record_id
+    assert payload["result"]["schema_ref"] == "simple-digraph/v1"
+    assert {"node_count", "edges"} == set(payload["result"]["content"].keys())

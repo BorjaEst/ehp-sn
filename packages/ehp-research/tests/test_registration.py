@@ -252,3 +252,52 @@ def test_ehp_research_registration_imports_framework_discovery() -> None:
     source = inspect.getsource(registration_module)
     assert "ComponentRegistry" in source
     assert "ehp_sn" in source
+
+
+# ---------------------------------------------------------------------------
+# Advertised provider metadata integrity (P0R-1)
+# ---------------------------------------------------------------------------
+
+#: The framework-owned entry-point groups the research package currently advertises.
+_ADVERTISED_PROVIDER_GROUPS = (
+    "ehp_sn.providers",
+    "ehp_sn.planning.providers",
+    "ehp_sn.execution.providers",
+)
+
+
+def test_all_advertised_provider_entry_points_load() -> None:
+    """Every advertised ``ehp_research`` provider entry point must load.
+
+    Uses the real ``importlib.metadata`` distribution metadata (not injected
+    fake entry points), so a stale or missing provider module/attribute fails
+    here rather than surfacing only at application bootstrap.
+    """
+    from importlib import metadata
+
+    loaded: list[str] = []
+    for group in _ADVERTISED_PROVIDER_GROUPS:
+        for entry_point in metadata.entry_points(group=group):
+            if not entry_point.value.startswith("ehp_research."):
+                continue
+            entry_point.load()  # raises if module/attribute is absent
+            loaded.append(f"{group}::{entry_point.name} -> {entry_point.value}")
+    assert loaded, "no ehp_research provider entry points were discovered"
+
+
+def test_obsolete_figure_and_analysis_providers_are_not_advertised() -> None:
+    """The package must not advertise provider groups whose modules do not exist.
+
+    ``ehp_sn.figures.providers`` and ``ehp_sn.analysis.providers`` belong to
+    later phases and currently reference modules that do not exist; advertising
+    them would break provider discovery (P0R-1).
+    """
+    from importlib import metadata
+
+    for group in ("ehp_sn.figures.providers", "ehp_sn.analysis.providers"):
+        assert list(metadata.entry_points(group=group)) == [], (
+            f"obsolete provider group {group!r} is still advertised"
+        )
+        for entry_point in metadata.entry_points(group=group):
+            assert "ehp_research.figures.providers" not in entry_point.value
+            assert "ehp_research.analysis.providers" not in entry_point.value
