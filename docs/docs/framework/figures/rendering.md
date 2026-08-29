@@ -2,7 +2,7 @@
 title: Figure rendering
 authority: normative
 document_status: specified
-capability_status: planned
+capability_status: partial
 api_stability: provisional
 ---
 

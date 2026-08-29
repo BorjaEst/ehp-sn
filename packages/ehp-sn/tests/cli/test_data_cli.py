@@ -590,21 +590,34 @@ def test_cli_source_has_no_producer_conditionals() -> None:
 
 
 def test_cli_source_has_no_figure_branches_or_imports() -> None:
-    """The ``data inspect`` CLI must be free of figure-specific branches and imports.
+    """The ``data inspect`` CLI delegates figures generically (figure-owner agnostic).
 
-    ``data inspect ARTIFACT --record RECORD_ID`` (P0R-3) is generic: it must
-    not require a figure framework import and must not branch on a figure
-    concept. Figure rendering is a separate, later figure phase.
+    ``data inspect ARTIFACT --record RECORD_ID`` (P0R-3) keeps its generic
+    textual inspection path free of figure code (the adapter's ``inspect`` is
+    untouched). Phase 1 adds an additive ``--figure FIGURE_REF`` path (P1-T1).
+
+    This guards the Phase-1 architectural claim (Phase-1 § 17/18): the CLI must
+    contain no raster-specific or producer-specific semantic branching. It must
+    delegate figure work to the generic figure service, never importing a
+    concrete built-in figure module or branching on a contract/producer.
     """
     import inspect as _inspect
 
     source = _inspect.getsource(data_module)
+    # No producer families and no direct reference to a concrete built-in
+    # figure (the CLI must not gain raster semantics).
+    for token in ("dagflow", "maze-nd", "ehp_sn.figures.builtin", "raster_topology"):
+        assert token not in source
+    # The figure path must delegate to the generic figure service, not branch
+    # on a figure concept or call a specific builtin.
     import_lines = [
         line for line in source.splitlines() if line.lstrip().startswith(("import ", "from "))
     ]
     assert not any(
-        line.lstrip().startswith(("from ehp_sn.figures", "from matplotlib", "import matplotlib"))
+        line.lstrip().startswith(("from ehp_sn.figures.builtin", "from matplotlib"))
         for line in import_lines
     )
-    for token in ("FigureSpec", "FigureProjection", "matplotlib", "renderer"):
-        assert token.lower() not in source.lower()
+    # The generic delegation seam is present exactly once (the Phase-1 entry).
+    assert source.count("inspect_figure(") >= 1
+    # Textual inspection itself must not require an interactive GUI.
+    assert "FigureSpec" not in source

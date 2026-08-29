@@ -318,10 +318,11 @@ ehp-sn data inspect ARTIFACT --record RECORD_ID [--format text|json]
 
 ### Options
 
-| Option                | Default | Description                             |
-| --------------------- | ------- | --------------------------------------- |
-| `--record RECORD_ID`  | —       | Exact logical record identifier to show |
-| `--format text\|json` | `text`  | Terminal result format                  |
+| Option                | Default | Description                              |
+| --------------------- | ------- | ---------------------------------------- |
+| `--record RECORD_ID`  | —       | Exact logical record identifier to show  |
+| `--figure FIGURE_REF` | —       | Request one figure over the exact record |
+| `--format text\|json` | `text`  | Terminal result format                   |
 
 ### Outputs
 
@@ -332,8 +333,14 @@ The record is selected by exactly one deterministic lookup of `--record` through
 
 ### Figure rendering (`--figure`)
 
-Figure rendering over a selected record (`data inspect ARTIFACT --record RECORD_ID --figure figure:<name>/v<N>`) is a later figure phase.
-When it lands it must be **figure-owner agnostic**: resolve the requested figure through the normal figure catalogue and render it through the generic figure pipeline, with no substrate-family branch and no default figure inferred from registration order.
+Figure rendering over a selected record (`data inspect ARTIFACT --record RECORD_ID --figure FIGURE_REF`) realizes one figure through the ordinary figure catalogue and generic figure pipeline.
+It is **figure-owner agnostic** (Phase 1): the CLI carries no substrate-family branch and no default figure is inferred from registration order.
+The requested figure resolves through the ordinary component catalogue to a registered `FigureSpec`, its semantic input requirement is validated against the selected record's logical contract, the record is prepared into a projection, and the projection is realized directly as a Matplotlib figure for interactive display.
+
+Without `--figure`, textual inspection behavior is unchanged.
+The figure path is additive and runs headlessly; interactive display is a CLI/runtime concern separate from figure realization.
+
+Framework-owned built-in figures include `figure:raster-topology-inspection/v1`, whose complete semantic meaning is expressible only through the framework-owned `raster-topology/v1` logical contract.
 
 ### Example
 
@@ -344,11 +351,22 @@ ehp-sn data inspect data/interim/dagflow/single-terminal/v1 --record sha256:...
 The result includes the committed artifact identity, the exact record
 identifier, the schema reference, and the generic record content.
 
+With `--figure`, the result also reports the requested figure reference and the
+projection identity:
+
+```console
+ehp-sn data inspect data/interim/dungeongen/general/v1 \
+    --record sha256:... \
+    --figure figure:raster-topology-inspection/v1
+```
+
 ### Errors
 
 - Artifact or manifest cannot be read (`unknown_artifact`, exit 4).
 - Artifact reference is malformed (`unknown_artifact`, exit 4).
 - `record_id` does not exist in the artifact (`record_not_found`, exit 4).
+- With `--figure`: unknown or malformed figure reference (`unknown_figure`, exit 4).
+- With `--figure`: the selected record's logical contract does not satisfy the figure's declared input requirement (`figure_input_incompatible`, exit 3).
 - `--samples` with a positive value (`operation_not_implemented`, exit 1).
 
 ## Related commands

@@ -28,6 +28,7 @@ they exist.
 
 from __future__ import annotations
 
+import contextlib
 from collections.abc import Sequence
 from typing import Annotated
 
@@ -37,6 +38,7 @@ from ehp_sn.cli.data_adapter import (
     BuildResult,
     DataCliError,
     DataNotImplementedError,
+    DataOperationError,
     FrameworkDataAdapter,
     InspectResult,
     ListedSubstrate,
@@ -74,7 +76,46 @@ def _fail(error: Exception) -> None:
         else:
             typer.echo(f"Error: {error.message}", err=True)
         raise typer.Exit(code=error.exit_code)
+    from ehp_sn.figures.contracts import FigureInputCompatibilityError
+    from ehp_sn.figures.service import FigureServiceError
+
+    if isinstance(error, (FigureServiceError, FigureInputCompatibilityError)):
+        _fail(_figure_service_cli_error(error))
+        return
     raise error
+
+
+class _UnknownFigureCliError(DataCliError):
+    """The requested figure is not registered in the component catalogue."""
+
+    exit_code = 4  # referenced input not found
+    category = "unknown_figure"
+
+
+class _FigureInputIncompatibleCliError(DataCliError):
+    """The requested figure's semantic input requirement is not satisfied."""
+
+    exit_code = 3  # invalid configuration or specification
+    category = "figure_input_incompatible"
+
+
+def _figure_service_cli_error(error: Exception) -> DataCliError:
+    """Map a controlled figure-service failure to a stable CLI category.
+
+    ``UnknownFigureError`` (unknown/malformed/invalid figure reference) maps to
+    the controlled ``unknown_figure`` (exit 4); an input-compatibility mismatch
+    maps to ``figure_input_incompatible`` (exit 3). Other figure-service failures
+    (for example an unresolvable artifact or missing record) map to the generic
+    ``operation_failed`` category.
+    """
+    from ehp_sn.figures.contracts import FigureInputCompatibilityError
+    from ehp_sn.figures.service import UnknownFigureError
+
+    if isinstance(error, UnknownFigureError):
+        return _UnknownFigureCliError(str(error))
+    if isinstance(error, FigureInputCompatibilityError):
+        return _FigureInputIncompatibleCliError(str(error))
+    return DataOperationError(str(error))
 
 
 _json_requested = False
@@ -315,6 +356,84 @@ def _emit_inspect(result: InspectResult, fmt: str) -> None:
     typer.echo(f"content: {result.content!r}")
 
 
+def _run_figure_inspect(artifact: str, record_id: str, figure_ref: str, fmt: str) -> None:
+    """Resolve, project, realize, and interactively display one requested figure.
+
+    This is the Phase-1 ``data inspect --figure`` orchestration path. It
+    delegates completely to the generic figure service
+    (``ehp_sn.figures.inspect_figure``): the CLI owns only argument passing,
+    invoking the framework figure service, presenting the result, and mapping
+    controlled figure failures to stable exit codes. It carries no
+    raster/producer semantics (Phase-1 § 17 · P1-T15, § 18).
+
+    Interactive display is a CLI/runtime concern separate from figure
+    realization: the figure service itself requires no graphical desktop
+    (Phase-1 § 16 · P1-T14). Under a non-interactive backend the transient
+    Figure is produced and reported without a GUI event loop.
+    """
+    from ehp_sn.figures import inspect_figure
+    from ehp_sn.figures.contracts import FigureInputCompatibilityError
+    from ehp_sn.figures.service import FigureServiceError
+
+    try:
+        result = inspect_figure(artifact, record_id, figure_ref)
+    except (FigureServiceError, FigureInputCompatibilityError) as exc:
+        _fail(exc)
+        return
+    except Exception as exc:  # noqa: BLE001
+        _fail(exc)
+        return
+
+    projection = result.projection
+    if fmt == "json":
+        import json
+
+        typer.echo(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "status": "success",
+                    "action": "inspect",
+                    "warnings": [],
+                    "result": {
+                        "artifact": projection.source.artifact_ref,
+                        "record_id": projection.source.record_id,
+                        "schema_ref": projection.source.logical_contract,
+                        "figure": projection.figure_ref,
+                        "projection_identity": str(projection.identity()),
+                    },
+                }
+            )
+        )
+        return
+    typer.echo(f"artifact: {projection.source.artifact_ref}")
+    typer.echo(f"record_id: {projection.source.record_id}")
+    typer.echo(f"figure: {projection.figure_ref}")
+    typer.echo(f"projection_identity: {projection.identity()}")
+    _display_figure(result.figure)
+
+
+def _display_figure(figure: object) -> None:
+    """Present a transient realized Matplotlib Figure (CLI/runtime concern).
+
+    Uses Matplotlib's ordinary interactive display mechanism. Under a headless
+    or non-interactive backend this is a no-op that does not require X11,
+    Wayland, a Windows desktop, or a GUI event loop (Phase-1 § 16 · P1-T14).
+    """
+    import matplotlib.pyplot as plt
+
+    # Under a non-interactive backend (Agg, headless CI) there is nothing to
+    # show and show() warns; display is optional and must not fail the figure
+    # result (Phase-1 § 16 · P1-T14). Only attempt interactive presentation on a
+    # backend that can host a GUI event loop.
+    if getattr(plt, "get_backend", lambda: "Agg")().lower().startswith(("agg", "template")):
+        return
+    # Interactive display failure must not fail the figure service result.
+    with contextlib.suppress(Exception):  # noqa: BLE001
+        plt.show(block=True)
+    _ = figure  # the transient figure is owned by the interactive display path
+
+
 # ---------------------------------------------------------------------------
 # Commands
 # ---------------------------------------------------------------------------
@@ -450,6 +569,10 @@ def inspect_command(
         typer.Option("--record", help="Exact record identifier to inspect."),
     ] = None,
     samples: Annotated[int, typer.Option("--samples", help="Number of representative records.")] = 0,
+    figure: Annotated[
+        str | None,
+        typer.Option("--figure", help="Request one figure over the exact record."),
+    ] = None,
     fmt: Annotated[str, typer.Option("--format", help="Output format.")] = "text",
 ) -> None:
     """Display metadata and one exact logical record of a committed artifact.
@@ -459,6 +582,12 @@ def inspect_command(
     the logical record selected by ``--record RECORD_ID`` through the existing
     record-identity mechanism. This is a single deterministic lookup; no
     implicit ordering, RNG, or representative sampling is performed.
+
+    ``--figure FIGURE_REF`` (Phase 1) additionally realizes one figure over the
+    exact selected record through the ordinary figure catalogue and generic
+    figure pipeline. It is figure-owner agnostic: the CLI carries no
+    raster/producer semantics and delegates to the generic figure service.
+    When ``--figure`` is absent the textual inspection behavior is unchanged.
 
     ``--samples`` remains separate and intentionally unsupported until its
     ordering/selection semantics are explicitly specified: a positive value is
@@ -482,6 +611,9 @@ def inspect_command(
     if samples < 0:
         typer.echo("Error: --samples must be non-negative.", err=True)
         raise typer.Exit(code=2)
+    if figure is not None:
+        _run_figure_inspect(artifact, record, figure, fmt)
+        return
     try:
         result = _get_adapter().inspect(artifact, record)
     except Exception as exc:  # noqa: BLE001
