@@ -1,38 +1,33 @@
-"""Research package integration point for definitions and planning composition.
+"""Research package integration point for reusable scientific definitions.
 
-This module is the *package integration point* for ``ehp_research``. It owns
-three distinct actions that share bootstrap timing but remain separate concerns
-(``docs/invariants.md`` ARCH-001/ARCH-003):
+This module is the single semantic registration and composition authority for
+``ehp_research``. It owns three distinct actions that share bootstrap timing
+but remain separate concerns (``docs/invariants.md`` ARCH-001/ARCH-003):
 
-* **discovery installation** — registering authoritative research definition
-  objects into the generic ``ehp_sn`` discovery registry
+* **component registration** — registering every authoritative reusable
+  scientific definition (substrates and figures) into the generic ``ehp_sn``
+  component registry, through the single entry point
   (:func:`register_components`);
-* **planning composition** — exposing the demonstrated producer planning
-  operation bound to each authoritative definition, as planning registrations
+* **planning composition** — binding each authoritative substrate definition to
+  its demonstrated producer planning operation, as planning registrations
   (:func:`planning_registrations`);
-* **execution composition** — exposing the demonstrated producer execution
-  operation bound to each authoritative definition, as execution registrations
+* **execution composition** — binding each authoritative substrate definition to
+  its demonstrated producer execution operation, as execution registrations
   (:func:`execution_registrations`).
 
-The provider manifest (``_COMPONENTS``) lists which definitions this package
-exposes. It never redefines what a definition means and never duplicates a
-definition's metadata; the scientific facts live with each family's
-authoritative definition object (its ``ref``, description, and output contract)
-and each family's planning/execution resolvers.
+``register_components`` is the one entry point through which reusable
+scientific semantic definitions are registered. There is no separate figure
+registration path: ``FigureSpec`` definitions enter the same generic component
+catalogue as substrate definitions and are owned here. The provider manifest
+(``_COMPONENTS``) lists which definitions this package exposes and never
+redefines what a definition means; the scientific facts live with each family's
+authoritative definition object (its ``ref``, description, and output contract).
 
 Registration is explicit and side-effect free: importing ``ehp_research`` does
 not mutate any registry. Population happens only when a consumer calls
 :func:`register_components` with an explicit registry instance. Duplicate
-handling and duplicate detection are owned by the generic registry itself;
-this function deliberately does not re-implement them.
-
-The planning composition is built from :func:`planning_registrations`, and the
-execution composition from :func:`execution_registrations`, by an application
-bootstrap; both are independent of the discovery registry and are never stored
-there.
-
-See ``docs/invariants.md`` ARCH-001/ARCH-003 and the package README's
-"Registration and discovery" section.
+handling and duplicate detection are owned by the generic registry itself; this
+function deliberately does not re-implement them.
 """
 
 from __future__ import annotations
@@ -43,24 +38,35 @@ from ehp_sn.discovery import ComponentRegistry
 from ehp_sn.execution import SubstrateExecutionRegistration
 from ehp_sn.planning import SubstratePlanningRegistration
 
+from .figures.arena_task_overview import ARENA_TASK_OVERVIEW_SPEC
+from .figures.dagflow_overview import DAGFLOW_OVERVIEW_SPEC
+from .figures.graph_degree_view import GRAPH_DEGREE_VIEW_SPEC
+from .figures.hpc_place_summary import HPC_PLACE_SUMMARY_SPEC
+from .figures.hrm_latent_dynamics import HRM_LATENT_DYNAMICS_SPEC
 from .substrates import dagflow, dungeongen, maze_nd, obsfield
 from .substrates.dagflow import DAGFLOW_DEFINITION
 from .substrates.dungeongen import DUNGEONGEN_DEFINITION
 from .substrates.maze_nd import MAZE_ND_DEFINITION
 from .substrates.obsfield import OBSFIELD_DEFINITION
 
-#: Authoritative Dagflow, Maze-ND, ObsField, and DungeonGen definitions
-#: admitted to discovery.
+#: Authoritative reusable scientific definitions admitted to discovery: the
+#: Dagflow, Maze-ND, ObsField and DungeonGen substrates plus the reusable
+#: scientific figure specs. This is the one registration authority.
 _COMPONENTS = (
     DAGFLOW_DEFINITION,
     MAZE_ND_DEFINITION,
     OBSFIELD_DEFINITION,
     DUNGEONGEN_DEFINITION,
+    ARENA_TASK_OVERVIEW_SPEC,
+    DAGFLOW_OVERVIEW_SPEC,
+    GRAPH_DEGREE_VIEW_SPEC,
+    HPC_PLACE_SUMMARY_SPEC,
+    HRM_LATENT_DYNAMICS_SPEC,
 )
 
 
 def register_components(registry: ComponentRegistry) -> None:
-    """Register the research definitions exposed by this package into ``registry``.
+    """Register every reusable scientific definition into ``registry``.
 
     The operation is explicit: definitions are registered into the caller's
     registry, never into an implicit global. It performs no duplicate detection
@@ -68,9 +74,11 @@ def register_components(registry: ComponentRegistry) -> None:
     same canonical reference twice raises the generic
     :class:`DuplicateRegistrationError` (``ehp_sn.discovery``).
 
-    This function installs *only definitions* into discovery. It does not store
-    producer behavior; planning composition is exposed separately via
-    :func:`planning_registrations`.
+    This is the single registration path for reusable scientific semantics: it
+    installs both substrate definitions and ``FigureSpec`` definitions. It does
+    not store producer behavior; planning and execution composition are exposed
+    separately via :func:`planning_registrations` and
+    :func:`execution_registrations`.
     """
     for definition in _COMPONENTS:
         registry.register(definition)
@@ -82,7 +90,7 @@ def planning_registrations() -> tuple[SubstratePlanningRegistration, ...]:
     Each entry binds the exact authoritative definition object (identity
     preserved with discovery) to its demonstrated :data:`PlanningResolver`
     callable. These registrations are consumed by the framework-owned planning
-    composition ; they are separate from — and never stored in — the discovery
+    composition; they are separate from — and never stored in — the discovery
     registry.
     """
     return (
@@ -118,23 +126,6 @@ def execution_registrations() -> tuple[SubstrateExecutionRegistration, ...]:
     so the generic lifecycle reports a clean
     :class:`~ehp_sn.execution.MissingExecutionCapabilityError` rather than an
     operation that raises ``NotImplementedError``.
-
-    Maze-ND is registered because its execution operation is conforming for the
-    specified ``source-topology`` variant: it loads and verifies the exact bound
-    immutable source, extracts/normalizes/deduplicates unique normalized
-    topologies through the shared ``raster-topology/v1`` constructor, preserves
-    complete source lineage, and materializes records plus the lineage resource
-    through the framework ``MaterializationSession``.
-
-    DungeonGen is registered because its execution operation is conforming for
-    the specified ``general`` variant: it verifies the frozen external
-    dependency is build-ready and, per logical topology index, deterministically
-    derives the candidate seed, invokes the exact upstream layout generator,
-    converts to passability, applies the largest-component policy, normalizes
-    the extent, evaluates the acceptance policy under a retry budget, and
-    materializes each accepted normalized topology through the shared
-    ``raster-topology/v1`` constructor plus a complete production-lineage
-    resource via the framework ``MaterializationSession``.
     """
     return (
         SubstrateExecutionRegistration(definition=DAGFLOW_DEFINITION, execute=dagflow.execute),
@@ -155,9 +146,9 @@ def execution_composition_source() -> Iterable[SubstrateExecutionRegistration]:
 
 
 __all__ = [
+    "register_components",
+    "planning_composition_source",
     "execution_composition_source",
     "execution_registrations",
-    "planning_composition_source",
     "planning_registrations",
-    "register_components",
 ]

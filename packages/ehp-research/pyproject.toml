@@ -30,14 +30,20 @@
         "dungeongen==0.1.14",
     ]
 
-[project.entry-points."ehp_sn.providers"]
-    components = "ehp_research.registration:register_components"
+[project.entry-points."ehp_sn.components.providers"]
+    ehp_research = "ehp_research.registration:register_components"
 
 [project.entry-points."ehp_sn.planning.providers"]
-    substrate = "ehp_research.registration:planning_composition_source"
+    ehp_research = "ehp_research.registration:planning_composition_source"
 
 [project.entry-points."ehp_sn.execution.providers"]
-    substrate = "ehp_research.registration:execution_composition_source"
+    ehp_research = "ehp_research.registration:execution_composition_source"
+
+[project.entry-points."ehp_sn.figures.providers"]
+    ehp_research = "ehp_research.figures.providers:figure_provider"
+
+[project.entry-points."ehp_sn.analysis.providers"]
+    ehp_research = "ehp_research.analysis.providers:analysis_provider"
 
 [project.urls]
     "Homepage"      = "https://github.com/BorjaEst/ehp-sn"
