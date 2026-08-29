@@ -19,6 +19,13 @@ specifications in later phases.
 
 from __future__ import annotations
 
+from .api import (
+    FigureSource,
+    prepare_figure,
+    realize_projection,
+    render_figure,
+    render_figure_projection,
+)
 from .contracts import (
     FIGURE_KIND,
     FigureInputCompatibilityError,
@@ -45,7 +52,6 @@ from .realization import (
     RealizedFigure,
     RenderingEnvironmentProvenance,
     ResolvedFigureRealization,
-    realize_projection,
     record_rendering_environment,
     resolve_figure_realization,
 )
@@ -67,8 +73,6 @@ from .service import (
     FigureServiceError,
     UnknownFigureError,
     inspect_figure,
-    prepare_figure,
-    render_figure_projection,
 )
 
 __all__ = [
@@ -83,6 +87,7 @@ __all__ = [
     "FigureProjection",
     "FigureResult",
     "FigureServiceError",
+    "FigureSource",
     "FigureSpec",
     "PresentationError",
     "ProjectionIdentity",
@@ -106,6 +111,7 @@ __all__ = [
     "record_rendering_environment",
     "register_builtin_figures",
     "register_installed_figure_providers",
+    "render_figure",
     "render_figure_projection",
     "resolve_figure_realization",
     "resolve_serialization_policy",

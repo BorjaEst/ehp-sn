@@ -107,6 +107,64 @@ def test_inspect_figure_success_headless() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Phase 5D — CLI/Python projection-identity convergence over one committed record
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.skipif(
+    not _DUNGEONGEN_RASTER.is_dir(),
+    reason="committed DungeonGen raster artifact is not present",
+)
+def test_cli_and_python_projection_identity_converge_over_committed_record() -> None:
+    """The CLI and the Python API normalize to the same ProjectionIdentity.
+
+    Phase 5D · § 7.5: for equivalent semantic requests, CLI and Python must
+    produce the same canonical figure reference, same source-role identity, and
+    same ``ProjectionIdentity``. Here the same committed record is inspected
+    through the real CLI and through the public Python API; both must report
+    the same projection identity (the Python API is a façade over the same
+    service, not a parallel path — Phase 5D § 7.9).
+    """
+    from ehp_sn.artifacts import load_release
+    from ehp_sn.figures import FigureSource, effective_figure_registry, prepare_figure
+
+    record_id = _first_record_id(_DUNGEONGEN_RASTER)
+
+    # CLI path.
+    cli_result = runner.invoke(
+        app,
+        [
+            "data",
+            "inspect",
+            str(_DUNGEONGEN_RASTER),
+            "--record",
+            record_id,
+            "--figure",
+            _FIGURE_REF,
+            "--format",
+            "json",
+        ],
+    )
+    assert cli_result.exit_code == 0, cli_result.stderr
+    cli_identity = json.loads(cli_result.stdout)["result"]["projection_identity"]
+
+    # Python path over the same committed record and exact source.
+    committed = load_release(_DUNGEONGEN_RASTER)
+    record = committed.record(record_id)
+    assert record is not None
+    source = FigureSource(
+        artifact_ref=committed.artifact_ref,
+        record_id=record.record_id,
+        schema_ref=record.schema_ref,
+        content=record.content,
+    )
+    projection = prepare_figure(effective_figure_registry(), _FIGURE_REF, source)
+    python_identity = str(projection.identity())
+
+    assert python_identity == cli_identity
+
+
+# ---------------------------------------------------------------------------
 # 19.2 unknown figure → controlled exit without a traceback
 # ---------------------------------------------------------------------------
 

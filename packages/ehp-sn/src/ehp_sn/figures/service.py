@@ -70,12 +70,25 @@ class _FigureSource(Protocol):
     the committed artifact's canonical reference, the exact record identity, the
     logical contract the record conforms to, and its stable logical contents
     (Phase-1 § 9 · P1-T7).
+
+    The attributes are declared read-only because a resolved exact source is
+    immutable by contract: the parent operation builds it, the figure path never
+    mutates it (``FIG-003``), and frozen source records
+    (:class:`_ExactSource`, :class:`~ehp_sn.figures.api.FigureSource`) satisfy
+    the protocol without violating immutability.
     """
 
-    artifact_ref: str
-    record_id: str
-    schema_ref: str
-    content: object
+    @property
+    def artifact_ref(self) -> str: ...
+
+    @property
+    def record_id(self) -> str: ...
+
+    @property
+    def schema_ref(self) -> str: ...
+
+    @property
+    def content(self) -> object: ...
 
 
 @dataclass(frozen=True, slots=True)
