@@ -286,18 +286,27 @@ def test_all_advertised_provider_entry_points_load() -> None:
 
 
 def test_obsolete_figure_and_analysis_providers_are_not_advertised() -> None:
-    """The package must not advertise provider groups whose modules do not exist.
+    """``ehp_research`` must not advertise provider groups it does not implement.
 
-    ``ehp_sn.figures.providers`` and ``ehp_sn.analysis.providers`` belong to
-    later phases and currently reference modules that do not exist; advertising
-    them would break provider discovery (P0R-1).
+    The framework-owned figure-provider group ``ehp_sn.figures.providers`` is an
+    active group (Phase 2 contributes external figures through it), but
+    ``ehp_research`` itself must not point it at non-existent
+    ``ehp_research.figures.providers`` / ``ehp_research.analysis.providers``
+    modules. ``ehp_sn.analysis.providers`` remains an unfilled later-phase group.
+    Advertising a provider module that does not exist would break provider
+    discovery (P0R-1).
     """
     from importlib import metadata
 
     for group in ("ehp_sn.figures.providers", "ehp_sn.analysis.providers"):
-        assert list(metadata.entry_points(group=group)) == [], (
-            f"obsolete provider group {group!r} is still advertised"
-        )
+        # Whatever contributes to these groups (including the Phase-2 test
+        # fixture distribution for the figure group), ehp_research must never
+        # name an obsolete ehp_research provider module in them.
         for entry_point in metadata.entry_points(group=group):
             assert "ehp_research.figures.providers" not in entry_point.value
             assert "ehp_research.analysis.providers" not in entry_point.value
+
+    # The analysis group remains genuinely unadvertised (later phase).
+    assert list(metadata.entry_points(group="ehp_sn.analysis.providers")) == [], (
+        "old ehp_sn.analysis.providers group is still advertised"
+    )

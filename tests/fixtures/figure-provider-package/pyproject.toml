@@ -1,0 +1,28 @@
+[build-system]
+    requires      = ["setuptools>=68,<81", "wheel"]
+    build-backend = "setuptools.build_meta"
+
+[project]
+    name = "test-figure-provider"
+    description = "Independently installed test figure provider for EHP-SN Phase 2"
+    authors = [{ name = "EHP-SN contributors" }]
+    license = { text = "GNU General Public License v3.0" }
+    requires-python = ">=3.12"
+    version = "0.0.0"
+    dependencies = [
+        "ehp-sn>=0.1.0",
+    ]
+
+# This distribution advertises a figure provider under the framework's figure
+# provider entry-point group. The provider contributes the external graph
+# figure over simple-digraph/v1 (and a second trivial figure to prove provider
+# cardinality). This is a *test fixture distribution*: it is installed only in
+# the test environment, never shipped as a production dependency.
+[project.entry-points."ehp_sn.figures.providers"]
+    test-provider = "test_figure_provider.provider:figure_provider"
+
+[tool.setuptools]
+    package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+    where = ["src"]

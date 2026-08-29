@@ -30,6 +30,7 @@ from .providers import (
     FIGURE_PROVIDER_ENTRY_POINT_GROUP,
     effective_figure_registry,
     register_builtin_figures,
+    register_installed_figure_providers,
 )
 from .service import (
     FigureResult,
@@ -56,5 +57,6 @@ __all__ = [
     "inspect_figure",
     "prepare_figure",
     "register_builtin_figures",
+    "register_installed_figure_providers",
     "render_figure_projection",
 ]
