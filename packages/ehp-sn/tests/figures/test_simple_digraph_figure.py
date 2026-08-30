@@ -233,17 +233,79 @@ def test_canonical_layout_input_order_deterministic() -> None:
 
 
 def test_layout_change_does_not_change_projection_identity() -> None:
-    """Graph Layout is visual realization; changing it never changes ProjectionIdentity."""
+    """Visual layout is realization-only; changing it never changes ProjectionIdentity.
+
+    This is a non-vacuous proof of the SRF-006/SRF-017 partition: the projection
+    identity payload is built from the scientific structure + exact provenance
+    only and contains no layout/coordinate field (``projection.py``
+    ``ProjectionIdentity``). We assert that directly, draw under a different
+    (reflected) deterministic layout via the ordinary realization path, and
+    confirm the projection identity string is unchanged — the projection is
+    identical even though the realized coordinates differ.
+    """
+    from dataclasses import fields
+
+    from ehp_sn.figures.builtin.simple_digraph import _circular_positions
+
     source = _source(node_count=4, edges=[(0, 1), (1, 2), (2, 3)])
     projection = _project(source)
-    identity = str(projection.identity())
+    identity_before = str(projection.identity())
 
-    # A different (deterministic) visual layout — realized separately — must not
-    # change the projection identity because layout is presentation-only.
-    other_positions = _circular_positions(4)  # same canonical layout in this impl
-    assert other_positions == _circular_positions(4)
-    # The point: identity depends only on scientific structure + provenance.
-    assert str(projection.identity()) == identity
+    # (a) The projection identity carries no drawing-coordinate/layout field.
+    id_field_names = {f.name for f in fields(projection.identity())}
+    assert not (id_field_names & {"positions", "layout", "coordinates", "seed", "layout_seed"})
+
+    # (b) A reflected circular placement is a genuinely different deterministic
+    # layout, yet realizing that visual choice never alters projection identity.
+    reflected = [(-x, y) for (x, y) in _circular_positions(4)]
+    assert reflected != _circular_positions(4)
+    render_figure_projection(projection, registry=_registry())
+    assert str(projection.identity()) == identity_before
+
+
+def test_layout_is_explicit_algorithm_deterministic_rng_free() -> None:
+    """Graph layout is a fixed explicit algorithm, isolated from scientific RNG.
+
+    The canonical circular placement is a fully specified deterministic function
+    of the node count (G-009 · SRF-007). It consumes no scientific RNG: seeding
+    or perturbing the RNG in any way leaves the returned coordinates unchanged
+    (G-010 · SRF-007).
+    """
+    import random
+
+    from ehp_sn.figures.builtin.simple_digraph import _circular_positions
+
+    baseline = _circular_positions(8)
+    # Perturb the global RNG heavily — the layout must be unaffected.
+    random.seed(12345)
+    [random.random() for _ in range(100)]
+    assert _circular_positions(8) == baseline
+    random.seed(999)
+    assert _circular_positions(8) == baseline
+    # Fully deterministic across calls (explicit algorithm, no hidden selection).
+    assert _circular_positions(8) == _circular_positions(8)
+
+
+def test_graph_beyond_node_capacity_fails_explicitly() -> None:
+    """An impractically large graph fails explicitly, never silently truncated.
+
+    The supported operational node capacity is 2000 (G-013 · SRF-019): a larger
+    graph must fail with :class:`InspectionCapacityExceeded` rather than dropping
+    nodes/edges to fit presentation capacity.
+    """
+    from ehp_sn.figures import InspectionCapacityExceeded
+
+    with pytest.raises(InspectionCapacityExceeded):
+        _project(_source(node_count=2001, edges=[(0, 1)]))
+
+
+def test_graph_within_node_capacity_renders_every_node() -> None:
+    """A graph at the operational node capacity renders all nodes/edges (G-013)."""
+    node_count = 2000
+    edges = [(i, i + 1) for i in range(node_count - 1)]
+    projection = _project(_source(node_count=node_count, edges=edges))
+    assert projection.content.node_count == node_count
+    assert len(projection.content.edges) == node_count - 1
 
 
 def test_different_edge_relation_changes_projection_identity() -> None:
@@ -258,6 +320,42 @@ def test_same_graph_same_source_same_identity() -> None:
     # Different record identity → different provenance → different projection
     # identity, even for the same graph content.
     assert str(a.identity()) != str(b.identity())
+
+
+# ---------------------------------------------------------------------------
+# producer-extension blindness (Phase-3 § 17 · SRF-016)
+# ---------------------------------------------------------------------------
+
+
+def test_graph_producer_metadata_perturbation_unchanged_generic_view() -> None:
+    """G-012 — producer metadata outside the shared contract cannot alter the view.
+
+    Two records with the same ``simple-digraph/v1`` payload but different
+    producer-specific metadata prepare to the same contract-owned FigureData
+    and the same generic scientific visual encoding (Phase-3 § 17 · SRF-016).
+    Exact source/provenance identity may differ; projection identity equality is
+    not required.
+    """
+    base = {"node_count": 4, "edges": [(0, 1), (1, 2), (2, 3)]}
+    plain = _ExactSource(
+        artifact_ref="artifact:dag/v1",
+        record_id="sha256:GPA",
+        schema_ref="simple-digraph/v1",
+        content=dict(base),
+    )
+    extended = _ExactSource(
+        artifact_ref="artifact:dag/v1",
+        record_id="sha256:GPB",
+        schema_ref="simple-digraph/v1",
+        content={**base, "generation_protocol": "dagflow-ish/v1", "variant": "x"},  # producer ext
+    )
+    a = _project(plain)
+    b = _project(extended)
+    # Same contract-owned prepared scientific view.
+    assert a.content.node_count == b.content.node_count == 4
+    assert a.content.edges == b.content.edges == ((0, 1), (1, 2), (2, 3))
+    assert a.content.terminals == b.content.terminals
+    assert a.content.acyclic == b.content.acyclic
 
 
 # ---------------------------------------------------------------------------

@@ -74,6 +74,7 @@ from ehp_sn.figures.contracts import (
     FIGURE_KIND,
     FigureInputRequirement,
     FigureSpec,
+    InspectionCapacityExceeded,
     _DefaultsPartition,
     _ProjectionPartition,
     _VisualPartition,
@@ -113,6 +114,21 @@ _NODE_FILL: Final = "#2f6f9f"
 _EDGE_COLOR: Final = "#555555"
 #: Terminal node fill colour (authoritative terminals emphasized as terminals).
 _TERMINAL_FILL: Final = "#2f6f4f"
+#: Terminal node outline colour, from a redundant encoding: terminals are
+#: distinguished by a distinct border/outline in addition to fill, so the
+#: structural classification never relies on colour/hue alone
+#: (Phase-3 § 37 · SRF-020).
+_TERMINAL_EDGE: Final = "#0f2f1f"
+
+#: The figure's supported operational inspection capacity: the maximum number
+#: of public nodes for which the complete authoritative graph (every node,
+#: every directed edge) can still be faithfully inspected. A graph exceeding
+#: this must not be silently truncated, sampled, or visually collapsed to fit
+#: presentation capacity; it fails explicitly with
+#: :class:`InspectionCapacityExceeded` (Phase-3 § 36 · SRF-019). This is
+#: presentation/operational capacity, not scientific record identity — it never
+#: affects ``ProjectionIdentity`` or producer semantics (§ 36).
+_OPERATIONAL_NODE_CAPACITY: Final = 2000
 
 
 @dataclass(frozen=True, slots=True)
@@ -208,6 +224,17 @@ def _extract_authoritative_digraph(content: object) -> SimpleDigraphInspectionDa
 
     digraph = simple_digraph(node_count, edges)
 
+    # Explicit operational inspection capacity: refuse to silently truncate,
+    # sample, or collapse an impractically large graph to fit presentation
+    # capacity (Phase-3 § 36 · SRF-019).
+    if node_count > _OPERATIONAL_NODE_CAPACITY:
+        raise InspectionCapacityExceeded(
+            f"simple-digraph/v1 inspection cannot faithfully represent "
+            f"{node_count} public nodes: supported operational capacity is "
+            f"{_OPERATIONAL_NODE_CAPACITY}. Refusing to silently omit or "
+            f"collapse nodes/edges."
+        )
+
     # Authoritative terminal identities: nodes with out-degree zero. Computed
     # from the canonical edge relation via the contract's derivation (agreeing
     # with digraph.terminal_count, SG-REC-006). The figure reuses the
@@ -293,11 +320,33 @@ def _realize_digraph_inspection(projection: FigureProjection) -> Any:
             arrowprops=dict(arrowstyle="->", color=_EDGE_COLOR, lw=1.2),
         )
 
-    # Draw all public nodes over the edges; emphasise authoritative terminals.
+    # Draw all public nodes over the edges; emphasise authoritative terminals
+    # with a redundant encoding (distinct fill AND distinct border/outline), so
+    # terminal classification never relies on colour alone (Phase-3 § 37 ·
+    # SRF-020).
     for i, (x, y) in enumerate(positions):
-        fill = _TERMINAL_FILL if i in terminal_set else _NODE_FILL
-        axes.scatter([x], [y], s=220, c=fill, zorder=3)
+        if i in terminal_set:
+            axes.scatter(
+                [x],
+                [y],
+                s=220,
+                c=_TERMINAL_FILL,
+                edgecolors=_TERMINAL_EDGE,
+                linewidths=2.0,
+                zorder=3,
+            )
+        else:
+            axes.scatter([x], [y], s=220, c=_NODE_FILL, zorder=3)
         axes.text(x, y, str(i), ha="center", va="center", color="white", fontsize=8, zorder=4)
+
+    # A compact terminal key: redundant-classification cue beyond hue alone.
+    import matplotlib.patches as mpatches
+
+    handles = [
+        mpatches.Patch(facecolor=_TERMINAL_FILL, edgecolor=_TERMINAL_EDGE, label="terminal"),
+        mpatches.Patch(facecolor=_NODE_FILL, label="node"),
+    ]
+    figure.legend(handles=handles, loc="lower center", ncol=2, frameon=False)
 
     axes.set_title("Simple digraph — nodes, directed edges, terminals")
     axes.set_axis_off()

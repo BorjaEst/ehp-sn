@@ -66,6 +66,7 @@ from ehp_sn.figures.contracts import (
     FIGURE_KIND,
     FigureInputRequirement,
     FigureSpec,
+    InspectionCapacityExceeded,
     _DefaultsPartition,
     _ProjectionPartition,
     _VisualPartition,
@@ -104,6 +105,16 @@ _DEFAULT_RC_PARAMS: Final = {
 _PASSABLE_COLOR: Final = "#2f6f4f"
 #: Non-traversable (blocked) cell colour.
 _BLOCKED_COLOR: Final = "#d8d8d8"
+
+#: The figure's supported operational inspection capacity: the maximum number
+#: of positions (height × width) for which the complete authoritative
+#: passability structure can still be faithfully inspected. A topology
+#: exceeding this must not be silently downsampled, truncated, or visually
+#: collapsed to fit presentation capacity; it fails explicitly with
+#: :class:`InspectionCapacityExceeded` (Phase-3 § 36 · SRF-019). This is
+#: presentation/operational capacity, not scientific record identity — it never
+#: affects ``ProjectionIdentity`` or producer semantics (§ 36).
+_OPERATIONAL_POSITION_CAPACITY: Final = 2_000_000
 
 
 @dataclass(frozen=True, slots=True)
@@ -169,6 +180,16 @@ def _extract_authoritative_topology(content: object) -> RasterTopology:
     except (KeyError, TypeError, ValueError) as exc:
         raise TypeError("raster-topology/v1 extent projection is missing integer height/width") from exc
     ambient = rectangular_row_column_domain(height, width)
+    # Explicit operational inspection capacity: refuse to silently downsample,
+    # truncate, or collapse an impractically large passability structure to fit
+    # presentation capacity (Phase-3 § 36 · SRF-019).
+    if ambient.position_count > _OPERATIONAL_POSITION_CAPACITY:
+        raise InspectionCapacityExceeded(
+            f"raster-topology/v1 inspection cannot faithfully represent an extent "
+            f"of {ambient.position_count} positions: supported operational "
+            f"capacity is {_OPERATIONAL_POSITION_CAPACITY}. Refusing to silently "
+            f"downsample, truncate, or collapse the passability structure."
+        )
     return raster_topology(ambient, list(passable))
 
 
@@ -191,7 +212,17 @@ def _realize_topology_inspection(projection: FigureProjection) -> Any:
     passability), plus minimal structural labels. Uses explicit object-oriented
     Matplotlib operations, not implicit current-figure/current-axes state
     (Phase-1 § 14 · P1-T12).
+
+    The scientific row/column mapping is explicit and independent of ambient
+    Matplotlib configuration (Phase-3 § 19, § 21 · SRF-009): ``origin="upper"``
+    is set explicitly so that matrix ``row 0`` (the canonical row-major mapping,
+    ``position_id(r, c) = r * width + c`` through the shared
+    :func:`~ehp_sn.figures.rectangular_realization.to_matrix`) is drawn at the
+    top regardless of the ambient ``image.origin`` default. A passable/blocked
+    key is drawn so the structural distinction never relies on colour alone
+    (Phase-3 § 37 · SRF-020).
     """
+    import matplotlib.patches as mpatches
     import matplotlib.pyplot as plt
     from matplotlib.colors import ListedColormap
 
@@ -207,12 +238,28 @@ def _realize_topology_inspection(projection: FigureProjection) -> Any:
 
     figure, axes = plt.subplots(1, 1)
     cmap = ListedColormap([_BLOCKED_COLOR, _PASSABLE_COLOR])
-    axes.imshow(grid, cmap=cmap, interpolation="nearest", aspect="equal")
+    # Explicit origin: row 0 at the top. Ambient ``image.origin`` must not
+    # dictate scientific orientation (Phase-3 § 21 · SRF-009).
+    axes.imshow(
+        grid,
+        cmap=cmap,
+        interpolation="nearest",
+        aspect="equal",
+        origin="upper",
+    )
     axes.set_title("Raster topology — passable vs non-traversable")
     axes.set_xlabel("column")
     axes.set_ylabel("row")
     axes.set_xticks(range(width))
     axes.set_yticks(range(height))
+
+    # Redundant critical encoding: a key distinguishes passable from blocked
+    # beyond colour/luminance alone (Phase-3 § 37 · SRF-020).
+    handles = [
+        mpatches.Patch(color=_PASSABLE_COLOR, label="passable"),
+        mpatches.Patch(color=_BLOCKED_COLOR, label="non-traversable"),
+    ]
+    figure.legend(handles=handles, loc="lower center", ncol=2, frameon=False)
     return figure
 
 

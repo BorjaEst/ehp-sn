@@ -31,6 +31,7 @@ from .contracts import (
     FigureInputCompatibilityError,
     FigureInputRequirement,
     FigureSpec,
+    InspectionCapacityExceeded,
 )
 from .persistence import FigureContentIntegrityError, verify_content_digest
 from .projection import (
@@ -97,6 +98,7 @@ __all__ = [
     "FigureServiceError",
     "FigureSource",
     "FigureSpec",
+    "InspectionCapacityExceeded",
     "NoCompatibleFigureError",
     "PresentationError",
     "ProjectionIdentity",

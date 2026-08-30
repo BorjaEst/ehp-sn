@@ -96,6 +96,7 @@ from ehp_sn.figures.contracts import (
     FigureInputCompatibilityError,
     FigureInputRequirement,
     FigureSpec,
+    InspectionCapacityExceeded,
     _DefaultsPartition,
     _ProjectionPartition,
     _VisualPartition,
@@ -131,29 +132,48 @@ _DEFAULT_RC_PARAMS: Final = {
 #: Default number of category entries shown in a low-cardinality legend/key.
 _LOW_CARDINALITY_LEGEND_LIMIT: Final = 12
 
-#: Base categorical display palette (deterministic; a fixed sequence).
-_CATEGORY_PALETTE: Final = (
-    "#1f77b4",
-    "#ff7f0e",
-    "#2ca02c",
-    "#d62728",
-    "#9467bd",
-    "#8c564b",
-    "#e377c2",
-    "#7f7f7f",
-    "#bcbd22",
-    "#17becf",
-    "#aec7e8",
-    "#ffbb78",
-    "#98df8a",
-    "#ff9896",
-    "#c5b0d5",
-    "#c49c94",
-    "#f7b6d2",
-    "#c7c7c7",
-    "#dbdb8d",
-    "#9edae5",
-)
+#: The figure's supported operational inspection capacity: the number of
+#: distinct category values the categorical realization can faithfully and
+#: unambiguously distinguish. Each distinct category receives a distinct
+#: intended display style (Phase-3 § 32, § 36 · SRF-019). The capacity is set to
+#: 45 so that the real committed ObsField vocabulary
+#: (``obs-vocabulary:anonymous-45/v1``, cardinality 45) is faithfully served;
+#: a vocabulary whose cardinality exceeds this capacity cannot be faithfully
+#: represented without silently collapsing distinct categories onto identical
+#: styles, which is forbidden (§ 32), so it fails explicitly with
+#: :class:`InspectionCapacityExceeded`. This is presentation/operational
+#: capacity, not scientific record identity: it never affects
+#: ``ProjectionIdentity`` or producer semantics (§ 36).
+_OPERATIONAL_CATEGORY_CAPACITY: Final = 45
+
+
+def _qualitative_palette(size: int) -> tuple[str, ...]:
+    """Return a deterministic qualitative (categorical) palette of ``size`` colors.
+
+    Uses a golden-angle hue rotation in HCL/HSL space — a standard technique for
+    categorical colormaps — so the hues are spread as far apart as possible for
+    unambiguous distinction while saturation and lightness are held constant
+    (no ordinal/sequential magnitude implied). Every entry is distinct, so no
+    distinct category value is ever silently mapped onto an identical intended
+    display style (Phase-3 § 32 · SRF-019). The palette is deterministic for a
+    fixed visual-semantics version and never makes colour part of the scientific
+    vocabulary.
+    """
+    import colorsys
+
+    golden_angle = 0.618033988749895  # fractions of one hue turn
+    colors: list[str] = []
+    for i in range(size):
+        hue = (i * golden_angle) % 1.0
+        r, g, b = colorsys.hls_to_rgb(hue, 0.55, 0.70)
+        colors.append(f"#{int(round(r * 255)):02x}{int(round(g * 255)):02x}{int(round(b * 255)):02x}")
+    return tuple(colors)
+
+
+#: Base categorical display palette (deterministic; exactly one distinct colour
+#: per supported category value, with the golden-angle hue spread for maximum
+#: distinguishability).
+_CATEGORY_PALETTE: Final = _qualitative_palette(_OPERATIONAL_CATEGORY_CAPACITY)
 
 
 @dataclass(frozen=True, slots=True)
@@ -251,6 +271,7 @@ def _extract_authoritative_field(content: object) -> CategoricalFieldInspectionD
         )
 
     represented = len(set(field_.observation_ids))
+    _assert_operational_category_capacity(field_.vocabulary.cardinality)
     return CategoricalFieldInspectionData(
         domain=field_.domain,
         vocabulary_kind=field_.vocabulary.kind,
@@ -259,6 +280,28 @@ def _extract_authoritative_field(content: object) -> CategoricalFieldInspectionD
         observation_ids=tuple(field_.observation_ids),
         represented_category_count=represented,
     )
+
+
+def _assert_operational_category_capacity(cardinality: int) -> None:
+    """Deterministically reject a vocabulary the realization cannot faithfully render.
+
+    The categorical realization gives every distinct category value a distinct
+    intended display style, up to ``_OPERATIONAL_CATEGORY_CAPACITY``. A
+    vocabulary larger than that cannot be faithfully distinguished without
+    silently mapping distinct categories to identical styles — forbidden by
+    Phase-3 § 32 — so it fails explicitly and deterministically via
+    :class:`InspectionCapacityExceeded` (Phase-3 § 36 · SRF-019). This is
+    presentation/operational capacity and never affects scientific record
+    identity or ``ProjectionIdentity``.
+    """
+    if cardinality > _OPERATIONAL_CATEGORY_CAPACITY:
+        raise InspectionCapacityExceeded(
+            f"categorical-field/v1 inspection cannot faithfully represent "
+            f"vocabulary cardinality {cardinality}: supported operational "
+            f"capacity is {_OPERATIONAL_CATEGORY_CAPACITY} distinct categories. "
+            f"Refusing to silently collapse distinct categories onto identical "
+            f"display styles."
+        )
 
 
 def _build_typed(content: dict) -> CategoricalField:
@@ -304,16 +347,46 @@ def _prepare_authoritative_field(source: object) -> object:
     return _extract_authoritative_field(source)
 
 
-def _category_color(category: int) -> str:
-    """Return the deterministic display colour for a category value.
+def _vocabulary_style_offset(vocabulary_identity: str) -> int:
+    """A deterministic, presentation-only offset derived from vocabulary identity.
 
-    Anchored to the fixed palette by ``category % len(palette)``. The mapping is
-    deterministic for a fixed visual-semantics version; it belongs to visual
-    semantics and never makes colour part of the scientific vocabulary
-    (Phase-2 § 26). No semantic similarity may be inferred from visually similar
-    colours.
+    Observation ID meaning is scoped by vocabulary identity (Phase-3 § 30 ·
+    SRF-012): equal integer IDs under different vocabularies are not
+    scientifically equivalent. The intended display style is therefore a
+    deterministic function of ``(vocabulary identity, observation ID)`` — the
+    identity contributes a fixed offset into the palette so that the same ID in
+    a different vocabulary receives a different intended style. The offset is
+    confined to visual semantics: it never changes scientific vocabulary or
+    record identity, and visual similarity never implies semantic similarity
+    across vocabularies (Phase-3 § 31). Each distinct category within one
+    vocabulary still receives a distinct style (capacity is enforced in
+    ``prepare``).
+
+    The offset uses a stable, cross-process deterministic digest (CRC-32) rather
+    than Python's salted built-in ``hash()``, so the intended display style is
+    reproducible across interpreter runs and environments (categorical visual
+    stability, Phase-3 § 31).
     """
-    return _CATEGORY_PALETTE[category % len(_CATEGORY_PALETTE)]
+    import binascii
+
+    return binascii.crc32(vocabulary_identity.encode("utf-8")) % _OPERATIONAL_CATEGORY_CAPACITY
+
+
+def _category_color(category: int, vocabulary_identity: str) -> str:
+    """Return the deterministic display colour for ``(vocabulary, category)``.
+
+    The style is anchored to the fixed palette at
+    ``(vocabulary offset + category)``, so it is a deterministic function of the
+    vocabulary identity and the observation ID (Phase-3 § 31 · SRF-012).
+    ``prepare`` has already rejected a vocabulary whose cardinality exceeds
+    ``_OPERATIONAL_CATEGORY_CAPACITY``, so within one vocabulary each distinct
+    category maps to a distinct style and no distinct category is silently
+    collapsed onto an identical style (Phase-3 § 32). The mapping belongs to
+    visual semantics and never makes colour part of the scientific vocabulary.
+    """
+    return _CATEGORY_PALETTE[
+        (_vocabulary_style_offset(vocabulary_identity) + category) % _OPERATIONAL_CATEGORY_CAPACITY
+    ]
 
 
 def _realize_field_inspection(projection: FigureProjection) -> Any:
@@ -335,12 +408,15 @@ def _realize_field_inspection(projection: FigureProjection) -> Any:
 
     data = cast(CategoricalFieldInspectionData, projection.content)
     domain = data.domain
+    _assert_operational_category_capacity(data.vocabulary_cardinality)
 
     # Shared canonical row/column mapping (Phase-2 § 6).
     matrix = to_matrix(domain, list(data.observation_ids))
 
     figure, axes = plt.subplots(1, 1)
-    cmap = ListedColormap([_category_color(c) for c in range(data.vocabulary_cardinality)])
+    cmap = ListedColormap(
+        [_category_color(c, data.vocabulary_identity) for c in range(data.vocabulary_cardinality)]
+    )
     image = axes.imshow(
         matrix,
         cmap=cmap,
@@ -371,7 +447,7 @@ def _draw_full_legend(figure: Any, axes: Any, data: CategoricalFieldInspectionDa
     import matplotlib.patches as mpatches
 
     handles = [
-        mpatches.Patch(color=_category_color(c), label=f"{c}")
+        mpatches.Patch(color=_category_color(c, data.vocabulary_identity), label=f"{c}")
         for c in range(data.vocabulary_cardinality)
     ]
     figure.legend(
@@ -393,7 +469,9 @@ def _draw_abbreviated_legend(figure: Any, axes: Any, data: CategoricalFieldInspe
     import matplotlib.patches as mpatches
 
     shown = list(range(_LOW_CARDINALITY_LEGEND_LIMIT))
-    handles = [mpatches.Patch(color=_category_color(c), label=f"{c}") for c in shown]
+    handles = [
+        mpatches.Patch(color=_category_color(c, data.vocabulary_identity), label=f"{c}") for c in shown
+    ]
     handles.append(
         mpatches.Patch(
             color="none",

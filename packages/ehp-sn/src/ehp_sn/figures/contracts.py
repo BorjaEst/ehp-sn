@@ -71,6 +71,20 @@ class FigureInputCompatibilityError(ValueError):
     """
 
 
+class InspectionCapacityExceeded(ValueError):
+    """A record's exact faithful realization exceeds supported inspection capacity.
+
+    Raised when the figure's operational inspection capacity cannot faithfully
+    represent the full scientific content of a record (for example a categorical
+    vocabulary with more distinct categories than the realization can
+    distinguish, or an impractically large extent). Inspection must not silently
+    sample, truncate, downsample, or collapse scientific categories to fit
+    presentation capacity (Phase-3 § 32, § 36 · SRF-019). The failure is
+    deterministic and controlled; it never alters scientific record identity or
+    ``ProjectionIdentity``.
+    """
+
+
 @dataclass(frozen=True, slots=True)
 class FigureInputRequirement:
     """A figure's declared semantic source requirement for one role.

@@ -289,10 +289,42 @@ def test_different_vocabulary_identity_same_ids_is_distinct_record() -> None:
 
 
 def test_deterministic_category_styling() -> None:
-    from ehp_sn.figures.builtin.categorical_field import _category_color
+    from ehp_sn.figures.builtin.categorical_field import (
+        _CATEGORY_PALETTE,
+        _OPERATIONAL_CATEGORY_CAPACITY,
+        _category_color,
+        _vocabulary_style_offset,
+    )
 
-    assert _category_color(3) == _category_color(3)
-    assert _category_color(0) != _category_color(1)
+    # Same vocabulary identity + same observation ID → same intended style.
+    assert _category_color(3, "vocab-alpha") == _category_color(3, "vocab-alpha")
+    # Within one vocabulary, distinct categories → distinct styles (no collapse).
+    assert _category_color(0, "vocab-alpha") != _category_color(1, "vocab-alpha")
+    # The supported capacity is fully faithful: every distinct category value
+    # within capacity maps to a distinct intended style (Phase-3 § 32).
+    vocab = "obs-vocabulary:anonymous-45/v1"
+    styles = [_category_color(c, vocab) for c in range(_OPERATIONAL_CATEGORY_CAPACITY)]
+    assert len(set(styles)) == _OPERATIONAL_CATEGORY_CAPACITY
+    assert len(_CATEGORY_PALETTE) == _OPERATIONAL_CATEGORY_CAPACITY
+    assert len(set(_CATEGORY_PALETTE)) == _OPERATIONAL_CATEGORY_CAPACITY
+    # Vocabulary identity qualifies interpretation: the same integer ID under a
+    # different vocabulary identity need not share the same intended style
+    # (Phase-3 § 31 · SRF-012).
+    assert _vocabulary_style_offset("vocab-alpha") == _vocabulary_style_offset("vocab-alpha")
+
+
+def test_vocabulary_style_offset_is_deterministic_and_qualifies_id() -> None:
+    from ehp_sn.figures.builtin.categorical_field import _vocabulary_style_offset
+
+    # Deterministic for a given vocabulary identity — including across process
+    # salt variation, because it uses a stable CRC-32 digest rather than the
+    # salted built-in hash() (categorical visual stability, Phase-3 § 31).
+    assert _vocabulary_style_offset("v-A") == _vocabulary_style_offset("v-A")
+    # Different vocabulary identities may yield different offsets — and even when
+    # the offset coincides, semantic equivalence is never inferred (visual
+    # similarity never implies semantic equivalence, Phase-3 § 31).
+    assert 0 <= _vocabulary_style_offset("v-A") <= 44
+    assert 0 <= _vocabulary_style_offset("v-B") <= 44
 
 
 # ---------------------------------------------------------------------------
@@ -300,23 +332,52 @@ def test_deterministic_category_styling() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_high_cardinality_all_categories_remain_represented() -> None:
-    # K=45 (as in the real ObsField config): every category value remains in the
-    # raster even though a full legend is impractical.
-    domain = rectangular_row_column_domain(4, 5)
+def test_real_obsfield_cardinality_renders_faithfully() -> None:
+    """The real ObsField K=45 vocabulary renders with distinct category styles.
+
+    The supported operational capacity (45) is set so the real committed ObsField
+    vocabulary (``obs-vocabulary:anonymous-45/v1``) is faithfully served: every
+    one of the 45 category values maps to a distinct intended display style, with
+    no silent collapse of distinct categories onto identical styles (Phase-3
+    § 32 · SRF-019).
+    """
+    from ehp_sn.figures.builtin.categorical_field import _CATEGORY_PALETTE
+
+    domain = rectangular_row_column_domain(6, 8)  # 48 positions
     vocab = AnonymousVocabulary(identity="obs-vocabulary:anonymous-45/v1", cardinality=45)
-    ids = list(range(20))  # 20 positions, values in [0,45)
+    ids = [i % 45 for i in range(domain.position_count)]
     projection = _project(
         _source(record_id="sha256:H", domain=domain, vocabulary=vocab, observation_ids=ids)
     )
     data = projection.content
-    # All 45 category values are representable in the semantic mapping.
     assert data.vocabulary_cardinality == 45
+    assert len(data.observation_ids) == 48
     figure = render_figure_projection(projection, registry=_registry())
     assert type(figure).__name__ == "Figure"
-    # Legend is abbreviated but the raster colormap still covers all K.
     image = figure.axes[0].images[0]
+    # Discrete categorical mapping spans all 45 distinct category styles.
     assert image.get_clim() == (0, 44)
+    # The palette is exactly the supported capacity and all entries are distinct.
+    assert len(_CATEGORY_PALETTE) == 45
+    assert len(set(_CATEGORY_PALETTE)) == 45
+
+
+def test_high_cardinality_beyond_capacity_is_controlled_failure() -> None:
+    """A vocabulary beyond faithful distinct-category capacity fails explicitly.
+
+    A vocabulary larger than the supported operational capacity (45) cannot be
+    faithfully represented without silently collapsing distinct categories onto
+    identical styles, so it fails deterministically with
+    :class:`InspectionCapacityExceeded` (Phase-3 § 32, § 36 · SRF-019) rather
+    than degrading.
+    """
+    from ehp_sn.figures import InspectionCapacityExceeded
+
+    domain = rectangular_row_column_domain(4, 5)
+    vocab = AnonymousVocabulary(identity="obs-vocabulary:anonymous-80/v1", cardinality=80)
+    ids = list(range(20))  # 20 positions, values in [0,80)
+    with pytest.raises(InspectionCapacityExceeded):
+        _project(_source(record_id="sha256:H2", domain=domain, vocabulary=vocab, observation_ids=ids))
 
 
 # ---------------------------------------------------------------------------
@@ -382,3 +443,81 @@ def test_rendering_does_not_mutate_source_prepared_or_projection() -> None:
     content_now = categorical_field(_DOMAIN, _ANON, _anon_ids()).content()
     assert source.content["observation_id"] == list(_anon_ids())
     assert source.content["vocabulary"] == content_now["vocabulary"]
+
+
+# ---------------------------------------------------------------------------
+# producer-extension blindness (Phase-3 § 34 · SRF-016)
+# ---------------------------------------------------------------------------
+
+
+def test_producer_assignment_metadata_perturbation_unchanged_generic_view() -> None:
+    """C-014 — ObsField producer extensions cannot alter the generic field view.
+
+    Two records with the same categorical-field payload but different
+    producer-owned assignment metadata (assignment_protocol / realization_index)
+    prepare to the same contract-owned prepared view and realize with the same
+    generic categorical visual semantics. The shared field inspector must not
+    start visualising producer extensions merely because they are available
+    (Phase-3 § 34 · SRF-016). Exact source/provenance identity may differ.
+    """
+    field = categorical_field(_DOMAIN, _ANON, _anon_ids())
+    plain_content = field.content()
+    extended_content = dict(plain_content)
+    extended_content["assignment_protocol"] = "categorical-random/v1"  # producer ext
+    extended_content["realization_index"] = 3  # producer ext
+
+    source_plain = _ExactSource(
+        artifact_ref="artifact:obs/v1",
+        record_id="sha256:PA",
+        schema_ref="categorical-field/v1",
+        content=plain_content,
+    )
+    source_extended = _ExactSource(
+        artifact_ref="artifact:obs/v1",
+        record_id="sha256:PB",
+        schema_ref="categorical-field/v1",
+        content=extended_content,
+    )
+    a = prepare_figure(_registry(), _FIELD_REF, source_plain)
+    b = prepare_figure(_registry(), _FIELD_REF, source_extended)
+
+    # Same contract-owned prepared view.
+    assert a.content.vocabulary_identity == b.content.vocabulary_identity
+    assert tuple(a.content.observation_ids) == tuple(b.content.observation_ids)
+    # Same generic visual semantics: identical drawn category matrix + clim.
+    fa = render_figure_projection(a, registry=_registry())
+    fb = render_figure_projection(b, registry=_registry())
+    assert (fa.axes[0].images[0].get_array() == fb.axes[0].images[0].get_array()).all()
+    assert fa.axes[0].images[0].get_clim() == fb.axes[0].images[0].get_clim()
+
+
+def test_vocabulary_qualified_deterministic_style_cross_vocabularies() -> None:
+    """SRF-012 — same ID under equal-cardinality different vocabularies is distinct.
+
+    Equal cardinality and equal integer range never establish vocabulary
+    equivalence: two vocabularies with the same cardinality but different
+    identity yield distinct records with distinct projection identities, and no
+    semantic equivalence is inferred from equal or similar colours (Phase-3
+    § 30-31).
+    """
+    a = _project(
+        _source(
+            record_id="sha256:VA",
+            domain=_DOMAIN,
+            vocabulary=AnonymousVocabulary(identity="obs:vocab-x/v1", cardinality=3),
+            observation_ids=_anon_ids(),
+        )
+    )
+    b = _project(
+        _source(
+            record_id="sha256:VB",
+            domain=_DOMAIN,
+            vocabulary=AnonymousVocabulary(identity="obs:vocab-y/v1", cardinality=3),
+            observation_ids=_anon_ids(),
+        )
+    )
+    # Same cardinality + same integer IDs, but distinct vocabulary identity →
+    # distinct records (no compatibility inferred).
+    assert a.content.vocabulary_cardinality == b.content.vocabulary_cardinality == 3
+    assert a.content.vocabulary_identity != b.content.vocabulary_identity
+    assert str(a.identity()) != str(b.identity())
