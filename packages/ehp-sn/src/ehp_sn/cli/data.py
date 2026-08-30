@@ -15,15 +15,17 @@ build planning, artifact construction/persistence, contract validation,
 inspection, resource resolution, or fingerprinting. Those live behind the
 adapter boundary or in future framework capabilities.
 
-The implemented commands (``list``/``show``/``plan``) are producer-neutral: this
-module contains no conditional logic keyed to any specific substrate family, and
-an arbitrary substrate reference works so long as the backend understands it.
+The implemented commands (``list``/``show``/``plan``/``build``/``inspect``/
+``validate``) are producer-neutral: this module contains no conditional logic
+keyed to any specific substrate family, and an arbitrary substrate reference
+works so long as the backend understands it. ``validate`` resolves a committed
+artifact and delegates shared-contract conformance checking to the single
+framework-owned shared validator.
 
-The commands in the established command surface that are intentionally
-unsupported until the corresponding framework capability lands
-(``build``/``validate``/``inspect``) are reported here by the CLI itself as a
-controlled "not implemented" failure; no fake backend lifecycle method pretends
-they exist.
+A command-surface option that is intentionally unsupported until its ordering
+or selection semantics are explicitly specified (for example ``inspect
+--samples``) is reported by the CLI itself as a controlled "not implemented"
+failure rather than invented here.
 """
 
 from __future__ import annotations
@@ -44,6 +46,7 @@ from ehp_sn.cli.data_adapter import (
     ListedSubstrate,
     PlanResult,
     ShowResult,
+    ValidateResult,
 )
 from ehp_sn.discovery import effective_registry
 from ehp_sn.execution import effective_execution_composition
@@ -356,6 +359,42 @@ def _emit_inspect(result: InspectResult, fmt: str) -> None:
     typer.echo(f"content: {result.content!r}")
 
 
+def _emit_validate(result: ValidateResult, fmt: str) -> None:
+    if fmt == "json":
+        import json
+
+        typer.echo(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "status": "success",
+                    "action": "validate",
+                    "warnings": [],
+                    "result": {
+                        "artifact": result.artifact_ref,
+                        "total_records": result.total_records,
+                        "conforming_records": result.conforming_records,
+                        "non_conforming": [
+                            {
+                                "record_id": r.record_id,
+                                "schema_ref": r.schema_ref,
+                                "invariant": r.invariant,
+                                "message": r.message,
+                            }
+                            for r in result.non_conforming
+                        ],
+                    },
+                }
+            )
+        )
+        return
+    typer.echo(f"artifact: {result.artifact_ref}")
+    typer.echo(f"records: {result.conforming_records}/{result.total_records} conforming")
+    if result.non_conforming:
+        for r in result.non_conforming:
+            typer.echo(f"  non-conforming {r.record_id} ({r.schema_ref} {r.invariant}): {r.message}")
+
+
 def _run_figure_inspect(artifact: str, record_id: str, figure_ref: str, fmt: str) -> None:
     """Resolve, project, realize, and interactively display one requested figure.
 
@@ -547,9 +586,11 @@ def validate_command(
 ) -> None:
     """Validate an existing substrate artifact without modifying it.
 
-    Currently unsupported: artifact validation is a future framework
-    capability. The command is part of the established surface but is reported
-    here as a controlled not-implemented failure.
+    Resolves the committed artifact and validates every logical record against
+    its declared shared logical schema through the single framework-owned
+    shared-contract validation authority. No record is silently repaired; any
+    non-conformance is reported as a controlled failure. The check is total and
+    deterministic over the committed records.
     """
     global _json_requested  # noqa: PLW0603
     _json_requested = fmt == "json"
@@ -558,7 +599,11 @@ def validate_command(
     if level not in ("quick", "full"):
         typer.echo("Error: --level must be 'quick' or 'full'.", err=True)
         raise typer.Exit(code=2)
-    _fail(DataNotImplementedError("data validate is not yet implemented."))
+    try:
+        result = _get_adapter().validate(artifact)
+    except Exception as exc:  # noqa: BLE001
+        _fail(exc)
+    _emit_validate(result, fmt)
 
 
 @app.command("inspect")

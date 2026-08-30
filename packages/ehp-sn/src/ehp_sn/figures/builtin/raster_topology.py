@@ -9,7 +9,7 @@ The figure understands:
 
 ```text
 raster-topology/v1
-domain extent (height/width)
+extent (height/width)
 passability
 ```
 
@@ -33,7 +33,7 @@ record requires no semantic modification here (P1-T4 acceptance criterion).
 ``prepare`` normalizes the exact stable authoritative source into a stable
 typed :class:`~ehp_sn.contracts.topology.RasterTopology` view. A committed
 ``raster-topology/v1`` record's logical contents are its authoritative
-``content()`` projection (a JSON ``{"domain": {...}, "passable": [...]}``
+``content()`` projection (a JSON ``{"extent": {...}, "passable": [...]}``
 dictionary); ``prepare`` reconstructs the conforming typed view from those
 authoritative fields. It derives no new scientific/structural conclusion beyond
 what the authoritative contract already states (Phase-1 § 11 · P1-T9);
@@ -145,7 +145,7 @@ def _extract_authoritative_topology(content: object) -> RasterTopology:
 
     Accepts either an already-typed :class:`RasterTopology` (producer/in-memory
     context) or the authoritative committed ``content()`` projection dictionary
-    (``{"domain": {...}, "passable": [...]}``). It reads only the contract's
+    (``{"extent": {...}, "passable": [...]}``). It reads only the contract's
     authoritative fields and delegates to the contract's own constructors —
     never a producer or physical-storage detail.
     """
@@ -156,17 +156,17 @@ def _extract_authoritative_topology(content: object) -> RasterTopology:
             f"raster-topology/v1 figure source must be a typed RasterTopology or its "
             f"authoritative content projection; got {type(content).__name__}"
         )
-    domain = content.get("domain")
+    extent = content.get("extent")
     passable = content.get("passable")
-    if not isinstance(domain, dict) or not isinstance(passable, (list, tuple)):
+    if not isinstance(extent, dict) or not isinstance(passable, (list, tuple)):
         raise TypeError(
-            "raster-topology/v1 authoritative content projection is missing 'domain' and/or 'passable'"
+            "raster-topology/v1 authoritative content projection is missing 'extent' and/or 'passable'"
         )
     try:
-        height = int(domain["height"])
-        width = int(domain["width"])
+        height = int(extent["height"])
+        width = int(extent["width"])
     except (KeyError, TypeError, ValueError) as exc:
-        raise TypeError("raster-topology/v1 domain projection is missing integer height/width") from exc
+        raise TypeError("raster-topology/v1 extent projection is missing integer height/width") from exc
     ambient = rectangular_row_column_domain(height, width)
     return raster_topology(ambient, list(passable))
 
@@ -195,8 +195,8 @@ def _realize_topology_inspection(projection: FigureProjection) -> Any:
     from matplotlib.colors import ListedColormap
 
     topology = cast(RasterTopology, projection.content)
-    height = topology.domain.height
-    width = topology.domain.width
+    height = topology.extent.height
+    width = topology.extent.width
     passable = topology.passable
 
     # A 2D display view: row-major passability reshaped to (height, width).

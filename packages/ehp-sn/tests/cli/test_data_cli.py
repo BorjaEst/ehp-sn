@@ -423,10 +423,10 @@ def test_plan_invalid_release_is_a_controlled_usage_error(use_adapter: None, tmp
     assert "Traceback" not in result.stderr
 
 
-def test_validate_is_controlled_not_implemented() -> None:
-    result = runner.invoke(app, ["data", "validate", "example-substrate/v7"])
-    assert result.exit_code == 1
-    assert "not yet implemented" in result.stderr
+def test_validate_missing_artifact_is_controlled_error() -> None:
+    """``data validate`` on an absent artifact is a controlled error (exit 4)."""
+    result = runner.invoke(app, ["data", "validate", "data/interim/does-not-exist"])
+    assert result.exit_code == 4
     assert "Traceback" not in result.stderr
 
 

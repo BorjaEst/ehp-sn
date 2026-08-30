@@ -41,7 +41,11 @@ from typer.testing import CliRunner
 
 #: Repo root, located relative to this test file (…/tests/integration/ → repo).
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_DUNGEONGEN_RASTER = _REPO_ROOT / "data" / "interim" / "dungeongen" / "general" / "v1"
+# ``v3`` is the conforming ``raster-topology/v1`` release (authoritative
+# ``extent`` + ``passable``). Earlier local releases stored the pre-normalization
+# ``domain`` field and are non-conforming to the current contract; they are not
+# used as a shared-contract figure source (Phase 1 § 38).
+_DUNGEONGEN_RASTER = _REPO_ROOT / "data" / "interim" / "dungeongen" / "general" / "v3"
 _DAGFLOW_DIGRAPH = _REPO_ROOT / "data" / "interim" / "dagflow" / "single-terminal" / "v1"
 
 _FIGURE_REF = "figure:raster-topology-inspection/v1"

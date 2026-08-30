@@ -72,7 +72,7 @@ def _raster_source() -> _ExactSource:
         record_id="sha256:ZZZ",
         schema_ref="raster-topology/v1",
         content={
-            "domain": {"height": 3, "width": 4, "position_count": 12},
+            "extent": {"height": 3, "width": 4, "position_count": 12},
             "passable": [True] * 12,
         },
     )

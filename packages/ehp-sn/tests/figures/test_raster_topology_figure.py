@@ -50,7 +50,7 @@ def _source(
         record_id=record_id,
         schema_ref="raster-topology/v1",
         content={
-            "domain": {"height": 3, "width": 4, "position_count": 12},
+            "extent": {"height": 3, "width": 4, "position_count": 12},
             "passable": passable,
         },
     )
@@ -69,9 +69,7 @@ def test_equivalent_records_use_same_figure_no_producer_branch() -> None:
     # Two raster-topology/v1 records from different artifact/producer contexts
     # resolve through the identical FigureSpec with no producer-identity input.
     source_a = _source(artifact_ref="artifact:dg/v1", record_id="sha256:A1", passable=[True] * 12)
-    source_b = _source(
-        artifact_ref="artifact:fixture/v9", record_id="sha256:B2", passable=[True] * 12
-    )
+    source_b = _source(artifact_ref="artifact:fixture/v9", record_id="sha256:B2", passable=[True] * 12)
     registry = _registry()
     # Neither source carries a producer identity; both prepare through the same
     # catalogue-resolved FigureSpec and both realize successfully.
@@ -92,9 +90,9 @@ def test_prepare_reconstructs_typed_raster_topology() -> None:
     content = projection.source.content
     assert content.__class__.__name__ == "RasterTopology"
     assert content.schema_ref == "raster-topology/v1"
-    assert content.domain.height == 3
-    assert content.domain.width == 4
-    assert content.domain.position_count == 12
+    assert content.extent.height == 3
+    assert content.extent.width == 4
+    assert content.extent.position_count == 12
     assert tuple(content.passable) == (True,) * 12
 
 

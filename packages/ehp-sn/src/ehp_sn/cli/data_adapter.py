@@ -23,8 +23,9 @@ immutable framework plan into a CLI-facing :class:`PlanResult`; ``build``
 delegates to the generic build lifecycle (``ehp_sn.artifacts.build_substrate``)
 and projects the committed/reused outcome; ``inspect`` resolves a committed
 artifact through the generic durable artifact machinery and projects the exact
-logical record selected by ``record_id``. ``validate`` remains unsupported and
-is reported by the CLI itself until a real validation capability exists.
+logical record selected by ``record_id``; ``validate`` resolves a committed
+artifact and checks every record against its declared shared logical schema
+through the single framework-owned shared-contract validator.
 
 The adapter holds no producer-specific branches, metadata maps, or error
 classes. It translates only generic framework failures: unknown/malformed
@@ -200,6 +201,21 @@ class RecordNotFoundError(DataCliError):
     category = "record_not_found"
 
 
+class DataNotConformingError(DataCliError):
+    """A committed artifact contains a record non-conforming to its declared contract.
+
+    A present, readable committed artifact whose logical records do **not**
+    conform to their declared shared logical schema surfaces as this controlled
+    category (exit 3, invalid configuration or specification). No record is
+    silently repaired; conformance failure is explicit (``docs/invariants.md``
+    ARCH-014). This is distinct from an unreadable/corrupt artifact
+    (:class:`ArtifactInvalidError`), which concerns physical validity.
+    """
+
+    exit_code = 3  # invalid configuration or specification
+    category = "record_not_conforming"
+
+
 # ---------------------------------------------------------------------------
 # CLI presentation DTOs
 #
@@ -332,6 +348,43 @@ class InspectResult:
     record_id: str
     schema_ref: str
     content: object
+
+
+@dataclass(frozen=True)
+class RecordConformanceView:
+    """CLI-facing value of one non-conforming logical record.
+
+    ``record_id`` addresses the exact record; ``schema_ref`` is its declared
+    logical schema; ``invariant`` and ``message`` identify the violated
+    ``*-REC-*`` invariant and the observed-vs-expected detail.
+    """
+
+    record_id: str
+    schema_ref: str
+    invariant: str
+    message: str
+
+
+@dataclass(frozen=True)
+class ValidateResult:
+    """A ``data validate`` projection of shared-contract conformance.
+
+    This is a presentational, deterministic projection of validating every
+    logical record of a committed artifact against its declared shared logical
+    schema (``docs/invariants.md`` ARCH-014). It is **not** the framework
+    validation authority; it reports observable conformance.
+
+    It carries the committed artifact reference, the total record count, the
+    count of conforming records, and the exact list of non-conforming records
+    (as :class:`RecordConformanceView` values) — or an empty list when every
+    record conforms. No sampling or RNG is performed; the check is total and
+    deterministic over the committed records.
+    """
+
+    artifact_ref: str
+    total_records: int
+    conforming_records: int
+    non_conforming: tuple[RecordConformanceView, ...]
 
 
 class _RegisteredSubstrate(Protocol):
@@ -558,6 +611,57 @@ class FrameworkDataAdapter:
             )
         return _project_inspect_result(committed, record)
 
+    def validate(self, artifact: str) -> ValidateResult:
+        """Validate every committed logical record against its declared shared schema.
+
+        The deterministic conformance path: a user-supplied ``ARTIFACT`` (path
+        or ``artifact:`` reference) is resolved to its committed
+        :class:`~ehp_sn.artifacts.SubstrateArtifact`, and every logical record's
+        opaque ``content`` is validated against its declared shared logical
+        schema through the single framework-owned shared-contract validation
+        authority (``ehp_sn.contracts.validation``). No record is silently
+        repaired and no producer-specific or contract-specific branch interprets
+        content (``docs/invariants.md`` ARCH-014).
+
+        The check is total and deterministic: every committed record is
+        validated once, in index/registration order, with no sampling or RNG.
+        A record whose declared schema is not a recognized shared contract is
+        reported as non-conforming (unknown schema), never silently skipped.
+
+        Returns a :class:`ValidateResult` describing artifact reference, total
+        and conforming counts, and the exact non-conforming records. Raises
+        :class:`DataNotConformingError` when one or more records are
+        non-conforming, and :class:`UnknownArtifactError` /
+        :class:`ArtifactInvalidError` for resolution/parse failures resolved via
+        the shared :meth:`_resolve_artifact` path.
+        """
+        committed = self._resolve_artifact(artifact)
+        non_conforming: list[RecordConformanceView] = []
+        for record in committed.records:
+            failure = _validate_record_content(record.schema_ref, record.content)
+            if failure is not None:
+                non_conforming.append(
+                    RecordConformanceView(
+                        record_id=record.record_id,
+                        schema_ref=record.schema_ref,
+                        invariant=failure.invariant,
+                        message=failure.message,
+                    )
+                )
+        total = len(committed.records)
+        if non_conforming:
+            raise DataNotConformingError(
+                f"{len(non_conforming)} of {total} records are non-conforming to "
+                "their declared shared contract (first: "
+                f"{non_conforming[0].schema_ref} {non_conforming[0].invariant})"
+            )
+        return ValidateResult(
+            artifact_ref=committed.artifact_ref,
+            total_records=total,
+            conforming_records=total,
+            non_conforming=(),
+        )
+
     def plan(self, target: str, config: str | None, release: int | None = None) -> PlanResult:
         """Resolve and project a substrate build plan without writing any data.
 
@@ -700,6 +804,51 @@ def _project_inspect_result(committed: object, record: LogicalRecord) -> Inspect
         schema_ref=record.schema_ref,
         content=record.content,
     )
+
+
+def _validate_record_content(schema_ref: str, content: object):
+    """Validate one logical record's content against its declared schema.
+
+    Dispatches the opaque ``content`` to the single framework-owned
+    shared-contract validation authority (``ehp_sn.contracts.validation``) keyed
+    by the record's declared ``schema_ref``. Returns ``None`` when the record
+    conforms, or a :class:`~ehp_sn.contracts.validation.ContractValidationError`
+    carrying the violated invariant and message when it does not.
+
+    A declared schema that is not a recognized shared contract is reported as
+    non-conforming (unknown schema) rather than silently skipped, so a record
+    never escapes validation. No producer-specific branch decides the outcome.
+    """
+    from ehp_sn.contracts.validation import (
+        ContractValidationError,
+        validate_categorical_field,
+        validate_raster_topology,
+        validate_simple_digraph,
+    )
+
+    _VALIDATORS = {
+        "simple-digraph/v1": validate_simple_digraph,
+        "raster-topology/v1": validate_raster_topology,
+        "categorical-field/v1": validate_categorical_field,
+    }
+    validator = _VALIDATORS.get(schema_ref)
+    if validator is None:
+        return ContractValidationError(
+            schema_ref,
+            "schema",
+            f"no shared contract validator registered for declared schema {schema_ref!r}",
+        )
+    if not isinstance(content, dict):
+        return ContractValidationError(
+            schema_ref,
+            "decode",
+            f"declared logical instance must be a mapping, got {type(content).__name__}",
+        )
+    try:
+        validator(content)
+    except ContractValidationError as exc:
+        return exc
+    return None
 
 
 def _project_build_result(outcome: BuildOutcome) -> BuildResult:

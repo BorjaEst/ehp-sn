@@ -37,7 +37,7 @@ def _source(*, record_id: str, passable: list[bool] | None = None) -> _ExactSour
         record_id=record_id,
         schema_ref="raster-topology/v1",
         content={
-            "domain": {"height": 3, "width": 4, "position_count": 12},
+            "extent": {"height": 3, "width": 4, "position_count": 12},
             "passable": passable if passable is not None else [True] * 12,
         },
     )

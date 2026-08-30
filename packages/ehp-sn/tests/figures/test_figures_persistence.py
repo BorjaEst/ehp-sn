@@ -39,7 +39,7 @@ def _source(*, record_id: str = "sha256:AAA") -> _ExactSource:
         record_id=record_id,
         schema_ref="raster-topology/v1",
         content={
-            "domain": {"height": 3, "width": 4, "position_count": 12},
+            "extent": {"height": 3, "width": 4, "position_count": 12},
             "passable": [True] * 12,
         },
     )

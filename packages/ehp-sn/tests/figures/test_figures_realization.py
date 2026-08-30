@@ -66,7 +66,7 @@ def _source(*, record_id: str = "sha256:AAA", passable=None) -> _ExactSource:
         record_id=record_id,
         schema_ref="raster-topology/v1",
         content={
-            "domain": {"height": 3, "width": 4, "position_count": 12},
+            "extent": {"height": 3, "width": 4, "position_count": 12},
             "passable": passable,
         },
     )
@@ -335,7 +335,7 @@ def test_interactive_path_transfers_figure_ownership() -> None:
 def test_realization_does_not_mutate_projection_or_source() -> None:
     reg = effective_figure_registry()
     source_content = {
-        "domain": {"height": 3, "width": 4, "position_count": 12},
+        "extent": {"height": 3, "width": 4, "position_count": 12},
         "passable": [True] * 12,
     }
     source = _ExactSource(

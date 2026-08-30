@@ -47,7 +47,7 @@ _SOURCE = _ExactSource(
     record_id="sha256:AAA",
     schema_ref="raster-topology/v1",
     content={
-        "domain": {"height": 3, "width": 4, "position_count": 12},
+        "extent": {"height": 3, "width": 4, "position_count": 12},
         "passable": [True] * 12,
     },
 )
@@ -118,7 +118,7 @@ def test_figure_layer_consumes_exact_resolved_source_no_reselection() -> None:
 
 def test_rendering_does_not_mutate_source_or_projection() -> None:
     source_content_before = {
-        "domain": {"height": 3, "width": 4, "position_count": 12},
+        "extent": {"height": 3, "width": 4, "position_count": 12},
         "passable": [True] * 12,
     }
     source = _ExactSource(

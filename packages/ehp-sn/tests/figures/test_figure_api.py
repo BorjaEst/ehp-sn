@@ -62,7 +62,7 @@ from ehp_sn.figures.service import prepare_figure as service_prepare_figure
 
 #: A canonical raster-topology/v1 source used for convergence.
 _AUTHORITATIVE_CONTENT = {
-    "domain": {"height": 3, "width": 4, "position_count": 12},
+    "extent": {"height": 3, "width": 4, "position_count": 12},
     "passable": [True] * 12,
 }
 _SOURCE = FigureSource(

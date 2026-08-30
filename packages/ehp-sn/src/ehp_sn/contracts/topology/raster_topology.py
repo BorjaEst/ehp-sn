@@ -76,14 +76,15 @@ class RasterTopologyError(ValueError):
 class RasterTopology:
     """An immutable, conforming ``raster-topology/v1`` record.
 
-    ``domain`` is the complete ``rectangular-row-column/v1`` ambient-domain
-    declaration and ``passable`` is the authoritative passability structure in
-    canonical row-major order. Every other field is a canonical derived view
+    ``extent`` is the complete ``rectangular-row-column/v1`` ambient-domain
+    declaration (the authoritative logical field, per RT-REC-001) and
+    ``passable`` is the authoritative passability structure in canonical
+    row-major order. Every other field is a canonical derived view
     reconstrucible from these two, under the fixed ``v1`` schema parameters.
     """
 
     # Authoritative
-    domain: RectangularRowColumnDomain
+    extent: RectangularRowColumnDomain
     passable: tuple[bool, ...]
 
     # Canonical derived views
@@ -126,19 +127,21 @@ class RasterTopology:
         return STAY_INCLUDED
 
     def content(self) -> dict[str, object]:
-        """Return the authoritative content projection (domain + passable).
+        """Return the authoritative content projection (extent + passable).
 
-        Record identity and equality are based on ``extent`` (domain) and
-        ``passable``; the canonical derived views carry no identity beyond them.
+        Record identity and equality are based on the authoritative ``extent``
+        (the complete ``rectangular-row-column/v1`` ambient-domain declaration)
+        and ``passable``; the canonical derived views carry no identity beyond
+        them (RT-REC-001).
         """
         return {
-            "domain": self.domain.declaration(),
+            "extent": self.extent.declaration(),
             "passable": list(self.passable),
         }
 
 
 def _derive_views(
-    domain: RectangularRowColumnDomain,
+    extent: RectangularRowColumnDomain,
     passable: tuple[bool, ...],
 ) -> tuple[
     int,
@@ -149,9 +152,9 @@ def _derive_views(
     int,
     bool,
 ]:
-    """Compute all canonical derived views from domain + passable (RT-REC-003..007)."""
-    position_count = domain.position_count
-    height, width = domain.height, domain.width
+    """Compute all canonical derived views from extent + passable (RT-REC-003..007)."""
+    position_count = extent.position_count
+    height, width = extent.height, extent.width
 
     # RT-REC-003 — compact state enumeration in canonical row-major passable order.
     state_to_position: list[int] = [p for p in range(position_count) if passable[p]]
@@ -165,11 +168,11 @@ def _derive_views(
     next_state: list[dict[str, int]] = [dict() for _ in range(state_count)]
     movement_valid: list[dict[str, bool]] = [dict() for _ in range(state_count)]
     for state_id, position in enumerate(state_to_position):
-        row, col = domain.coordinate(position)
+        row, col = extent.coordinate(position)
         for label, (drow, dcol) in zip(MOVEMENT_LABELS, _MOVEMENT_DELTAS, strict=True):
             nrow, ncol = row + drow, col + dcol
             if 0 <= nrow < height and 0 <= ncol < width:
-                neighbor = domain.position_id(nrow, ncol)
+                neighbor = extent.position_id(nrow, ncol)
                 if passable[neighbor]:
                     neighbor_state = position_to_state[neighbor]
                     assert neighbor_state is not None  # passable -> has a state
@@ -210,20 +213,21 @@ def _derive_views(
     )
 
 
-def raster_topology(domain: RectangularRowColumnDomain, passable: Sequence[bool]) -> RasterTopology:
+def raster_topology(extent: RectangularRowColumnDomain, passable: Sequence[bool]) -> RasterTopology:
     """Construct a conforming :class:`RasterTopology` from authoritative inputs.
 
-    Accepts a canonical rectangular ``domain`` and a ``passable`` structure of
-    exactly ``domain.position_count`` booleans in canonical row-major order
-    (``RT-REC-002``). Computes all fixed ``raster-topology/v1`` derived views
-    under the fixed grid4/undirected/unit/no-stay parameters.
+    Accepts the authoritative ``extent`` (a canonical rectangular
+    ``rectangular-row-column/v1`` ambient-domain declaration) and a ``passable``
+    structure of exactly ``extent.position_count`` booleans in canonical
+    row-major order (``RT-REC-002``). Computes all fixed ``raster-topology/v1``
+    derived views under the fixed grid4/undirected/unit/no-stay parameters.
 
     Raises :class:`RasterTopologyError` for a passability length mismatch or a
     fully non-passable domain (``state_count`` must be ``>= 1``).
     """
-    if len(passable) != domain.position_count:
+    if len(passable) != extent.position_count:
         raise RasterTopologyError(
-            f"passable length {len(passable)} != position_count {domain.position_count}"
+            f"passable length {len(passable)} != position_count {extent.position_count}"
         )
     bools = tuple(bool(p) for p in passable)
     if not any(bools):
@@ -237,10 +241,10 @@ def raster_topology(domain: RectangularRowColumnDomain, passable: Sequence[bool]
         movement_valid,
         component_count,
         connected,
-    ) = _derive_views(domain, bools)
+    ) = _derive_views(extent, bools)
 
     return RasterTopology(
-        domain=domain,
+        extent=extent,
         passable=bools,
         state_count=state_count,
         state_to_position=state_to_position,

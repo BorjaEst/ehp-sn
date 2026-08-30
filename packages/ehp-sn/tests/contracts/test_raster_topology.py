@@ -72,11 +72,11 @@ def test_all_blocked_rejected() -> None:
         raster_topology(_domain(), [False] * 6)
 
 
-def test_authoritative_content_is_domain_plus_passable() -> None:
-    """Record identity/equality rests on domain + passable, not derived views."""
+def test_authoritative_content_is_extent_plus_passable() -> None:
+    """Record identity/equality rests on extent + passable, not derived views."""
     topology = raster_topology(_domain(), [True, True, False, False, True, True])
     content = topology.content()
-    assert set(content.keys()) == {"domain", "passable"}
+    assert set(content.keys()) == {"extent", "passable"}
     assert content["passable"] == [True, True, False, False, True, True]
 
 
@@ -97,9 +97,9 @@ def test_same_constructor_accepts_two_normalized_producer_contexts() -> None:
 
 
 def test_constructor_owns_no_producer_specific_semantics() -> None:
-    """The constructor takes only domain + passable; nothing product-specific."""
+    """The constructor takes only extent + passable; nothing product-specific."""
     import inspect
 
     signature = inspect.signature(raster_topology)
     params = list(signature.parameters)
-    assert params == ["domain", "passable"]
+    assert params == ["extent", "passable"]

@@ -141,10 +141,10 @@ def test_execute_materializes_unique_valid_topology_records(tmp_path, monkeypatc
     assert len(records) == 3
     for record in records:
         assert record.schema_ref == "raster-topology/v1"
-        assert set(record.content.keys()) == {"domain", "passable"}
+        assert set(record.content.keys()) == {"extent", "passable"}
     # Extent of A/B is 2x3; C is 3x2.
     extents = {
-        (record.content["domain"]["height"], record.content["domain"]["width"]) for record in records
+        (record.content["extent"]["height"], record.content["extent"]["width"]) for record in records
     }
     assert extents == {(2, 3), (3, 2)}
 
@@ -188,8 +188,8 @@ def test_record_id_is_deterministic_for_same_source(tmp_path, monkeypatch) -> No
     def _records():
         return {
             (
-                r.content["domain"]["height"],
-                r.content["domain"]["width"],
+                r.content["extent"]["height"],
+                r.content["extent"]["width"],
                 tuple(r.content["passable"]),
             ): r.record_id
             for r in _execute(plan).materialization.records
@@ -248,8 +248,8 @@ def test_record_uses_shared_raster_topology_no_private_state(tmp_path, monkeypat
     plan, _fp = _make_plan(tmp_path, monkeypatch=monkeypatch)
     result = _execute(plan)
     for record in result.materialization.records:
-        # Content is the shared raster-topology content projection (domain+passable).
-        assert set(record.content.keys()) == {"domain", "passable"}
+        # Content is the shared raster-topology content projection (extent+passable).
+        assert set(record.content.keys()) == {"extent", "passable"}
         # Component/store/state fields are NOT re-emitted as private Maze-ND channels.
         assert not (
             set(record.content.keys())

@@ -44,10 +44,10 @@ def test_execute_materializes_records_and_lineage(monkeypatch) -> None:
     # Framework derives record_id; each distinct logical index gets a distinct id.
     ids = {r.record_id for r in session.records}
     assert len(ids) == 4
-    # Every record conforms to raster-topology/v1 content: domain + passable.
+    # Every record conforms to raster-topology/v1 content: extent + passable.
     for record in session.records:
         content = record.content
-        assert set(content) == {"domain", "passable"}
+        assert set(content) == {"extent", "passable"}
         assert record.schema_ref == "raster-topology/v1"
     # Lineage logical resource present.
     names = {res.name for res in session.logical_resources}
