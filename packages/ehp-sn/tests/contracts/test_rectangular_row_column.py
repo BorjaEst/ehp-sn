@@ -8,6 +8,10 @@ invalid-dimension/coordinate rejections.
 The domain is framework-owned and producer-neutral: it owns position identity
 and coordinate structure only, with no hex support, no topology movement, no
 passability, and no vocabulary semantics (Target 8 acceptance).
+
+The shared-validator section covers the framework-owned ``AD-REC-00x``
+conformance boundary (``ehp_sn.contracts.validation.validate_extent_declaration``)
+over embedded domain declarations.
 """
 
 from __future__ import annotations
@@ -17,6 +21,10 @@ from ehp_sn.contracts.domains import (
     AmbientDomainError,
     domains_compatible,
     rectangular_row_column_domain,
+)
+from ehp_sn.contracts.validation import (
+    ContractValidationError,
+    validate_extent_declaration,
 )
 
 
@@ -97,3 +105,36 @@ def test_no_hex_or_grid4_or_passability_semantics() -> None:
     assert d.declaration()["coordinate_structure"] == "rectangular-lattice"
     # No grid4 semantics present: the declaration is only the position space.
     assert "grid4" not in str(d.declaration())
+
+
+# ---------------------------------------------------------------------------
+# Shared validator (AD-REC conformance boundary) over embedded declarations
+# ---------------------------------------------------------------------------
+
+
+def test_validate_extent_declaration_reconstructs_domain() -> None:
+    """A valid declaration reconstructs the complete domain (AD-REC-001)."""
+    declaration = rectangular_row_column_domain(2, 3).declaration()
+    domain = validate_extent_declaration("raster-topology/v1", declaration)
+    assert domain.height == 2
+    assert domain.width == 3
+    assert domain.position_count == 6
+
+
+def test_validate_extent_declaration_rejects_wrong_schema() -> None:
+    """A declaration with the wrong registered schema is rejected (AD-REC-002)."""
+    with pytest.raises(ContractValidationError) as exc:
+        validate_extent_declaration(
+            "raster-topology/v1",
+            {"schema": "hex/v1", "height": 2, "width": 3},
+        )
+    assert exc.value.invariant == "AD-REC-002"
+
+
+def test_validate_extent_declaration_rejects_derived_disagreement() -> None:
+    """A derived field disagreeing with the authoritative declaration is rejected (AD-REC-003)."""
+    declaration = rectangular_row_column_domain(2, 3).declaration()
+    declaration["position_count"] = 999  # derived field disagrees
+    with pytest.raises(ContractValidationError) as exc:
+        validate_extent_declaration("raster-topology/v1", declaration)
+    assert exc.value.invariant == "AD-REC-003"

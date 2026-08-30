@@ -69,13 +69,21 @@ from .serialization import (
     resolve_serialization_policy,
 )
 from .service import (
+    AUTO_FIGURE_TOKEN,
+    AmbiguousFigureError,
     FigureResult,
     FigureServiceError,
+    NoCompatibleFigureError,
     UnknownFigureError,
     inspect_figure,
+    list_compatible_figures,
+    list_figures_for_record,
+    resolve_auto_figure,
 )
 
 __all__ = [
+    "AUTO_FIGURE_TOKEN",
+    "AmbiguousFigureError",
     "ContentDigest",
     "FIGURE_KIND",
     "FIGURE_PROVIDER_ENTRY_POINT_GROUP",
@@ -89,6 +97,7 @@ __all__ = [
     "FigureServiceError",
     "FigureSource",
     "FigureSpec",
+    "NoCompatibleFigureError",
     "PresentationError",
     "ProjectionIdentity",
     "RealizationError",
@@ -106,6 +115,8 @@ __all__ = [
     "default_render_profile",
     "effective_figure_registry",
     "inspect_figure",
+    "list_compatible_figures",
+    "list_figures_for_record",
     "prepare_figure",
     "realize_projection",
     "record_rendering_environment",
@@ -113,6 +124,7 @@ __all__ = [
     "register_installed_figure_providers",
     "render_figure",
     "render_figure_projection",
+    "resolve_auto_figure",
     "resolve_figure_realization",
     "resolve_serialization_policy",
     "verify_content_digest",

@@ -63,6 +63,26 @@ class UnknownFigureError(FigureServiceError):
     """
 
 
+class NoCompatibleFigureError(FigureServiceError):
+    """``--figure auto`` resolved no compatible figure for the exact source record.
+
+    Raised when zero registered figures declare an input requirement satisfied
+    by the source record's logical contract (Phase-2 § 37). It is a controlled
+    discovery failure — not a silent fallback to another figure.
+    """
+
+
+class AmbiguousFigureError(FigureServiceError):
+    """``--figure auto`` resolved more than one compatible figure for the source.
+
+    Raised when two or more registered figures declare an input requirement
+    satisfied by the source record's logical contract. There is no priority,
+    preferred provider, first-match, best-match, or installation-order
+    precedence (Phase-2 § 37). The caller must select an exact canonical
+    ``FigureSpec`` reference explicitly.
+    """
+
+
 class _FigureSource(Protocol):
     """Minimal structural shape of a resolved exact source.
 
@@ -177,6 +197,64 @@ def _validate_input_requirement(spec: FigureSpec, source: _FigureSource) -> None
             f"{requirement.contract!r}, but the exact resolved record "
             f"{source.record_id!r} conforms to {source.schema_ref!r}"
         )
+
+
+def list_compatible_figures(
+    registry: ComponentRegistry,
+    source: _FigureSource,
+) -> list[FigureSpec]:
+    """List every registered ``FigureSpec`` compatible with the exact source record.
+
+    Compatibility is figure-declared and generic (Phase-2 § 36): a figure is
+    compatible when its declared ``FigureInputRequirement`` is satisfied by the
+    source record's logical contract (``schema_ref``). The generic orchestration
+    does **not** hard-code any producer→figure or contract→figure table; it
+    iterates the ordinary figure catalogue and asks each ``FigureSpec`` about its
+    own declared requirement. The result order is the catalogue's canonical
+    (deterministic) order (Phase-2 § 39).
+    """
+    result: list[FigureSpec] = []
+    for definition in registry.iter(kind=FIGURE_KIND):
+        spec = cast(FigureSpec, definition)
+        if spec.projection.requirement.accepts(source.schema_ref):
+            result.append(spec)
+    return result
+
+
+def resolve_auto_figure(
+    registry: ComponentRegistry,
+    source: _FigureSource,
+) -> FigureSpec:
+    """Resolve ``--figure auto`` to exactly one canonical ``FigureSpec``.
+
+    ``auto`` is a CLI convenience token, not a scientific or projection identity
+    (Phase-2 § 38). It resolves compatibility against the exact source record:
+
+    ```text
+    0 compatible    → NoCompatibleFigureError
+    1 compatible    → return the exact FigureSpec
+    >1 compatible   → AmbiguousFigureError
+    ```
+
+    There is no priority, preferred provider, first match, best match, or
+    installation-order precedence (Phase-2 § 37). Once resolved, callers must
+    use the returned ``FigureSpec``'s exact canonical reference — never retain
+    ``auto`` as provenance (Phase-2 § 38).
+    """
+    compatible = list_compatible_figures(registry, source)
+    if not compatible:
+        raise NoCompatibleFigureError(
+            f"no compatible figure for source record {source.record_id!r} "
+            f"conforming to {source.schema_ref!r}"
+        )
+    if len(compatible) > 1:
+        refs = sorted(spec.ref.canonical for spec in compatible)
+        raise AmbiguousFigureError(
+            f"multiple compatible figures for source record {source.record_id!r} "
+            f"conforming to {source.schema_ref!r}: {refs}. "
+            f"Select an exact canonical FigureSpec reference explicitly."
+        )
+    return compatible[0]
 
 
 def prepare_figure(
@@ -327,16 +405,80 @@ def inspect_figure(
         content=record.content,
     )
     effective = registry if registry is not None else effective_figure_registry()
-    projection = prepare_figure(effective, figure_ref, source)
+    resolved_figure_ref = _canonicalize_figure_ref(effective, source, figure_ref)
+    projection = prepare_figure(effective, resolved_figure_ref, source)
     figure = render_figure_projection(projection, registry=effective)
     return FigureResult(projection=projection, figure=figure)
 
 
+def _canonicalize_figure_ref(
+    registry: ComponentRegistry,
+    source: _FigureSource,
+    figure_ref: str,
+) -> str:
+    """Canonicalize an ``auto`` convenience token to an exact FigureSpec reference.
+
+    ``auto`` is a CLI convenience token, not a scientific or projection identity
+    (Phase-2 § 38). Before projection construction it is resolved to exactly one
+    canonical ``FigureSpec`` reference; from that point onward provenance
+    contains only the exact resolved figure reference — never ``auto``
+    (Phase-2 § 38, § 41). An explicit canonical reference is returned unchanged.
+    """
+    token = figure_ref.strip()
+    if token == AUTO_FIGURE_TOKEN:
+        resolved = resolve_auto_figure(registry, source)
+        return resolved.ref.canonical
+    return figure_ref
+
+
+def list_figures_for_record(
+    artifact: str,
+    record_id: str,
+    *,
+    artifact_root: Path | None = None,
+    registry: ComponentRegistry | None = None,
+) -> list[str]:
+    """List the canonical references of figures compatible with one committed record.
+
+    Resolves exactly one committed record (the parent operation's exact-record
+    resolution, P1-T8), then lists every registered ``FigureSpec`` whose declared
+    input requirement the record satisfies, in the catalogue's canonical order
+    (Phase-2 § 36, § 39). It is generic: no producer→figure or contract→figure
+    table is hard-coded here.
+    """
+    root = artifact_root if artifact_root is not None else Path("data/interim")
+    committed = _resolve_artifact(artifact, root)
+    record = committed.record(record_id)
+    if record is None:
+        raise FigureServiceError(
+            f"record {record_id!r} not found in committed artifact {committed.artifact_ref}"
+        )
+    source = _ExactSource(
+        artifact_ref=committed.artifact_ref,
+        record_id=record.record_id,
+        schema_ref=record.schema_ref,
+        content=record.content,
+    )
+    effective = registry if registry is not None else effective_figure_registry()
+    compatible = list_compatible_figures(effective, source)
+    return [spec.ref.canonical for spec in compatible]
+
+
+#: The ``auto`` convenience token for single-figure resolution (Phase-2 § 37-38).
+AUTO_FIGURE_TOKEN = "auto"
+
+
 __all__ = [
+    "AUTO_FIGURE_TOKEN",
+    "AmbiguousFigureError",
     "FigureResult",
     "FigureServiceError",
+    "NoCompatibleFigureError",
     "UnknownFigureError",
     "inspect_figure",
+    "list_compatible_figures",
+    "list_figures_for_record",
     "prepare_figure",
     "render_figure_projection",
+    "resolve_auto_figure",
 ]

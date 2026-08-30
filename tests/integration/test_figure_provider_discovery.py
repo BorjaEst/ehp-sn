@@ -37,8 +37,12 @@ import pytest
 from ehp_sn.figures import effective_figure_registry
 from ehp_sn.figures.providers import FIGURE_PROVIDER_ENTRY_POINT_GROUP
 
-_GRAPH_REF = "figure:simple-digraph-inspection/v1"
-_RASTER_REF = "figure:raster-topology-inspection/v1"
+#: A built-in framework figure (origin-independent resolution).
+_BUILTIN_REF = "figure:simple-digraph-inspection/v1"
+#: An externally contributed test-only companion figure from the fixture.
+_GRAPH_COMPANION_REF = "figure:digraph-summary/v1"
+#: Another externally contributed test-only companion figure from the fixture.
+_FIELD_COMPANION_REF = "figure:field-summary/v1"
 
 
 def _has_test_provider() -> bool:
@@ -76,14 +80,17 @@ def test_real_installed_provider_entry_point_is_discoverable() -> None:
 
 
 @REQUIRES_PROVIDER
-def test_real_provider_contributes_external_figure_to_catalogue() -> None:
-    """The installed provider's external graph figure enters the ordinary catalogue.
+def test_real_provider_contributes_external_figures_to_catalogue() -> None:
+    """The installed provider's external companion figures enter the ordinary catalogue.
 
-    The built-in raster figure and the external graph figure resolve through the
-    same ordinary catalogue and the same canonical API (P2-C / P2-3), regardless
-    of package origin.
+    The external test-only companion figures (over ``simple-digraph/v1`` and
+    ``categorical-field/v1``) resolve through the same ordinary catalogue as a
+    built-in framework figure and the same canonical API (P2-C / P2-3),
+    regardless of package origin. The fixture does not re-register the built-in
+    record inspectors (``ARCH-003``).
     """
     registry = effective_figure_registry()
-    definition = registry.resolve(_GRAPH_REF)
-    assert definition.kind == "figure"
-    assert registry.resolve(_RASTER_REF).kind == "figure"
+    assert registry.resolve(_GRAPH_COMPANION_REF).kind == "figure"
+    assert registry.resolve(_FIELD_COMPANION_REF).kind == "figure"
+    # Built-in figures resolve independently of provider presence.
+    assert registry.resolve(_BUILTIN_REF).kind == "figure"

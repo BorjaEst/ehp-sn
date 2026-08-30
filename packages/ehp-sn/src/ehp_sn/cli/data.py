@@ -102,22 +102,46 @@ class _FigureInputIncompatibleCliError(DataCliError):
     category = "figure_input_incompatible"
 
 
+class _NoCompatibleFigureCliError(DataCliError):
+    """``--figure auto`` resolved no compatible figure for the source record."""
+
+    exit_code = 4  # referenced input not found
+    category = "no_compatible_figure"
+
+
+class _AmbiguousFigureCliError(DataCliError):
+    """``--figure auto`` resolved more than one compatible figure."""
+
+    exit_code = 3  # invalid configuration or specification
+    category = "ambiguous_figure"
+
+
 def _figure_service_cli_error(error: Exception) -> DataCliError:
     """Map a controlled figure-service failure to a stable CLI category.
 
     ``UnknownFigureError`` (unknown/malformed/invalid figure reference) maps to
     the controlled ``unknown_figure`` (exit 4); an input-compatibility mismatch
-    maps to ``figure_input_incompatible`` (exit 3). Other figure-service failures
+    maps to ``figure_input_incompatible`` (exit 3). ``NoCompatibleFigureError``
+    and ``AmbiguousFigureError`` (``--figure auto`` outcomes) map to their own
+    stable categories. Other figure-service failures
     (for example an unresolvable artifact or missing record) map to the generic
     ``operation_failed`` category.
     """
     from ehp_sn.figures.contracts import FigureInputCompatibilityError
-    from ehp_sn.figures.service import UnknownFigureError
+    from ehp_sn.figures.service import (
+        AmbiguousFigureError,
+        NoCompatibleFigureError,
+        UnknownFigureError,
+    )
 
     if isinstance(error, UnknownFigureError):
         return _UnknownFigureCliError(str(error))
     if isinstance(error, FigureInputCompatibilityError):
         return _FigureInputIncompatibleCliError(str(error))
+    if isinstance(error, NoCompatibleFigureError):
+        return _NoCompatibleFigureCliError(str(error))
+    if isinstance(error, AmbiguousFigureError):
+        return _AmbiguousFigureCliError(str(error))
     return DataOperationError(str(error))
 
 
@@ -616,8 +640,15 @@ def inspect_command(
     samples: Annotated[int, typer.Option("--samples", help="Number of representative records.")] = 0,
     figure: Annotated[
         str | None,
-        typer.Option("--figure", help="Request one figure over the exact record."),
+        typer.Option(
+            "--figure",
+            help="Request one figure over the exact record (or 'auto' to resolve.).",
+        ),
     ] = None,
+    list_figures: Annotated[
+        bool,
+        typer.Option("--list-figures", help="List figures compatible with the exact record."),
+    ] = False,
     fmt: Annotated[str, typer.Option("--format", help="Output format.")] = "text",
 ) -> None:
     """Display metadata and one exact logical record of a committed artifact.
@@ -632,7 +663,13 @@ def inspect_command(
     exact selected record through the ordinary figure catalogue and generic
     figure pipeline. It is figure-owner agnostic: the CLI carries no
     raster/producer semantics and delegates to the generic figure service.
-    When ``--figure`` is absent the textual inspection behavior is unchanged.
+    ``--figure auto`` (Phase 2) resolves to exactly one canonical figure before
+    projection: zero compatible figures is a controlled ``no_compatible_figure``
+    failure, more than one is ``ambiguous_figure``.
+
+    ``--list-figures`` (Phase 2) lists the canonical references of every
+    registered figure whose input requirement the exact record satisfies, in
+    the catalogue's deterministic order. It performs no projection.
 
     ``--samples`` remains separate and intentionally unsupported until its
     ordering/selection semantics are explicitly specified: a positive value is
@@ -656,6 +693,9 @@ def inspect_command(
     if samples < 0:
         typer.echo("Error: --samples must be non-negative.", err=True)
         raise typer.Exit(code=2)
+    if list_figures:
+        _run_list_figures(artifact, record, fmt)
+        return
     if figure is not None:
         _run_figure_inspect(artifact, record, figure, fmt)
         return
@@ -664,3 +704,51 @@ def inspect_command(
     except Exception as exc:  # noqa: BLE001
         _fail(exc)
     _emit_inspect(result, fmt)
+
+
+def _run_list_figures(artifact: str, record_id: str, fmt: str) -> None:
+    """List figures compatible with one exact record (Phase 2 · ``--list-figures``).
+
+    Delegates entirely to the generic figure service
+    (:func:`ehp_sn.figures.list_figures_for_record`), which iterates the ordinary
+    component catalogue; the CLI hard-codes no producer→figure or contract→figure
+    table (Phase-2 § 36). Controlled figure-service failures map to stable exit
+    codes through the normal error mapping.
+    """
+    from ehp_sn.figures.service import FigureServiceError, list_figures_for_record
+
+    try:
+        refs = list_figures_for_record(artifact, record_id)
+    except FigureServiceError as exc:
+        _fail(exc)
+        return
+    except Exception as exc:  # noqa: BLE001
+        _fail(exc)
+        return
+    if fmt == "json":
+        import json
+
+        typer.echo(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "status": "success",
+                    "action": "inspect",
+                    "warnings": [],
+                    "result": {
+                        "artifact": artifact,
+                        "record_id": record_id,
+                        "figures": refs,
+                    },
+                }
+            )
+        )
+        return
+    if not refs:
+        typer.echo("No compatible figures for this record.")
+        return
+    typer.echo(f"artifact: {artifact}")
+    typer.echo(f"record_id: {record_id}")
+    typer.echo("compatible-figures:")
+    for ref in refs:
+        typer.echo(f"  {ref}")

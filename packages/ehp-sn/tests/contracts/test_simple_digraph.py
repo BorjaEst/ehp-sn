@@ -8,12 +8,21 @@ properties, and the ``SG-REC-00x`` invariant rejections.
 The contract is framework-owned and producer-neutral: the constructor accepts
 only contract-owned authoritative inputs (``node_count`` and the unordered
 ``edges`` set), and it must not know anything about a producing family.
+
+The shared-validator section covers the framework-owned ``SG-REC-00x``
+conformance boundary (``ehp_sn.contracts.validation.validate_simple_digraph``):
+lossless decode preservation, negative schema-drift rejection (a successor
+table is not an alias for ``edges``), and materialized derived-view agreement.
 """
 
 from __future__ import annotations
 
 import pytest
 from ehp_sn.contracts.relations import SCHEMA_REF, SimpleDigraphError, simple_digraph
+from ehp_sn.contracts.validation import (
+    ContractValidationError,
+    validate_simple_digraph,
+)
 
 
 def test_schema_reference() -> None:
@@ -110,3 +119,48 @@ def test_constructed_graph_is_immutable() -> None:
     g = simple_digraph(3, [(0, 1)])
     with pytest.raises(FrozenInstanceError):
         g.edges = ()  # type: ignore[misc]
+
+
+# ---------------------------------------------------------------------------
+# Shared validator (SG-REC conformance boundary)
+#
+# The validator operates on the declared logical instance (decoded dict) and is
+# the boundary that keeps normal loading non-repairing (Phase 1 § 8–9, § 34).
+# ---------------------------------------------------------------------------
+
+
+def _digraph_instance() -> dict:
+    """A valid ``simple-digraph/v1`` declared logical instance (SG-31 fixture)."""
+    return {
+        "node_count": 4,
+        "edges": [[0, 1], [0, 2], [1, 3], [2, 3]],
+    }
+
+
+def test_validate_preserves_canonical_edges() -> None:
+    """The validator preserves node_count and the canonical edge relation exactly."""
+    graph = validate_simple_digraph(_digraph_instance())
+    assert graph.node_count == 4
+    assert list(graph.edges) == [(0, 1), (0, 2), (1, 3), (2, 3)]
+    assert graph.content()["edges"] == [(0, 1), (0, 2), (1, 3), (2, 3)]
+
+
+def test_validate_rejects_successor_table_as_edges_alias() -> None:
+    """A successor table is not an alias for ``edges`` (never silently repaired)."""
+    with pytest.raises(ContractValidationError) as exc:
+        validate_simple_digraph({"node_count": 4, "successor": [[1], [2], [3], []]})
+    assert exc.value.schema_ref == "simple-digraph/v1"
+    assert exc.value.invariant == "SG-REC-001"
+
+
+def test_validate_materialized_derived_view_agrees() -> None:
+    """A stored derived value equal to the canonical value is accepted (SG-REC-006)."""
+    graph = validate_simple_digraph({**_digraph_instance(), "acyclic": True, "terminal_count": 1})
+    assert graph.acyclic is True
+
+
+def test_validate_materialized_derived_view_disagreement_rejected() -> None:
+    """A stored derived value disagreeing with authoritative content fails (SG-REC-006)."""
+    with pytest.raises(ContractValidationError) as exc:
+        validate_simple_digraph({**_digraph_instance(), "acyclic": False})
+    assert exc.value.invariant == "SG-REC-006"

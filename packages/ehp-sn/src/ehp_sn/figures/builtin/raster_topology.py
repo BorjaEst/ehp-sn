@@ -71,6 +71,7 @@ from ehp_sn.figures.contracts import (
     _VisualPartition,
 )
 from ehp_sn.figures.projection import FigureProjection
+from ehp_sn.figures.rectangular_realization import to_matrix
 
 #: The canonical component reference of the raster-topology inspection figure.
 RASTER_TOPOLOGY_INSPECTION_REF = "figure:raster-topology-inspection/v1"
@@ -199,11 +200,10 @@ def _realize_topology_inspection(projection: FigureProjection) -> Any:
     width = topology.extent.width
     passable = topology.passable
 
-    # A 2D display view: row-major passability reshaped to (height, width).
-    grid = []
-    for row in range(height):
-        start = row * width
-        grid.append([1 if passable[start + col] else 0 for col in range(width)])
+    # A 2D display view: the canonical row-major passability reshaped to
+    # (height, width) through the ONE shared rectangular-domain realization
+    # (Phase-2 § 6). No separate position-semantic reshaping lives here.
+    grid = to_matrix(topology.extent, [1 if p else 0 for p in passable])
 
     figure, axes = plt.subplots(1, 1)
     cmap = ListedColormap([_BLOCKED_COLOR, _PASSABLE_COLOR])

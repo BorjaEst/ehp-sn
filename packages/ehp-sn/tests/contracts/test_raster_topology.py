@@ -6,9 +6,15 @@ passability, fixed derived views (states, movement, connectivity) under the fixe
 grid4/undirected/unit/no-stay parameters, and the invariant rejections.
 
 Target 15 acceptance: the same constructor accepts normalized passability from
-any producer context (both raster producers hand only domain + passable), and it
+any producer context (both raster producers hand only extent + passable), and it
 owns no producer-specific semantics such as source lineage, generator profile,
 connectivity acceptance policy, largest-component selection, or retry.
+
+The shared-validator section covers the framework-owned ``RT-REC-00x``
+conformance boundary (``ehp_sn.contracts.validation.validate_raster_topology``):
+lossless decode preservation, the negative schema-drift rejection that a
+historical ``domain`` field is not an alias for authoritative ``extent``, and
+materialized derived-view agreement.
 """
 
 from __future__ import annotations
@@ -19,6 +25,10 @@ from ehp_sn.contracts.topology import (
     MOVEMENT_KIND,
     RasterTopologyError,
     raster_topology,
+)
+from ehp_sn.contracts.validation import (
+    ContractValidationError,
+    validate_raster_topology,
 )
 
 
@@ -103,3 +113,55 @@ def test_constructor_owns_no_producer_specific_semantics() -> None:
     signature = inspect.signature(raster_topology)
     params = list(signature.parameters)
     assert params == ["extent", "passable"]
+
+
+# ---------------------------------------------------------------------------
+# Shared validator (RT-REC conformance boundary)
+#
+# The validator operates on the declared logical instance (decoded dict) and is
+# the boundary that keeps normal loading non-repairing (Phase 1 § 8–9, § 34).
+# ---------------------------------------------------------------------------
+
+
+def _raster_instance(*, extent: dict | None = None, passable: list | None = None) -> dict:
+    """A valid ``raster-topology/v1`` declared logical instance (RT-32 fixture)."""
+    extent = extent or {"height": 2, "width": 3, "schema": "rectangular-row-column/v1"}
+    passable = passable or [True, True, False, False, True, True]
+    return {"extent": extent, "passable": passable}
+
+
+def test_validate_preserves_passable_exactly() -> None:
+    """The validator preserves passable and the extent declaration exactly."""
+    fixture = _raster_instance(passable=[True, False, True, False, False, True])
+    topology = validate_raster_topology(fixture)
+    assert tuple(topology.passable) == (True, False, True, False, False, True)
+    assert topology.extent.height == 2
+    assert topology.extent.width == 3
+    assert topology.extent.position_count == 6
+    # position_id(r,c) = r * width + c (Phase 1 § 32).
+    assert topology.extent.position_id(1, 2) == 5
+
+
+def test_validate_rejects_domain_as_extent_alias() -> None:
+    """A ``raster-topology/v1`` instance carrying ``domain`` is rejected (RT-REC-001).
+
+    The historical raster ``domain`` field is not an alias for the authoritative
+    ``extent``; such an instance is invalid current-schema content and must not
+    be silently repaired.
+    """
+    with pytest.raises(ContractValidationError) as exc:
+        validate_raster_topology(
+            {
+                "domain": {"height": 2, "width": 3, "schema": "rectangular-row-column/v1"},
+                "passable": [True] * 6,
+            }
+        )
+    assert exc.value.schema_ref == "raster-topology/v1"
+    assert exc.value.invariant == "RT-REC-001"
+
+
+def test_validate_materialized_derived_view_disagreement_rejected() -> None:
+    """A stored derived value disagreeing with authoritative content fails (RT-REC-007)."""
+    with pytest.raises(ContractValidationError) as exc:
+        validate_raster_topology({**_raster_instance(), "connected": False})
+    assert exc.value.invariant == "RT-REC-007"

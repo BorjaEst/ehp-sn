@@ -155,11 +155,15 @@ class CategoricalField:
         Two fields are content-identical when the domain declarations,
         vocabulary identities, and canonical observation assignments are
         identical.
+
+        The canonical committed logical-instance field for the observation
+        assignment is ``observation_id`` (singular, per ``CF-REC-002``); the
+        in-memory Python attribute is ``observation_ids``.
         """
         return {
             "domain": self.domain.declaration(),
             "vocabulary": self.vocabulary.declaration(),
-            "observation_ids": list(self.observation_ids),
+            "observation_id": list(self.observation_ids),
         }
 
 

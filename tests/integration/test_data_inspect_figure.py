@@ -7,10 +7,18 @@ committed artifacts** and the real CLI: an exact
 through the ordinary figure catalogue, validates, projects with exact
 provenance, and realizes a Matplotlib Figure.
 
-It covers the Phase-1 raster figure (``figure:raster-topology-inspection/v1``
-over ``raster-topology/v1``) and the Phase-2 externally contributed graph figure
-(``figure:simple-digraph-inspection/v1`` over ``simple-digraph/v1``). Both run
-through the ordinary figure-service path.
+It covers:
+
+* the Phase-1 raster figure (``figure:raster-topology-inspection/v1`` over
+  ``raster-topology/v1``);
+* the Phase-2 built-in graph figure (``figure:simple-digraph-inspection/v1``
+  over ``simple-digraph/v1``) over a **real committed Dagflow record**
+  (Phase-2 § 15);
+* the Phase-2 built-in categorical-field figure
+  (``figure:categorical-field-inspection/v1`` over ``categorical-field/v1``)
+  over a **real committed ObsField record** (Phase-2 § 29).
+
+Both run through the ordinary figure-service path.
 
 These are integration tests because they depend on committed artifacts under
 ``data/interim`` that are produced by real research providers; unit-level figure
@@ -47,9 +55,11 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 # used as a shared-contract figure source (Phase 1 § 38).
 _DUNGEONGEN_RASTER = _REPO_ROOT / "data" / "interim" / "dungeongen" / "general" / "v3"
 _DAGFLOW_DIGRAPH = _REPO_ROOT / "data" / "interim" / "dagflow" / "single-terminal" / "v1"
+_OBSFIELD_FIELD = _REPO_ROOT / "data" / "interim" / "obsfield" / "categorical-complete" / "v1"
 
 _FIGURE_REF = "figure:raster-topology-inspection/v1"
 _GRAPH_REF = "figure:simple-digraph-inspection/v1"
+_FIELD_REF = "figure:categorical-field-inspection/v1"
 
 runner = CliRunner()
 
@@ -260,18 +270,18 @@ def test_inspect_figure_service_projects_committed_record() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Phase 2 — the externally contributed graph figure over a real committed
-# digraph record, through the same ordinary figure-service path.
+# Phase 2 — the built-in graph figure over a real committed Dagflow record,
+# through the same ordinary figure-service path (Phase-2 § 15). No provider is
+# required: the graph inspector is a framework-owned built-in figure.
 # ---------------------------------------------------------------------------
 
 
-@REQUIRES_PROVIDER
 @pytest.mark.skipif(
     not _DAGFLOW_DIGRAPH.is_dir(),
     reason="committed Dagflow simple-digraph artifact is not present",
 )
 def test_graph_figure_projects_and_renders_committed_digraph() -> None:
-    """The external graph figure renders a real committed simple-digraph record."""
+    """The built-in graph figure renders a real committed Dagflow simple-digraph record."""
     record_id = _first_record_id(_DAGFLOW_DIGRAPH)
     result = inspect_figure(
         str(_DAGFLOW_DIGRAPH),
@@ -283,8 +293,46 @@ def test_graph_figure_projects_and_renders_committed_digraph() -> None:
     assert projection.figure_ref == _GRAPH_REF
     assert projection.source.logical_contract == "simple-digraph/v1"
     assert projection.source.record_id == record_id
-    # Provider-owned prepared data is transported opaquely (P2-9/P2-G).
+    # The framework-owned prepared data is transported opaquely (P2-9/P2-G).
     assert projection.content.__class__.__name__ == "SimpleDigraphInspectionData"
+    assert type(result.figure).__name__ == "Figure"
+    assert len(result.figure.axes) == 1
+
+
+# ---------------------------------------------------------------------------
+# Phase 2 — the built-in categorical-field figure over a real committed ObsField
+# record, through the same ordinary figure-service path (Phase-2 § 29). No
+# provider is required: the categorical inspector is a framework-owned built-in.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.skipif(
+    not _OBSFIELD_FIELD.is_dir(),
+    reason="committed ObsField categorical-field artifact is not present",
+)
+def test_categorical_field_figure_projects_and_renders_committed_obsfield() -> None:
+    """The built-in categorical-field figure renders a real committed ObsField record.
+
+    The generic figure must not use ObsField producer semantics (assignment
+    protocol, realization index, generation seed, variant) to interpret the
+    field (Phase-2 § 29); it renders through the shared categorical-field
+    contract.
+    """
+    record_id = _first_record_id(_OBSFIELD_FIELD)
+    result = inspect_figure(
+        str(_OBSFIELD_FIELD),
+        record_id,
+        _FIELD_REF,
+        artifact_root=_REPO_ROOT / "data" / "interim",
+    )
+    projection = result.projection
+    assert projection.figure_ref == _FIELD_REF
+    assert projection.source.logical_contract == "categorical-field/v1"
+    assert projection.source.record_id == record_id
+    content = projection.content
+    assert content.__class__.__name__ == "CategoricalFieldInspectionData"
+    # Complete ambient field rendered; all positions represented.
+    assert len(content.observation_ids) == content.domain.position_count
     assert type(result.figure).__name__ == "Figure"
     assert len(result.figure.axes) == 1
 

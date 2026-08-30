@@ -34,7 +34,7 @@ def _content(field: CategoricalField) -> dict[str, object]:
     return {
         "domain": field.domain.declaration(),
         "vocabulary": field.vocabulary.declaration(),
-        "observation_ids": list(field.observation_ids),
+        "observation_id": list(field.observation_ids),
     }
 
 

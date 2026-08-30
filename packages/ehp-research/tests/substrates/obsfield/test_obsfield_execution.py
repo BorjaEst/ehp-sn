@@ -106,7 +106,7 @@ def test_execute_materializes_categorical_field_records(plan) -> None:
     assert len(records) == 6
     for record in records:
         assert record.schema_ref == "categorical-field/v1"
-        assert set(record.content.keys()) == {"domain", "vocabulary", "observation_ids"}
+        assert set(record.content.keys()) == {"domain", "vocabulary", "observation_id"}
 
 
 def test_no_split_no_passability_no_topology(plan) -> None:
