@@ -47,6 +47,7 @@ from typing import Any, Protocol
 from ehp_sn.experiments import ComponentRef
 from ehp_sn.figures.projection import FigureProjection, ResolvedFigureSelection
 from ehp_sn.figures.scope import SCOPE_ARTIFACT, SCOPE_RECORD, SOURCE_SCOPES
+from ehp_sn.figures.source import ARTIFACT_METADATA_SURFACES
 
 #: The component kind under which a ``FigureSpec`` registers in the ordinary
 #: component catalogue.
@@ -109,10 +110,16 @@ class FigureInputRequirement:
     role: str
     contract: str
     scope: str = SCOPE_RECORD
+    artifact_metadata_surfaces: frozenset[str] = frozenset()
 
     def __post_init__(self) -> None:
         if self.scope not in SOURCE_SCOPES:
             raise ValueError(f"unknown figure source scope {self.scope!r} (expected record|artifact)")
+        unknown = self.artifact_metadata_surfaces - ARTIFACT_METADATA_SURFACES
+        if unknown:
+            raise ValueError(f"unknown artifact metadata surfaces {sorted(unknown)}")
+        if self.artifact_metadata_surfaces and self.scope != SCOPE_ARTIFACT:
+            raise ValueError("artifact_metadata_surfaces require scope='artifact'")
 
     def accepts(self, logical_contract: str, *, scope: str = SCOPE_RECORD) -> bool:
         """Whether an exact source satisfies this requirement.

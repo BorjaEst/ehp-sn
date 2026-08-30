@@ -20,11 +20,11 @@ from pathlib import Path
 from typing import Any
 
 from ehp_sn.execution import LogicalRecord, LogicalResource
-from ehp_sn.planning import ReleaseCoordinate
+from ehp_sn.planning import IdentityInput, ReleaseCoordinate
 
 from .artifact import SubstrateArtifact
-from .assembly import AssembledArtifact
-from .descriptors import LogicalResourceDescriptor, RecordIndexEntry
+from .assembly import AssembledArtifact, _aggregate_producer_descriptors
+from .descriptors import LogicalResourceDescriptor, ProducerDescriptor, RecordIndexEntry
 from .manifest import manifest_coordinate, manifest_resources, parse_manifest
 from .store import StoreError, artifact_ref, release_path
 
@@ -112,7 +112,7 @@ def _reconstruct_assembly(
             record_id=entry["record_id"],
             schema_ref=entry["schema_ref"],
             content=entry["content"],
-            descriptors=(),
+            descriptors=_reconstruct_descriptors(entry.get("descriptors", ())),
         )
         for entry in payload_entries
     )
@@ -144,7 +144,10 @@ def _reconstruct_assembly(
             record_id=entry["record_id"],
             schema_ref=entry["schema_ref"],
             payload_locator=entry["payload_locator"],
-            descriptors=(),
+            descriptors=tuple(
+                ProducerDescriptor(name=d.name, value=d.value)
+                for d in _reconstruct_descriptors(entry.get("descriptors", ()))
+            ),
         )
         for entry in index_entries
     )
@@ -155,6 +158,13 @@ def _reconstruct_assembly(
         "",
     )
 
+    # Reconstruct the framework-visible identity inputs from provenance so a
+    # resolved artifact carries the identical producer configuration view a
+    # freshly assembled artifact would expose (contract fidelity: provenance
+    # ``identity_inputs`` is the persisted identity-view of the resolved
+    # configuration, verified equal to ``config.resolved.toml`` identity inputs).
+    identity_inputs = _reconstruct_identity_inputs(provenance)
+
     return AssembledArtifact(
         component_ref=str(document.get("component_ref", "")),
         output_contract=str(document.get("output_contract", "")),
@@ -163,13 +173,57 @@ def _reconstruct_assembly(
         index=index,
         records=records,
         auxiliary=tuple(auxiliary),
-        producer_descriptors=(),
+        producer_descriptors=_aggregate_producer_descriptors(records),
         provenance=provenance,
         provenance_digest=provenance_digest,
         artifact_fingerprint=str(document.get("artifact_fingerprint", "")),
-        identity_inputs=(),
+        identity_inputs=identity_inputs,
         bound_resources=(),
     )
+
+
+def _reconstruct_descriptors(entries: object) -> tuple[IdentityInput, ...]:
+    """Reconstruct producer-declared record descriptors from persisted entries.
+
+    A payload/index entry may carry ``descriptors`` as a list of
+    ``{"name": ..., "value": ...}`` objects (the committed serialized form of
+    producer-declared descriptors). Resolution restores them so a resolved
+    artifact exposes the same descriptor surface the artifact carries on disk
+    (contract fidelity; ``descriptors.py``/``SubstrateArtifact`` already declare
+    this surface). Missing or empty entries reconstruct to no descriptors.
+    """
+    if not isinstance(entries, (list, tuple)):
+        return ()
+    result: list[IdentityInput] = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        name = entry.get("name")
+        if not isinstance(name, str):
+            continue
+        result.append(IdentityInput(name=name, value=entry.get("value")))
+    return tuple(result)
+
+
+def _reconstruct_identity_inputs(provenance: dict[str, Any]) -> tuple[IdentityInput, ...]:
+    """Reconstruct the framework-visible identity inputs from provenance.
+
+    Provenance persists ``identity_inputs`` as a list of ``{"name","value"}``
+    objects (see store serialization). This restores them so a resolved artifact
+    exposes the identical configuration identity-view it had when assembled.
+    """
+    raw = provenance.get("identity_inputs")
+    if not isinstance(raw, (list, tuple)):
+        return ()
+    result: list[IdentityInput] = []
+    for entry in raw:
+        if not isinstance(entry, dict):
+            continue
+        name = entry.get("name")
+        if not isinstance(name, str):
+            continue
+        result.append(IdentityInput(name=name, value=entry.get("value")))
+    return tuple(result)
 
 
 __all__ = ["load_release", "resolve_release"]

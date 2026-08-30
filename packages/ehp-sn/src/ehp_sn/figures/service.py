@@ -37,20 +37,28 @@ from ehp_sn.artifacts import (
     load_release,
     resolve_release,
 )
+from ehp_sn.artifacts.descriptors import ProducerDescriptor
 from ehp_sn.artifacts.manifest import ManifestParseError
 from ehp_sn.digests import canonical_digest
 from ehp_sn.discovery import ComponentRegistry, UnknownReferenceError
-from ehp_sn.execution import LogicalRecord
+from ehp_sn.execution import LogicalRecord, LogicalResource
 from ehp_sn.experiments import ComponentRef, InvalidReferenceError
 from ehp_sn.figures.contracts import (
     FIGURE_KIND,
     FigureInputCompatibilityError,
+    FigureInputRequirement,
     FigureSpec,
 )
 from ehp_sn.figures.projection import FigureProjection, SourceRoleBinding
 from ehp_sn.figures.providers import effective_figure_registry
 from ehp_sn.figures.render_profile import RenderProfile
 from ehp_sn.figures.scope import SCOPE_ARTIFACT, SCOPE_RECORD
+from ehp_sn.figures.source import (
+    SURFACE_AUXILIARY,
+    SURFACE_PRODUCER_DESCRIPTORS,
+    SURFACE_PROVENANCE,
+    ArtifactSourceContent,
+)
 from ehp_sn.planning import ReleaseCoordinate
 
 
@@ -150,10 +158,19 @@ class _CollectionSource:
     producer identity and never a contract-specific source type (Phase-4 § 20,
     ``projection.md`` § "Source roles").
 
+    ``producer_descriptors``, ``provenance`` and ``auxiliary`` carry the
+    committed artifact's producer-owned metadata **opaquely** (Phase-5 § 17-25):
+    they are populated once from the resolved ``SubstrateArtifact`` and surfaced
+    through :meth:`metadata_content` only to a figure that explicitly declares
+    the corresponding artifact-metadata surface. The framework never interprets
+    a producer descriptor name or value (``ARCH-001``).
+
     ``record_id`` is a canonical deterministic collection identity (a digest of
     the ordered member record identifiers), so projection provenance is stable
     and independent of incidental artifact enumeration order (Phase-4 ·
-    P4-ART-001).
+    P4-ART-001). The artifact-level metadata fields are bound to the immutable
+    release coordinate via ``artifact_ref`` and do not participate in the
+    collection identity.
     """
 
     artifact_ref: str
@@ -161,6 +178,9 @@ class _CollectionSource:
     records: tuple[LogicalRecord, ...]
     content: tuple[LogicalRecord, ...]
     scope: str = SCOPE_ARTIFACT
+    producer_descriptors: tuple[ProducerDescriptor, ...] = ()
+    provenance: dict[str, object] | None = None
+    auxiliary: tuple[LogicalResource, ...] = ()
 
     @property
     def record_ids(self) -> tuple[str, ...]:
@@ -176,6 +196,28 @@ class _CollectionSource:
     @property
     def record_id(self) -> str:
         return canonical_digest({"artifact": self.artifact_ref, "records": list(self.record_ids)})
+
+    def metadata_content(self, surfaces: frozenset[str]) -> ArtifactSourceContent:
+        """The framework-admitted content for a figure declaring ``surfaces``.
+
+        Each metadata field is populated only for a declared surface and carried
+        exactly as resolved from the committed artifact; an undeclared surface
+        yields the empty/absent default. This is the single generic surface
+        boundary — it reads framework surface vocabulary, never a producer name
+        (Phase-5 § 22).
+        """
+        return ArtifactSourceContent(
+            records=self.records,
+            producer_descriptors=(
+                self.producer_descriptors if SURFACE_PRODUCER_DESCRIPTORS in surfaces else ()
+            ),
+            provenance=(
+                dict(self.provenance)
+                if self.provenance is not None and SURFACE_PROVENANCE in surfaces
+                else None
+            ),
+            auxiliary=self.auxiliary if SURFACE_AUXILIARY in surfaces else (),
+        )
 
 
 def _resolve_artifact(artifact: str, root: Path) -> SubstrateArtifact:
@@ -347,10 +389,11 @@ def prepare_figure(
     """
     spec = _resolve_figure(registry, figure_ref)
     _validate_input_requirement(spec, source)
+    handed = _handed_source_content(spec.projection.requirement, source)
     selection = None
     if spec.projection.select is not None:
-        selection = spec.projection.select(source.content)
-    prepared = spec.projection.prepare(source.content)
+        selection = spec.projection.select(handed)
+    prepared = spec.projection.prepare(handed)
     record_ids: tuple[str, ...] | None = None
     if source.scope == SCOPE_ARTIFACT and isinstance(source, _CollectionSource):
         record_ids = source.record_ids
@@ -473,6 +516,32 @@ def inspect_figure(
     return FigureResult(projection=projection, figure=figure)
 
 
+def _handed_source_content(
+    requirement: FigureInputRequirement,
+    source: _FigureSource,
+) -> object:
+    """The object handed to ``select``/``prepare`` for one declared requirement.
+
+    A figure declaring **no** artifact-metadata surface receives ``source.content``
+    exactly as before — zero behavior change for every record-scope figure, the
+    generic artifact summaries, and research figures that do not opt in (Phase-5
+    § 17). A figure declaring artifact-metadata surfaces receives the framework-
+    admitted :class:`~ehp_sn.figures.source.ArtifactSourceContent` (records plus
+    the requested opaque surfaces). The single generic branch reads only
+    framework surface vocabulary — never a producer name (Phase-5 § 22).
+    """
+    surfaces = requirement.artifact_metadata_surfaces
+    if not surfaces:
+        return source.content
+    if not isinstance(source, _CollectionSource):
+        raise FigureServiceError(
+            f"figure declares artifact metadata surfaces {sorted(surfaces)} but the "
+            f"resolved source is {type(source).__name__!r}; surfaces require an "
+            f"artifact-scope collection source"
+        )
+    return source.metadata_content(surfaces)
+
+
 def _build_collection_source(
     committed: SubstrateArtifact,
     schema_ref: str,
@@ -499,6 +568,9 @@ def _build_collection_source(
         schema_ref=schema_ref,
         records=records,
         content=records,
+        producer_descriptors=committed.producer_descriptors,
+        provenance=committed.provenance,
+        auxiliary=committed.auxiliary,
     )
 
 

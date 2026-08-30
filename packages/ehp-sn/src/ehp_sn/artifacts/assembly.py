@@ -36,7 +36,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from ehp_sn.digests import canonical_digest
+from ehp_sn.digests import canonical_digest, canonicalize
 from ehp_sn.execution import LogicalRecord, LogicalResource, MaterializationResult
 
 from .descriptors import LogicalResourceDescriptor, ProducerDescriptor, RecordIndexEntry
@@ -264,12 +264,21 @@ def _aggregate_producer_descriptors(
     Collected from producer output (record descriptors), not from inspecting
     configuration types. Each distinct descriptor name is represented once with
     its producer-declared values, preserving deterministic (name-sorted) order.
+
+    Values are deduplicated by their exact RFC 8785 canonical serialization
+    (``digests.canonicalize``) rather than by hashing, because a producer
+    descriptor value may be any JSON-compatible value — including a list or
+    object (for example ``source_split_labels = ["train"]``) that is not
+    hashable. Each distinct canonical value is kept once with its first-seen
+    original value, so a dedicated, deterministic, producer-neutral aggregation
+    never fails and never depends on incidental record enumeration order.
     """
-    seen: dict[str, set[object]] = {}
+    seen: dict[str, dict[str, object]] = {}
     for record in records:
         for descriptor in record.descriptors:
-            seen.setdefault(descriptor.name, set()).add(descriptor.value)
+            key = canonicalize(descriptor.value)
+            seen.setdefault(descriptor.name, {}).setdefault(key, descriptor.value)
     return tuple(
-        ProducerDescriptor(name=name, value=sorted(values, key=lambda v: str(v)))
+        ProducerDescriptor(name=name, value=sorted(values.values(), key=lambda v: str(v)))
         for name, values in sorted(seen.items())
     )

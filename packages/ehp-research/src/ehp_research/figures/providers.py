@@ -16,10 +16,18 @@ from __future__ import annotations
 from ehp_sn.discovery import ComponentRegistry
 from ehp_sn.figures.contracts import FigureSpec
 
+from .dagflow_generation_summary import DAGFLOW_GENERATION_SUMMARY_FIGURE
+from .dungeongen_generation_summary import DUNGEONGEN_GENERATION_SUMMARY_FIGURE
 from .hpc_place_summary import HPC_PLACE_SUMMARY_FIGURE
+from .obsfield_generation_summary import OBSFIELD_GENERATION_SUMMARY_FIGURE
 
 #: The reusable scientific figures this package contributes to the catalogue.
-_RESEARCH_FIGURES: tuple[FigureSpec, ...] = (HPC_PLACE_SUMMARY_FIGURE,)
+_RESEARCH_FIGURES: tuple[FigureSpec, ...] = (
+    HPC_PLACE_SUMMARY_FIGURE,
+    DAGFLOW_GENERATION_SUMMARY_FIGURE,
+    DUNGEONGEN_GENERATION_SUMMARY_FIGURE,
+    OBSFIELD_GENERATION_SUMMARY_FIGURE,
+)
 
 
 def figure_provider(registry: ComponentRegistry) -> None:

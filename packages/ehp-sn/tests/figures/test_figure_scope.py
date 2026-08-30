@@ -103,6 +103,14 @@ def test_auto_resolves_single_artifact_scope_figure():
     assert GRAPH_ARTIFACT_SUMMARY_REF in refs
     # Record-scope inspectors must not appear for an artifact source.
     assert GRAPH_INSPECTION_REF not in refs
+    # When an installed producer generation summary also matches the same
+    # simple-digraph/v1 artifact collection, auto is ambiguous by design
+    # (Phase-5 § 41: >1 compatible -> AmbiguousFigureError; no priority), so
+    # the caller must select an exact canonical reference.
+    if len(compatible) > 1:
+        with pytest.raises(AmbiguousFigureError):
+            resolve_auto_figure(_registry(), graph_source(graph_records()))
+        return
     resolved = resolve_auto_figure(_registry(), graph_source(graph_records()))
     assert resolved.ref.canonical == GRAPH_ARTIFACT_SUMMARY_REF
 

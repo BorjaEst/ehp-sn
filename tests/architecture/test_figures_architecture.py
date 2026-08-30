@@ -395,3 +395,67 @@ def test_single_canonical_realization_resolution_boundary() -> None:
     names = _public_names(_EHP_SN_SRC / "figures" / "realization.py")
     assert "resolve_figure_realization" in names
     assert "ResolvedFigureRealization" in names
+
+
+# --------------------------------------------------------------------------- #
+# Phase-5 — artifact-metadata surfaces and qualification stay producer-blind
+# --------------------------------------------------------------------------- #
+
+
+def test_phase5_source_surface_module_has_no_producer_names() -> None:
+    """``figures/source.py`` (the artifact-metadata surface vocabulary) is producer-blind.
+
+    The surface vocabulary and its ``ArtifactSourceContent`` carriage must not
+    name any producer family; only the owning research figure interprets a
+    producer value (Phase-5 § 22 · ARCH-001).
+    """
+    src = (_EHP_SN_SRC / "figures" / "source.py").read_text(encoding="utf-8")
+    for token in ("dagflow", "maze-nd", "dungeongen", "obsfield", "arena"):
+        assert token not in src
+    # The framework vocabulary is fixed and admits exactly the three surfaces.
+    assert "producer-descriptors" in src
+    assert "provenance" in src
+    assert "auxiliary" in src
+    # The surfaced content carries records plus opaque metadata, never a producer type.
+    assert "LogicalRecord" in src
+    assert "ProducerDescriptor" in src
+
+
+def test_figure_requirement_surface_validation_is_generic() -> None:
+    """``FigureInputRequirement`` validates the surface vocabulary without producers.
+
+    The requirement admits only the framework-declared surface names and requires
+    artifact scope; it performs no producer dispatch (Phase-5 § 1, § 17).
+    """
+    from ehp_sn.figures.contracts import FigureInputRequirement
+    from ehp_sn.figures.scope import SCOPE_ARTIFACT
+    from ehp_sn.figures.source import ARTIFACT_METADATA_SURFACES
+
+    req = FigureInputRequirement(
+        role="g",
+        contract="simple-digraph/v1",
+        scope=SCOPE_ARTIFACT,
+        artifact_metadata_surfaces=frozenset({"producer-descriptors", "provenance", "auxiliary"}),
+    )
+    assert req.artifact_metadata_surfaces == ARTIFACT_METADATA_SURFACES
+    # The framework surface vocabulary contains no producer name.
+    assert all(
+        "dagflow" not in s and "dungeongen" not in s and "obsfield" not in s
+        for s in ARTIFACT_METADATA_SURFACES
+    )
+
+
+def test_phase5_qualification_module_is_producer_blind() -> None:
+    """The qualification/review module (Stage F) models only status vocabulary.
+
+    It records outcomes and resolves the § 43 precedence rule; it must not name
+    a producer, a producer configuration type, or a concrete specification
+    (Phase-5 § 36-43).
+    """
+    src = (_EHP_SN_SRC / "qualification.py").read_text(encoding="utf-8")
+    for token in ("dagflow", "maze-nd", "dungeongen", "obsfield", "Dagflow", "DungeonGen"):
+        assert token not in src
+    # The § 43 precedence rule is present and generic.
+    assert "QualificationStatus" in src
+    assert "ReviewOutcome" in src
+    assert "AnomalyDisposition" in src

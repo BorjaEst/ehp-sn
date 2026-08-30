@@ -84,10 +84,19 @@ from .service import (
     list_figures_for_record,
     resolve_auto_figure,
 )
+from .source import (
+    ARTIFACT_METADATA_SURFACES,
+    SURFACE_AUXILIARY,
+    SURFACE_PRODUCER_DESCRIPTORS,
+    SURFACE_PROVENANCE,
+    ArtifactSourceContent,
+)
 
 __all__ = [
     "AUTO_FIGURE_TOKEN",
     "AmbiguousFigureError",
+    "ARTIFACT_METADATA_SURFACES",
+    "ArtifactSourceContent",
     "ContentDigest",
     "FIGURE_KIND",
     "FIGURE_PROVIDER_ENTRY_POINT_GROUP",
@@ -117,6 +126,9 @@ __all__ = [
     "SCOPE_ARTIFACT",
     "SCOPE_RECORD",
     "SOURCE_SCOPES",
+    "SURFACE_AUXILIARY",
+    "SURFACE_PRODUCER_DESCRIPTORS",
+    "SURFACE_PROVENANCE",
     "SerializationError",
     "SourceRoleBinding",
     "UnknownFigureError",
