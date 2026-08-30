@@ -122,3 +122,70 @@ def test_presentation_does_not_participate_in_identity() -> None:
         "font_size",
     ):
         assert not hasattr(projection, field)
+
+
+# ---------------------------------------------------------------------------
+# Phase-4 § 27 — artifact-scope identity partitioning
+#
+# For an artifact-scope (collection) source, the selection (which representatives)
+# and the collection identity participate in ProjectionIdentity while
+# presentation never does. These extend the Phase-3 selection-in-identity
+# contract to the artifact-scope summaries.
+# ---------------------------------------------------------------------------
+
+_ARTIFACT_REF = "figure:artifact-summary/v1"
+
+
+def _artifact_projection(
+    *,
+    selection: ResolvedFigureSelection | None,
+    record_ids: tuple[str, ...] = ("a", "b", "c"),
+) -> FigureProjection:
+    """A projection over an artifact-scope collection source (Phase-4 § 27)."""
+    return FigureProjection(
+        figure_ref=_ARTIFACT_REF,
+        projection_semantics_version=1,
+        preparation_version=1,
+        source=SourceRoleBinding(
+            role="graph",
+            artifact_ref="artifact:dag/v1",
+            record_id="artifact-collection-id",
+            logical_contract="simple-digraph/v1",
+            content={"prepared_summary": True},
+            scope="artifact",
+            record_ids=record_ids,
+        ),
+        content={"prepared_summary": True},
+        selection=selection,
+    )
+
+
+def test_artifact_scope_collection_in_identity() -> None:
+    """Different committed collections (different member record ids) yield a
+    different projection identity (Phase-4 § 27 · changed collection)."""
+    a = _artifact_projection(selection=_selection(), record_ids=("a", "b"))
+    b = _artifact_projection(selection=_selection(), record_ids=("a", "b", "c"))
+    assert str(a.identity()) != str(b.identity())
+
+
+def test_artifact_scope_selection_policy_changes_identity() -> None:
+    """A different authored selection policy changes identity (Phase-4 § 27)."""
+    a = _artifact_projection(selection=_selection(ref="min-median-max"))
+    b = _artifact_projection(selection=_selection(ref="first-k"))
+    assert str(a.identity()) != str(b.identity())
+
+
+def test_artifact_scope_resolved_ids_change_identity() -> None:
+    """A change to the exact resolved representative record ids changes identity
+    (Phase-4 § 27)."""
+    a = _artifact_projection(selection=_selection(resolved=("a", "c")))
+    b = _artifact_projection(selection=_selection(resolved=("a", "b")))
+    assert str(a.identity()) != str(b.identity())
+
+
+def test_artifact_scope_presentation_does_not_participate_in_identity() -> None:
+    """Presentation-only fields never appear on an artifact-scope projection."""
+    projection = _artifact_projection(selection=_selection())
+    for field in ("width", "height", "dpi", "backend", "serialization_format", "panel_layout"):
+        assert not hasattr(projection, field)
+    assert projection.source.scope == "artifact"

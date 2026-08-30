@@ -1,4 +1,4 @@
-"""Generic framework figure contracts (Phase 1 bootstrap slice).
+"""Generic framework figure contracts (Phase 1 bootstrap slice + Phase 4 scope).
 
 This module defines the minimal executable figure contracts required to prove
 the Phase-1 walking skeleton: a registered ``FigureSpec`` that participates in
@@ -46,6 +46,7 @@ from typing import Any, Protocol
 
 from ehp_sn.experiments import ComponentRef
 from ehp_sn.figures.projection import FigureProjection, ResolvedFigureSelection
+from ehp_sn.figures.scope import SCOPE_ARTIFACT, SCOPE_RECORD, SOURCE_SCOPES
 
 #: The component kind under which a ``FigureSpec`` registers in the ordinary
 #: component catalogue.
@@ -93,6 +94,13 @@ class FigureInputRequirement:
     and ``contract`` is the framework-owned logical contract that must satisfy
     that role (for example ``raster-topology/v1``).
 
+    ``scope`` is the source granularity the figure consumes (Phase-4 § 4.1,
+    § 20): ``record`` (exactly one committed logical record) or ``artifact``
+    (a committed artifact's collection of records conforming to ``contract``).
+    The record inspectors declare ``scope="record"``; the generic artifact
+    summaries declare ``scope="artifact"``. Scope is generic framework
+    vocabulary, not a producer or contract detail.
+
     The requirement must not specify physical storage paths, producer identity,
     storage format, or filenames (Phase-1 § 8 · P1-T6; ``projection.md``
     § ``FigureInputContract``).
@@ -100,10 +108,22 @@ class FigureInputRequirement:
 
     role: str
     contract: str
+    scope: str = SCOPE_RECORD
 
-    def accepts(self, logical_contract: str) -> bool:
-        """Whether an exact source's logical contract satisfies this requirement."""
-        return logical_contract == self.contract
+    def __post_init__(self) -> None:
+        if self.scope not in SOURCE_SCOPES:
+            raise ValueError(f"unknown figure source scope {self.scope!r} (expected record|artifact)")
+
+    def accepts(self, logical_contract: str, *, scope: str = SCOPE_RECORD) -> bool:
+        """Whether an exact source satisfies this requirement.
+
+        Compatibility requires both the source scope and the exact logical
+        contract to match. A record-scope figure is incompatible with an
+        artifact-scope source (and vice versa), so a record inspector is never
+        selected for an artifact summary and an artifact summary is never
+        selected for a single record (Phase-4 · P4-SCOPE).
+        """
+        return self.scope == scope and logical_contract == self.contract
 
 
 @dataclass(frozen=True, slots=True)
@@ -198,4 +218,7 @@ __all__ = [
     "FigureInputRequirement",
     "FigureSelectionResolver",
     "FigureSpec",
+    "SCOPE_ARTIFACT",
+    "SCOPE_RECORD",
+    "SOURCE_SCOPES",
 ]

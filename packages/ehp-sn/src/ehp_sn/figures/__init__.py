@@ -62,6 +62,7 @@ from .render_profile import (
     ResolvedPresentation,
     default_render_profile,
 )
+from .scope import SCOPE_ARTIFACT, SCOPE_RECORD, SOURCE_SCOPES
 from .serialization import (
     FORMAT_PNG,
     FORMAT_SVG,
@@ -76,8 +77,10 @@ from .service import (
     FigureServiceError,
     NoCompatibleFigureError,
     UnknownFigureError,
+    inspect_artifact_figure,
     inspect_figure,
     list_compatible_figures,
+    list_figures_for_artifact,
     list_figures_for_record,
     resolve_auto_figure,
 )
@@ -111,13 +114,18 @@ __all__ = [
     "ResolvedFigureSelection",
     "ResolvedPresentation",
     "ResolvedSerializationPolicy",
+    "SCOPE_ARTIFACT",
+    "SCOPE_RECORD",
+    "SOURCE_SCOPES",
     "SerializationError",
     "SourceRoleBinding",
     "UnknownFigureError",
     "default_render_profile",
     "effective_figure_registry",
+    "inspect_artifact_figure",
     "inspect_figure",
     "list_compatible_figures",
+    "list_figures_for_artifact",
     "list_figures_for_record",
     "prepare_figure",
     "realize_projection",

@@ -667,6 +667,13 @@ def inspect_command(
     projection: zero compatible figures is a controlled ``no_compatible_figure``
     failure, more than one is ``ambiguous_figure``.
 
+    When ``--record`` is omitted, an artifact-scope figure may be requested with
+    ``--figure`` (Phase 4): ``data inspect ARTIFACT --figure
+    figure:simple-digraph-artifact-summary/v1`` projects an artifact summary
+    over the committed record collection. Artifact-scope ``--list-figures``
+    lists artifact-scope figures compatible with the artifact's record
+    collection.
+
     ``--list-figures`` (Phase 2) lists the canonical references of every
     registered figure whose input requirement the exact record satisfies, in
     the catalogue's deterministic order. It performs no projection.
@@ -680,18 +687,29 @@ def inspect_command(
     _json_requested = fmt == "json"
     global _current_action  # noqa: PLW0603
     _current_action = "inspect"
-    if record is None:
-        if samples > 0:
-            _fail(
-                DataNotImplementedError(
-                    "data inspect --samples representative sampling is not yet specified; "
-                    "use --record RECORD_ID to inspect an exact record."
-                )
-            )
-        typer.echo("Error: data inspect requires --record RECORD_ID.", err=True)
-        raise typer.Exit(code=2)
     if samples < 0:
         typer.echo("Error: --samples must be non-negative.", err=True)
+        raise typer.Exit(code=2)
+    if samples > 0:
+        _fail(
+            DataNotImplementedError(
+                "data inspect --samples representative sampling is not yet specified; "
+                "use --record RECORD_ID to inspect an exact record."
+            )
+        )
+        return
+    if record is None:
+        # Artifact-scope inspection: requires an artifact-scope figure (Phase 4).
+        if list_figures:
+            _run_list_artifact_figures(artifact, fmt)
+            return
+        if figure is not None:
+            _run_artifact_figure_inspect(artifact, figure, fmt)
+            return
+        typer.echo(
+            "Error: data inspect requires --record RECORD_ID (or --figure for artifact scope).",
+            err=True,
+        )
         raise typer.Exit(code=2)
     if list_figures:
         _run_list_figures(artifact, record, fmt)
@@ -704,6 +722,92 @@ def inspect_command(
     except Exception as exc:  # noqa: BLE001
         _fail(exc)
     _emit_inspect(result, fmt)
+
+
+def _run_artifact_figure_inspect(artifact: str, figure_ref: str, fmt: str) -> None:
+    """Project and realize an artifact-scope figure over a committed collection.
+
+    Delegates entirely to the generic figure service
+    (``ehp_sn.figures.inspect_artifact_figure``), which resolves the committed
+    artifact, derives the collection schema from the figure's declared input
+    requirement, projects (including deterministic representative selection),
+    and realizes the Figure. The CLI carries no producer/contract semantics
+    (Phase-4 § 19-20, § 23).
+    """
+    from ehp_sn.figures import inspect_artifact_figure
+    from ehp_sn.figures.contracts import FigureInputCompatibilityError
+    from ehp_sn.figures.service import FigureServiceError
+
+    try:
+        result = inspect_artifact_figure(artifact, figure_ref)
+    except (FigureServiceError, FigureInputCompatibilityError) as exc:
+        _fail(exc)
+        return
+    except Exception as exc:  # noqa: BLE001
+        _fail(exc)
+        return
+    projection = result.projection
+    if fmt == "json":
+        import json
+
+        typer.echo(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "status": "success",
+                    "action": "inspect",
+                    "warnings": [],
+                    "result": {
+                        "artifact": projection.source.artifact_ref,
+                        "scope": projection.source.scope,
+                        "schema_ref": projection.source.logical_contract,
+                        "figure": projection.figure_ref,
+                        "resolution": "artifact",
+                        "projection_identity": str(projection.identity()),
+                    },
+                }
+            )
+        )
+        return
+    typer.echo(f"artifact: {projection.source.artifact_ref}")
+    typer.echo(f"scope: {projection.source.scope}")
+    typer.echo(f"schema_ref: {projection.source.logical_contract}")
+    typer.echo(f"figure: {projection.figure_ref}")
+    typer.echo(f"projection_identity: {projection.identity()}")
+    _display_figure(result.figure)
+
+
+def _run_list_artifact_figures(artifact: str, fmt: str) -> None:
+    """List artifact-scope figures compatible with a committed artifact collection.
+
+    Delegates entirely to the generic figure service
+    (``ehp_sn.figures.list_figures_for_artifact``); the CLI hard-codes no
+    producer→figure or contract→figure table (Phase-4 § 19-20).
+    """
+    from ehp_sn.figures.service import FigureServiceError, list_figures_for_artifact
+
+    try:
+        refs = list_figures_for_artifact(artifact)
+    except FigureServiceError as exc:
+        _fail(exc)
+        return
+    if fmt == "json":
+        import json
+
+        typer.echo(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "status": "success",
+                    "action": "inspect",
+                    "warnings": [],
+                    "result": {"resolution": "artifact", "figures": refs},
+                }
+            )
+        )
+        return
+    for ref in refs:
+        typer.echo(ref)
 
 
 def _run_list_figures(artifact: str, record_id: str, fmt: str) -> None:

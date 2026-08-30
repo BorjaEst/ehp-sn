@@ -37,6 +37,7 @@ from typing import Any
 from ehp_sn.discovery import ComponentRegistry
 from ehp_sn.figures.projection import FigureProjection
 from ehp_sn.figures.render_profile import RenderProfile
+from ehp_sn.figures.scope import SCOPE_RECORD
 from ehp_sn.figures.serialization import ResolvedSerializationPolicy
 
 
@@ -54,6 +55,9 @@ class FigureSource:
     identity (for example ``sha256:<hex>``); ``schema_ref`` is the framework-
     owned logical contract the record conforms to (for example
     ``raster-topology/v1``); ``content`` is the stable logical contents.
+    ``scope`` is the source granularity (``record`` by default); the record
+    surface carries only ``record`` scope and is never used for artifact-scope
+    collections, which the service resolves directly from a committed artifact.
 
     This is the public counterpart of the service's exact source surface. It
     carries the same fields and satisfies the same structural source contract,
@@ -65,6 +69,7 @@ class FigureSource:
     record_id: str
     schema_ref: str
     content: object
+    scope: str = SCOPE_RECORD
 
 
 def prepare_figure(

@@ -38,6 +38,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ehp_sn.digests import canonical_digest
+from ehp_sn.figures.scope import SCOPE_ARTIFACT, SCOPE_RECORD
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,10 +46,22 @@ class SourceRoleBinding:
     """The exact authoritative source bound to one figure role.
 
     ``role`` is the semantic role this source satisfies for the figure (for
-    example ``topology``). The source identity fields are the exact committed
+    example ``topology``). ``scope`` is the source granularity: ``record``
+    (exactly one committed logical record) or ``artifact`` (a committed
+    artifact's collection of records conforming to the declared logical
+    contract). Phase-4 artifact summaries use ``scope="artifact"`` over a
+    generic collection source — never a producer identity (Phase-4 § 19-20).
+
+    For ``record`` scope the source identity fields are the exact committed
     artifact/resource and record identity that the parent operation resolved
     (Phase-1 § 9 · P1-T7): an exact record of a committed artifact, its logical
     contract, and its stable logical contents.
+
+    For ``artifact`` scope ``record_id`` holds a canonical deterministic
+    collection identity (a digest of the ordered member record identifiers)
+    and ``record_ids`` carries the exact ordered member record identifiers, so
+    projection provenance identifies the whole collection without depending on
+    artifact enumeration order (Phase-4 · P4-ART-001).
     """
 
     role: str
@@ -56,6 +69,8 @@ class SourceRoleBinding:
     record_id: str
     logical_contract: str
     content: object
+    scope: str = SCOPE_RECORD
+    record_ids: tuple[str, ...] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -123,6 +138,8 @@ class FigureProjection:
             preparation_version=self.preparation_version,
             artifact_ref=self.source.artifact_ref,
             record_id=self.source.record_id,
+            record_ids=self.source.record_ids,
+            scope=self.source.scope,
             logical_contract=self.source.logical_contract,
             selection=self.selection,
         )
@@ -137,15 +154,19 @@ class ProjectionIdentity:
     ```text
     figure projection semantics (reference + version)
     preparation semantics/version
-    exact authoritative source identities (artifact, record, logical contract)
+    exact authoritative source identities (scope, artifact, record/collection,
+        logical contract)
     authored selection semantics/version + parameters (when selection applies)
     exact resolved selected identities (when selection applies)
     ```
 
-    Changing any of these creates a new projection. Presentation-only changes
-    (panel placement, physical size, typography, DPI, serialization format,
-    style) do not change projection identity (``projection.md`` § "Projection
-    identity").
+    For ``artifact`` scope the collection's ordered member record identifiers
+    participate in identity, so a different committed collection is a different
+    projection (Phase-4 · P4-ART-001). Presentation-only changes (panel
+    placement, physical size, typography, DPI, serialization format, style) do
+    not change projection identity (``projection.md`` § "Projection identity").
+    A selection-policy change or a change to the exact resolved representative
+    record identifiers also changes identity (Phase-4 § 27).
 
     The identity is a stable canonical string derived from these semantic
     inputs. It is not a figure-specific content digest of the prepared bytes.
@@ -157,6 +178,8 @@ class ProjectionIdentity:
     artifact_ref: str
     record_id: str
     logical_contract: str
+    scope: str = SCOPE_RECORD
+    record_ids: tuple[str, ...] | None = None
     selection: ResolvedFigureSelection | None = None
 
     def __str__(self) -> str:
@@ -166,8 +189,11 @@ class ProjectionIdentity:
             "preparation_version": self.preparation_version,
             "artifact_ref": self.artifact_ref,
             "record_id": self.record_id,
+            "scope": self.scope,
             "logical_contract": self.logical_contract,
         }
+        if self.scope == SCOPE_ARTIFACT and self.record_ids is not None:
+            payload["record_ids"] = list(self.record_ids)
         if self.selection is not None:
             payload["selection"] = self.selection.identity_input()
         return canonical_digest(payload)
