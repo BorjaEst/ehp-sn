@@ -17,6 +17,7 @@ from importlib import metadata
 import typer
 
 from ehp_sn.cli.data import app as data_app
+from ehp_sn.cli.tasks import app as tasks_app
 
 
 def _version() -> str:
@@ -51,3 +52,4 @@ def _main(
 
 
 app.add_typer(data_app, name="data")
+app.add_typer(tasks_app, name="tasks")

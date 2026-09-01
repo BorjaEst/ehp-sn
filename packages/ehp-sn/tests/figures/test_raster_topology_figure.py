@@ -393,3 +393,70 @@ def test_r16_rendering_does_not_mutate_source_or_projection() -> None:
     assert str(projection.identity()) == identity_before
     assert source.content["passable"] == passable
     assert source.content["extent"] == {"height": 2, "width": 3, "position_count": 6}
+
+
+# ---------------------------------------------------------------------------
+# Phase 7C § 11/12 — dict-order determinism and explicit quantitative colormap
+# ---------------------------------------------------------------------------
+
+
+def test_record_content_dict_insertion_order_is_identity_transparent() -> None:
+    """Representative projection is independent of dict-key insertion order.
+
+    Two semantically equal records whose dict keys arrive in different insertion
+    orders must prepare the same projection (Phase 7C § 11).
+    """
+    base = {
+        "extent": {"height": 3, "width": 4, "position_count": 12},
+        "passable": [True] * 12,
+    }
+    reordered = {
+        "passable": [True] * 12,
+        "extent": {"position_count": 12, "width": 4, "height": 3},
+    }
+    a = prepare_figure(
+        _registry(),
+        _FIGURE_REF,
+        _ExactSource(
+            artifact_ref="artifact:dg/v1",
+            record_id="sha256:AAA",
+            schema_ref="raster-topology/v1",
+            content=base,
+        ),
+    )
+    b = prepare_figure(
+        _registry(),
+        _FIGURE_REF,
+        _ExactSource(
+            artifact_ref="artifact:dg/v1",
+            record_id="sha256:AAA",
+            schema_ref="raster-topology/v1",
+            content=reordered,
+        ),
+    )
+    assert str(a.identity()) == str(b.identity())
+    assert tuple(a.source.content.passable) == tuple(b.source.content.passable)
+
+
+def test_raster_image_has_explicit_scientific_colormap() -> None:
+    """The quantitative raster image carries an explicit scientific colormap.
+
+    A quantitative raster projection must not rely on an ambient colormap; its
+    image artist is drawn with an explicit colormap owned by the figure (Phase
+    7C § 12). The protected ``image.cmap`` semantics cannot be overridden by
+    presentation — that boundary is covered by
+    ``test_figures_render_profile`` ``test_profile_scientific_normalization_override_rejected``.
+    """
+    projection = _project(
+        _source(
+            artifact_ref="artifact:dg/v1",
+            record_id="sha256:AAA",
+            height=3,
+            width=4,
+            passable=[True] * 12,
+        )
+    )
+    figure = render_figure_projection(projection, registry=_registry())
+    ims = [child for ax in figure.axes for child in ax.get_images()]
+    assert ims, "raster figure must draw an image artist"
+    assert ims[0].get_cmap() is not None

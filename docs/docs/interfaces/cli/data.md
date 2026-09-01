@@ -318,20 +318,23 @@ ehp-sn data inspect ARTIFACT --record RECORD_ID [--format text|json]
 
 ### Options
 
-| Option                | Default | Description                              |
-| --------------------- | ------- | ---------------------------------------- |
-| `--record RECORD_ID`  | —       | Exact logical record identifier to show  |
-| `--figure FIGURE_REF` | —       | Request one figure over the exact record |
-| `--format text\|json` | `text`  | Terminal result format                   |
+| Option                | Default | Description                                                            |
+| --------------------- | ------- | ---------------------------------------------------------------------- |
+| `--record RECORD_ID`  | —       | Exact logical record identifier to show                                |
+| `--figure FIGURE_REF` | —       | Request one figure over the exact record, or an artifact-scope summary |
+| `--list-figures`      | —       | List figures compatible with the record or artifact collection         |
+| `--format text\|json` | `text`  | Terminal result format                                                 |
 
 ### Outputs
 
-The command reports the committed artifact identity (`artifact:` reference), the exact `record_id`, the record's `schema_ref`, and the generic record content.
+For record scope, the command reports the committed artifact identity (`artifact:` reference), the exact `record_id`, the record's `schema_ref`, and the generic record content.
 It is producer-neutral: it performs no producer-specific or contract-specific branch, and it never dumps the full dataset.
 
 The record is selected by exactly one deterministic lookup of `--record` through the existing record-identity mechanism; no implicit ordering, RNG, or representative sampling is used.
 
 ### Figure rendering (`--figure`)
+
+#### Record scope
 
 Figure rendering over a selected record (`data inspect ARTIFACT --record RECORD_ID --figure FIGURE_REF`) realizes one figure through the ordinary figure catalogue and generic figure pipeline.
 It is **figure-owner agnostic** (Phase 1): the CLI carries no substrate-family branch and no default figure is inferred from registration order.
@@ -340,7 +343,25 @@ The requested figure resolves through the ordinary component catalogue to a regi
 Without `--figure`, textual inspection behavior is unchanged.
 The figure path is additive and runs headlessly; interactive display is a CLI/runtime concern separate from figure realization.
 
-Framework-owned built-in figures include `figure:raster-topology-inspection/v1`, whose complete semantic meaning is expressible only through the framework-owned `raster-topology/v1` logical contract.
+Framework-owned built-in figures include the three record-inspection figures, each expressible entirely through its framework-owned logical contract:
+
+- `figure:raster-topology-inspection/v1` over `raster-topology/v1`;
+- `figure:simple-digraph-inspection/v1` over `simple-digraph/v1`;
+- `figure:categorical-field-inspection/v1` over `categorical-field/v1`.
+
+#### Artifact scope
+
+When `--record` is omitted, an artifact-scope figure may be requested:
+`data inspect ARTIFACT --figure figure:simple-digraph-artifact-summary/v1` projects an artifact summary over the committed artifact's collection of records conforming to the figure's declared logical contract, including its deterministic representative gallery.
+The collection schema is derived from the figure's own declared input requirement; the CLI stays generic and never names a producer or contract.
+
+The three artifact-scope summary figures are:
+
+- `figure:raster-topology-artifact-summary/v1` over `raster-topology/v1`;
+- `figure:simple-digraph-artifact-summary/v1` over `simple-digraph/v1`;
+- `figure:categorical-field-artifact-summary/v1` over `categorical-field/v1`.
+
+`--list-figures` without `--record` lists artifact-scope figures compatible with the artifact's record collection.
 
 ### Example
 
@@ -360,6 +381,13 @@ ehp-sn data inspect data/interim/dungeongen/general/v1 \
     --figure figure:raster-topology-inspection/v1
 ```
 
+Artifact scope:
+
+```console
+ehp-sn data inspect data/interim/dagflow/single-terminal/v1 \
+    --figure figure:simple-digraph-artifact-summary/v1
+```
+
 ### Errors
 
 - Artifact or manifest cannot be read (`unknown_artifact`, exit 4).
@@ -367,6 +395,7 @@ ehp-sn data inspect data/interim/dungeongen/general/v1 \
 - `record_id` does not exist in the artifact (`record_not_found`, exit 4).
 - With `--figure`: unknown or malformed figure reference (`unknown_figure`, exit 4).
 - With `--figure`: the selected record's logical contract does not satisfy the figure's declared input requirement (`figure_input_incompatible`, exit 3).
+- With artifact scope: the requested figure is not artifact-scope (`figure_input_incompatible`, exit 3).
 - `--samples` with a positive value (`operation_not_implemented`, exit 1).
 
 ## Related commands

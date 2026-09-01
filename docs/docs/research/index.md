@@ -22,10 +22,10 @@ task
 - [`substrates/`](substrates/index.md) — reusable, task-neutral domain structure.
 - [`tasks/`](tasks/index.md) — scientific problem, information regime, and truth semantics.
 - [`models/`](models/index.md) — reusable computational architectures and their grounding.
-- [`objectives/`](objectives/index.md) — reusable scientific objectives (as written).
-- [`controllers/`](controllers/index.md) — reusable control mechanisms (as written).
-- [`metrics/`](metrics/index.md) — reusable scientific metrics (as written).
-- [`analyses/`](analyses/index.md) — reusable analyses (as written).
+- `objectives/` — reusable scientific objectives (not yet authored; no research page exists).
+- `controllers/` — reusable control mechanisms (not yet authored; no research page exists).
+- `metrics/` — reusable scientific metrics (not yet authored; no research page exists).
+- `analyses/` — reusable analyses (not yet authored; no research page exists).
 - [`figures/`](figures/index.md) — reusable scientific visualization capabilities (as written).
 
 A resolved binding — one task, one model, and their configured `InputAdapter`/`OutputAdapter` pair — is not an independent research artifact.

@@ -459,3 +459,98 @@ def test_phase5_qualification_module_is_producer_blind() -> None:
     assert "QualificationStatus" in src
     assert "ReviewOutcome" in src
     assert "AnomalyDisposition" in src
+
+
+# ---------------------------------------------------------------------------
+# Phase 7C § 8/6/14 — source-resolution, dependency-direction, and
+# scientific-authority source guards (generic figure layer)
+# ---------------------------------------------------------------------------
+
+
+def _figures_pkg_path() -> pathlib.Path:
+    return _EHP_SN_SRC / "figures"
+
+
+def test_figure_layer_has_no_resolver_or_fingerprint_vocabulary() -> None:
+    """The generic figure layer owns no artifact/record search or storage root.
+
+    Figure code must reuse generic data/resource infrastructure (Phase 7C § 8).
+    This structural guard asserts the generic figure modules introduce none of
+    the vocabulary a figure-owned resolver would need: no artifact search, record
+    search, source fingerprinting, storage root, or artifact identity routing.
+    """
+    forbidden = (
+        "find_record",
+        "search_artifact",
+        "fingerprint",
+        "storage_root",
+        "index_dir",
+        "readdir",
+        "scan_release",
+        "locate_artifact",
+    )
+    for module in ("service", "source", "providers", "api", "projection"):
+        text = (_figures_pkg_path() / f"{module}.py").read_text(encoding="utf-8")
+        for token in forbidden:
+            assert token not in text, f"{module}.py contains figure-owned resolver vocabulary {token!r}"
+
+
+def test_figure_layer_reuses_generic_artifact_resolution() -> None:
+    """Figure orchestration delegates artifact resolution to the generic layer."""
+    service_text = (_figures_pkg_path() / "service.py").read_text(encoding="utf-8")
+    assert "ehp_sn.artifacts" in service_text
+    assert "load_release" in service_text
+
+
+def test_generic_orchestration_has_no_model_or_task_specialization() -> None:
+    """Generic figure orchestration must not name model or task specialization.
+
+    Phase 7C § 6 requires generic orchestration independent of producer, task,
+    *and* model specialization; this extends the producer/task guard to concrete
+    model vocabulary (HRM, TEM) and task-family vocabulary (MazeHard).
+    """
+    from ehp_sn.figures import service as service_module
+
+    text = pathlib.Path(service_module.__file__).read_text(encoding="utf-8")
+    for token in ("HRM", "TEM", "MazeHard", "HrmLatent", "MazeHardCaseData"):
+        assert token not in text, f"generic orchestration names model/task specialization {token!r}"
+
+
+_ACCEPTANCE_VOCABULARY = (
+    "p-value",
+    "significance",
+    "hypothesis",
+    "acceptance_evidence",
+    "accepted_artifact",
+    "sig=",
+)
+
+
+def test_figure_code_establishes_no_acceptance_evidence() -> None:
+    """Figure code never computes or asserts acceptance evidence.
+
+    Category-C scientific/data-quality evidence (acceptance, significance,
+    hypothesis testing) must be owned by validator / data-quality / analysis /
+    evaluation authority. Figure code may visualize such evidence but must not
+    establish it (Phase 7C § 14; ``record-inspection-conformance.md`` SRF-015).
+    """
+    for module in _figures_pkg_path().rglob("*.py"):
+        lowered = module.read_text(encoding="utf-8").lower()
+        for token in _ACCEPTANCE_VOCABULARY:
+            assert token not in lowered, (
+                f"{module.relative_to(_figures_pkg_path())} contains acceptance-"
+                f"evidence vocabulary {token!r}"
+            )
+
+
+def test_mazehard_case_figure_absent_from_generic_catalogue() -> None:
+    """The MazeHard task-layer figure does not enter the generic catalogue.
+
+    Scenario C (Phase 7E § 29): an experiment/task-local joint figure is reached
+    directly, not auto-resolved through ``effective_figure_registry()``. The
+    generic catalogue must not contain it (no generic figure semantics change).
+    """
+    from ehp_sn.figures import effective_figure_registry
+
+    refs = {d.ref.canonical for d in effective_figure_registry().iter(kind="figure")}
+    assert "figure:maze-hard-case/v1" not in refs

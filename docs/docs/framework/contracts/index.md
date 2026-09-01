@@ -206,7 +206,7 @@ canonical realization key
 record_id
 ```
 
-The exact digest algorithm is owned by the framework [Digests](../../digests.md) specification and is not restated here.
+The exact digest algorithm is owned by the framework [Digests](../digests.md) specification and is not restated here.
 
 ### Content identity — contract owned
 

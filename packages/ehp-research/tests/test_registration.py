@@ -54,6 +54,7 @@ def test_register_components_yields_exactly_the_provider_set() -> None:
         "substrate:dungeongen/v1",
         "substrate:maze-nd/v1",
         "substrate:obsfield/v1",
+        "task:maze-hard/v1",
     ]
 
 
@@ -83,6 +84,7 @@ def test_register_components_registers_into_the_given_registry_only() -> None:
         "substrate:dungeongen/v1",
         "substrate:maze-nd/v1",
         "substrate:obsfield/v1",
+        "task:maze-hard/v1",
     ]
     assert list(registry_b.iter()) == []
 

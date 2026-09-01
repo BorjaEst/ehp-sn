@@ -254,6 +254,16 @@ Audit resources, including provenance, are integrity-protected but not identity-
 
 The digest algorithm and canonical representation are defined by [Digests](digests.md).
 
+### Producer descriptors and resolution fidelity
+
+Beyond record payloads, a producer may declare opaque canonical descriptors that the framework carries without interpreting (`descriptors.py`): per-record descriptors (for example an intrinsic split label or an acceptance attempt) and an artifact-level aggregation of the distinct per-record descriptor surface.
+
+A committed release persists these descriptors alongside the record payload and the record index.
+Resolution of a committed release reconstructs them, so a resolved artifact exposes the same descriptor surface the committed artifact carries on disk — resolution is a faithful read of the committed release, not a lossy round-trip.
+A descriptor value may be any JSON-compatible value, including a list or object; descriptor aggregation is deterministic and never depends on incidental record enumeration order.
+
+The framework does not interpret a descriptor name or value; only the producer that declared it does.
+
 ## Build-input identity
 
 Planning requires an identity that can be computed before payload generation.

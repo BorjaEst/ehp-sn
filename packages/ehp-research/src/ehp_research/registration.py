@@ -45,15 +45,18 @@ from .substrates.dagflow import DAGFLOW_DEFINITION
 from .substrates.dungeongen import DUNGEONGEN_DEFINITION
 from .substrates.maze_nd import MAZE_ND_DEFINITION
 from .substrates.obsfield import OBSFIELD_DEFINITION
+from .tasks.mazehard import MAZEHARD_DEFINITION
 
-#: Authoritative reusable scientific substrate definitions admitted to
-#: discovery: Dagflow, Maze-ND, ObsField and DungeonGen. This is the one
-#: registration authority for currently implemented reusable definitions.
+#: Authoritative reusable scientific definitions admitted to discovery:
+#: substrates (Dagflow, Maze-ND, ObsField, DungeonGen) and the MazeHard task.
+#: This is the one registration authority for currently implemented reusable
+#: definitions. Everything here registers into one generic framework catalogue.
 _COMPONENTS = (
     DAGFLOW_DEFINITION,
     MAZE_ND_DEFINITION,
     OBSFIELD_DEFINITION,
     DUNGEONGEN_DEFINITION,
+    MAZEHARD_DEFINITION,
 )
 
 

@@ -306,3 +306,29 @@ def test_explicit_ref_resolves_despite_ambiguity() -> None:
     )
     assert projection.figure_ref == "figure:simple-digraph-inspection/v1"
     assert projection.figure_ref != AUTO_FIGURE_TOKEN
+
+
+# ---------------------------------------------------------------------------
+# Phase 7E § 28 — a new downstream FigureSpec is a provider-only change
+# ---------------------------------------------------------------------------
+
+
+def test_new_downstream_figure_registers_through_ordinary_catalogue() -> None:
+    """Adding a downstream FigureSpec needs no framework change (Scenario B).
+
+    Registering a new ``FigureSpec`` through the ordinary catalogue is a
+    provider-only change: it resolves and prepares through the existing service
+    with zero ``ehp_sn.figures`` modification, alongside (not conflicting with)
+    the built-in figures.
+    """
+    from ehp_sn.figures import register_builtin_figures
+
+    registry = ComponentRegistry()
+    register_builtin_figures(registry)
+    registry.register(_SimpleFigure("figure:downstream/v1"))
+
+    projection = prepare_figure(registry, "figure:downstream/v1", _graph_source())
+    assert projection.figure_ref == "figure:downstream/v1"
+    assert projection.source.logical_contract == "simple-digraph/v1"
+    # The built-in inspector is still resolvable through the same catalogue.
+    assert registry.resolve("figure:simple-digraph-inspection/v1").kind == FIGURE_KIND

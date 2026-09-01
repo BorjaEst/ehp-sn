@@ -465,7 +465,8 @@ def _project_plan(plan: ExecutionPlan) -> PlanResult:
             for resource in plan.resources
         ),
         identity=tuple(
-            IdentityInputView(name=input_.name, value=input_.value) for input_ in plan.identity_inputs
+            IdentityInputView(name=input_.name, value=input_.value)
+            for input_ in plan.identity_inputs
         ),
     )
 
@@ -530,7 +531,9 @@ class FrameworkDataAdapter:
         except (UnknownReferenceError, InvalidReferenceError) as exc:
             raise UnknownSubstrateError(f"unknown substrate: {target}") from exc
         if definition.kind != _SUBSTRATE_KIND:
-            raise UnknownSubstrateError(f"reference {target} does not denote a substrate")
+            raise UnknownSubstrateError(
+                f"reference {target} does not denote a substrate"
+            )
         return cast("_RegisteredSubstrate", definition)
 
     def list(self) -> Sequence[ListedSubstrate]:
@@ -566,16 +569,22 @@ class FrameworkDataAdapter:
             try:
                 parsed = ComponentRef.parse(reference)
             except InvalidReferenceError as exc:
-                raise UnknownArtifactError(f"malformed artifact reference: {artifact}") from exc
+                raise UnknownArtifactError(
+                    f"malformed artifact reference: {artifact}"
+                ) from exc
             if parsed.kind != "artifact":
-                raise UnknownArtifactError(f"reference {artifact} does not denote an artifact")
+                raise UnknownArtifactError(
+                    f"reference {artifact} does not denote an artifact"
+                )
             try:
                 family, _, variant = parsed.name.partition("/")
                 if not variant:
                     raise UnknownArtifactError(
                         f"artifact reference {artifact} must name <family>/<variant>"
                     )
-                coordinate = ReleaseCoordinate(family=family, variant=variant, release=parsed.version)
+                coordinate = ReleaseCoordinate(
+                    family=family, variant=variant, release=parsed.version
+                )
                 return resolve_release(self._root, coordinate)
             except (StoreError, ManifestParseError) as exc:
                 raise UnknownArtifactError(str(exc)) from exc
@@ -662,7 +671,9 @@ class FrameworkDataAdapter:
             non_conforming=(),
         )
 
-    def plan(self, target: str, config: str | None, release: int | None = None) -> PlanResult:
+    def plan(
+        self, target: str, config: str | None, release: int | None = None
+    ) -> PlanResult:
         """Resolve and project a substrate build plan without writing any data.
 
         Delegates the complete resolution path to the single generic framework
@@ -717,7 +728,9 @@ class FrameworkDataAdapter:
 
         return _project_plan(plan)
 
-    def build(self, target: str, config: str | None, release: int | None = None) -> BuildResult:
+    def build(
+        self, target: str, config: str | None, release: int | None = None
+    ) -> BuildResult:
         """Run one generic substrate build and project the framework outcome.
 
         Delegates the complete lifecycle to the single generic framework build

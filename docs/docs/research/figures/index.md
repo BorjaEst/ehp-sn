@@ -16,7 +16,7 @@ Research figures implement the generic contracts in `ehp_sn.figures`.
 
 They own reusable scientific source requirements, scientific preparation, domain-specific `FigureData`, and scientific visual-composition semantics.
 
-They do not own generic source resolution, selection mechanics, generic render execution, sinks, artifact commitment, configuration precedence, or workspace experiment composition.
+They do not own generic source resolution, selection mechanics, generic render execution, persistence, artifact commitment, configuration precedence, or workspace experiment composition.
 
 ## Placement rule
 
@@ -52,18 +52,14 @@ The framework owns:
 
 ```text
 FigureSpec contract
-FigureInputContract mechanics
-source resolution
-selection mechanics
-FigureProjection envelope
-RenderContext
-generic visual primitives
-rendering realization and serialization
-sinks
-telemetry mechanics
+source-role binding and input-requirement mechanics
+source resolution (through the ordinary data/resource framework)
+selection mechanics (resolved-selection provenance)
+FigureProjection
+RenderProfile presentation policy
+realization identity and serialization
 generic identity/provenance mechanics
-reusable contract-level visual helpers and contract views
-generic graph primitives / deterministic layouts
+reusable contract-level visual helpers and contact views
 ```
 
 Research owns:
@@ -85,7 +81,6 @@ A reusable research figure should define:
 - canonical figure reference;
 - scientific purpose;
 - maturity;
-- supported framework `FigureUse` values;
 - required semantic source roles;
 - accepted source schemas/channels/observables;
 - supported selection semantics;
@@ -206,7 +201,7 @@ Research figure names must not use experiment names merely to host an experiment
 
 ## Registration and discovery
 
-`ehp_research.registration` exposes reusable research figures through the generic framework registration/discovery mechanism.
+`ehp_research.figures.providers` contributes reusable research figures through the framework figure-provider entry-point group (`ehp_sn.figures.providers`, provider `figure_provider`), which registers each `FigureSpec` into the ordinary component catalogue (kind `figure`).
 
 It must not register experiment-local joint figures.
 
@@ -214,26 +209,12 @@ The framework must not directly import `ehp_research.figures`.
 
 Generic duplicate-reference and catalogue conflict rules remain owned by the framework registry/discovery authority.
 
-## Supported uses
+## Interaction with the requesting operation
 
-A research figure declares compatibility with a framework `FigureUse` contract.
+A research figure is realized through the ordinary figure service (`FigureUse` does not exist as a framework type in the current architecture). The requesting parent operation — `data inspect` or `tasks inspect` — resolves one exact `FigureSpec` through the catalogue and prepares/realizes it.
+A figure's scope (`record` vs `artifact`) is declared in its input requirement, and its selection semantics, where present, follow the framework deterministic-selection rules.
 
-Examples:
-
-```text
-Arena task overview
-    INSPECTION
-    REPORT
-    EXPLORATION
-
-HRM latent dynamics
-    TELEMETRY
-    ANALYSIS
-    REPORT
-    EXPLORATION
-```
-
-Supported use does not determine render profile, destination, cadence, or fatality.
+Supported use does not determine render profile, destination, cadence, or fatality; those remain owned by the requesting operation.
 
 ## Relationship to tasks
 
@@ -315,12 +296,12 @@ The project should not pre-create files for hypothetical figures.
 A reusable research figure conforms when:
 
 1. its scientific meaning is independent of one concrete experiment;
-2. it declares semantic sources through framework input contracts;
+2. it declares semantic sources through framework input requirements;
 3. its selection follows framework deterministic-selection rules;
 4. its preparation performs no hidden analysis or inference;
 5. its `FigureData` semantics are defined;
 6. its visual composition maps only already-prepared science to framework primitives;
-7. generic rendering/sink mechanics remain framework-owned;
+7. generic rendering/persistence mechanics remain framework-owned;
 8. registration uses generic discovery;
 9. generic identity, provenance, artifact, and configuration mechanics are referenced rather than redefined.
 

@@ -38,7 +38,7 @@ Python / notebook exploration
 ```
 
 The repository-wide requirements are `FIG-001` through `FIG-004` in `docs/invariants.md`.
-This page explains the architecture; it does not replace those invariants or the normative framework specifications under [`framework/figures/`](../framework/figures/).
+This page explains the architecture; it does not replace those invariants or the normative framework specifications under [`framework/figures/`](../framework/figures/index.md).
 
 ## Scientific boundary
 
@@ -228,7 +228,7 @@ Matplotlib Figure / Axes / Artists
 
 Generic Matplotlib helpers may exist for domain-neutral plotting operations, but helpers are libraries rather than new semantic contracts.
 
-The rationale for this boundary is explained in [`Direct Matplotlib`](../../direct-matplotlib.md).
+The reason the boundary is direct Matplotlib — with no backend-neutral graphics IR — is stated in the rendering specification ([`rendering.md`](../framework/figures/rendering.md)).
 
 ## Presentation and serialization
 

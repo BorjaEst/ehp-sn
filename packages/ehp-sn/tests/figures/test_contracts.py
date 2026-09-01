@@ -96,3 +96,72 @@ def test_input_requirement_accepts_exact_logical_contract() -> None:
     requirement = FigureInputRequirement(role="topology", contract="raster-topology/v1")
     assert requirement.accepts("raster-topology/v1") is True
     assert requirement.accepts("simple-digraph/v1") is False
+
+
+# ---------------------------------------------------------------------------
+# Phase 7C § 9 — validator and figure input requirement interpret the same contract
+# ---------------------------------------------------------------------------
+
+
+def test_input_requirement_agrees_with_raster_validator() -> None:
+    """``FigureInputRequirement.accepts`` and ``validate_raster_topology`` agree.
+
+    A record the figure's input requirement accepts must be accepted and
+    reconstructable by the generic validator; a record the validator rejects must
+    not satisfy the requirement (Phase 7C § 9: normative == runtime == validator
+    == figure).
+    """
+    import pytest
+    from ehp_sn.contracts.validation import (
+        ContractValidationError,
+        validate_raster_topology,
+    )
+
+    requirement = FigureInputRequirement(role="topology", contract="raster-topology/v1")
+    assert requirement.accepts("raster-topology/v1", scope="record")
+
+    valid = {
+        "extent": {"height": 2, "width": 3, "schema": "rectangular-row-column/v1"},
+        "passable": [True, True, False, False, True, True],
+    }
+    record = validate_raster_topology(valid)
+    assert tuple(record.passable) == (True, True, False, False, True, True)
+    assert record.extent.height == 2
+    assert record.extent.width == 3
+
+    bad = {
+        "extent": {"height": 2, "width": 3, "schema": "rectangular-row-column/v1"},
+        "passable": [True] * 10,  # length mismatch with position_count 6
+    }
+    with pytest.raises(ContractValidationError):
+        validate_raster_topology(bad)
+
+
+def test_input_requirement_agrees_with_categorical_validator() -> None:
+    """``FigureInputRequirement`` and ``validate_categorical_field`` agree."""
+    from ehp_sn.contracts.validation import validate_categorical_field
+
+    requirement = FigureInputRequirement(role="field", contract="categorical-field/v1")
+    assert requirement.accepts("categorical-field/v1", scope="record")
+    valid = {
+        "domain": {"height": 2, "width": 3, "schema": "rectangular-row-column/v1"},
+        "vocabulary": {"kind": "anonymous", "identity": "vocab-alpha", "cardinality": 3},
+        "observation_id": [2, 0, 1, 1, 2, 0],
+    }
+    record = validate_categorical_field(valid)
+    assert tuple(record.observation_ids) == (2, 0, 1, 1, 2, 0)
+
+
+def test_input_requirement_agrees_with_digraph_validator() -> None:
+    """``FigureInputRequirement`` and ``validate_simple_digraph`` agree."""
+    from ehp_sn.contracts.validation import validate_simple_digraph
+
+    requirement = FigureInputRequirement(role="graph", contract="simple-digraph/v1")
+    assert requirement.accepts("simple-digraph/v1", scope="record")
+    valid = {
+        "node_count": 4,
+        "edges": [[0, 1], [0, 2], [1, 3], [2, 3]],
+    }
+    record = validate_simple_digraph(valid)
+    assert record.node_count == 4
+    assert list(record.edges) == [(0, 1), (0, 2), (1, 3), (2, 3)]
