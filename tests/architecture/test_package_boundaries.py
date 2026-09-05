@@ -16,6 +16,8 @@ from __future__ import annotations
 
 import pathlib
 
+import pytest
+
 #: Source roots of the two packages, discovered relative to this file.
 _PACKAGES_ROOT = pathlib.Path(__file__).resolve().parents[2] / "packages"
 _EHP_SN_SRC = _PACKAGES_ROOT / "ehp-sn" / "src" / "ehp_sn"

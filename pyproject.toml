@@ -9,35 +9,39 @@
         "ruff",
         "pyupgrade",
     ]
-    docs = [
-        "mkdocs",
-        "mkdocstrings[python]",
-    ]
+    docs = ["mkdocs", "mkdocstrings[python]"]
 
 [tool.pytest.ini_options]
     testpaths = [
         "packages/ehp-sn/tests",
         "packages/ehp-research/tests",
+        "experiments",
         "tests",
     ]
-    addopts = [
-        "--strict-config",
-        "--strict-markers",
+    addopts = ["--import-mode=importlib", "--strict-config", "--strict-markers"]
+    markers = [
+        "small: local test with no external process or repository mutation",
+        "medium: crosses one framework or package boundary",
+        "large: end-to-end, packaging, or qualification path",
+        "contract: validates a framework semantic contract",
+        "conformance: validates one implementation against a contract",
+        "composition: validates concrete experiment composition semantics",
+        "interface: validates CLI or public Python API behavior",
+        "regression: protects stable accepted behavior against recurrence",
+        "architecture: validates repository ownership/import/path rules",
+        "cli: invokes the public command-line interface",
+        "figures: exercises figure projection, realization, or sink behavior",
+        "telemetry: exercises runtime diagnostic figure paths",
+        "qualification: acceptance-level reproducibility or release gate",
+        "slow: excluded from normal local development loops",
     ]
 
 [tool.ruff]
-    line-length = 105
+    line-length    = 105
     target-version = "py312"
 
 [tool.ruff.lint]
-    select = [
-        "E",
-        "F",
-        "I",
-        "UP",
-        "B",
-        "SIM",
-    ]
+    select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.mypy]
     python_version           = "3.12"
@@ -49,6 +53,5 @@
 # The frozen upstream dungeongen production dependency is untyped.
 # Treat it as an opaque external.
 [[tool.mypy.overrides]]
-    module = ["dungeongen.*", "dungeongen"]
+    module                 = ["dungeongen.*", "dungeongen"]
     ignore_missing_imports = true
-

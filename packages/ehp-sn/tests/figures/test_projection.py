@@ -17,6 +17,7 @@ imports pyplot; only modules that render need a backend.
 
 from __future__ import annotations
 
+import pytest
 from ehp_sn.figures import (
     effective_figure_registry,
     prepare_figure,

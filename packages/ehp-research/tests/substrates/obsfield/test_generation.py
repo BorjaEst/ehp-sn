@@ -7,6 +7,7 @@ independence, and topologicy/seed-policy independence.
 
 from __future__ import annotations
 
+import pytest
 from ehp_research.substrates.obsfield.configuration import Distribution, ObsFieldConfiguration
 from ehp_research.substrates.obsfield.generation import (
     generate_realization,

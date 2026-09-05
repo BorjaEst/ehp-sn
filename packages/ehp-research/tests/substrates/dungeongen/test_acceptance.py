@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 from ehp_research.substrates.dungeongen.acceptance import (
     AcceptedTopology,
     RejectionReason,

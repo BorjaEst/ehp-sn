@@ -24,6 +24,7 @@ from __future__ import annotations
 from typing import Any
 
 import matplotlib
+import pytest
 
 matplotlib.use("Agg")  # headless backend required for P1-19.10/19.11
 

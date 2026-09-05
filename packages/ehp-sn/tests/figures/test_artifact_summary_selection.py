@@ -30,12 +30,6 @@ matplotlib.use("Agg")  # headless backend required
 import random
 
 import pytest
-from artifact_summary_helpers import (
-    GRAPH_ARTIFACT_SUMMARY_REF,
-    artifact_summary_cases,
-    graph_records,
-    graph_source,
-)
 from ehp_sn.contracts.domains import rectangular_row_column_domain
 from ehp_sn.contracts.observations import AnonymousVocabulary, categorical_field
 from ehp_sn.contracts.relations import simple_digraph
@@ -60,6 +54,13 @@ from ehp_sn.figures.inspection import (
     ORDER_ASCENDING,
     SelectionCandidate,
     rank_candidates,
+)
+
+from .artifact_summary_helpers import (
+    GRAPH_ARTIFACT_SUMMARY_REF,
+    artifact_summary_cases,
+    graph_records,
+    graph_source,
 )
 
 

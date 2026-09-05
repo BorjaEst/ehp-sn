@@ -19,6 +19,7 @@ No backend selection is needed because these tests never import pyplot.
 
 from __future__ import annotations
 
+import pytest
 from ehp_sn.figures import effective_figure_registry
 from ehp_sn.figures.contracts import (
     FIGURE_KIND,

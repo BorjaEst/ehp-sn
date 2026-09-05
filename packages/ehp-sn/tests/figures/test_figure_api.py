@@ -35,6 +35,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 import matplotlib
+import pytest
 
 matplotlib.use("Agg")  # headless backend
 

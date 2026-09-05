@@ -18,12 +18,6 @@ Phase-4 artifact summaries rely on:
 from __future__ import annotations
 
 import pytest
-from artifact_summary_helpers import (
-    GRAPH_ARTIFACT_SUMMARY_REF,
-    GRAPH_INSPECTION_REF,
-    graph_records,
-    graph_source,
-)
 from ehp_sn.contracts.relations import simple_digraph
 from ehp_sn.discovery import ComponentRegistry
 from ehp_sn.figures import (
@@ -38,6 +32,13 @@ from ehp_sn.figures import (
     resolve_auto_figure,
 )
 from ehp_sn.figures.service import _ExactSource
+
+from .artifact_summary_helpers import (
+    GRAPH_ARTIFACT_SUMMARY_REF,
+    GRAPH_INSPECTION_REF,
+    graph_records,
+    graph_source,
+)
 
 
 def _registry():

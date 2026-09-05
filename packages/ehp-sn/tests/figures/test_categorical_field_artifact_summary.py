@@ -24,11 +24,6 @@ import matplotlib
 matplotlib.use("Agg")  # headless backend required
 
 import pytest
-from artifact_summary_helpers import (
-    FIELD_ARTIFACT_SUMMARY_REF,
-    field_records,
-    field_source,
-)
 from ehp_sn.figures import (
     FigureInputCompatibilityError,
     effective_figure_registry,
@@ -36,6 +31,12 @@ from ehp_sn.figures import (
 )
 from ehp_sn.figures.builtin.categorical_field_artifact_summary import (
     _reconstruct_field,
+)
+
+from .artifact_summary_helpers import (
+    FIELD_ARTIFACT_SUMMARY_REF,
+    field_records,
+    field_source,
 )
 
 

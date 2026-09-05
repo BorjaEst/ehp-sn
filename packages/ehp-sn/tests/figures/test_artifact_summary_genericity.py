@@ -14,6 +14,7 @@ contract and the figure's declared input requirement, never by ``producer ==
 
 from __future__ import annotations
 
+import pytest
 from ehp_sn.contracts.domains import rectangular_row_column_domain
 from ehp_sn.contracts.observations import AnonymousVocabulary, categorical_field
 from ehp_sn.contracts.relations import simple_digraph

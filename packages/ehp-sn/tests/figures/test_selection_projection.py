@@ -13,6 +13,7 @@ figure, including the Phase-3 research figure.
 
 from __future__ import annotations
 
+import pytest
 from ehp_sn.figures import FigureProjection, ResolvedFigureSelection
 from ehp_sn.figures.projection import SourceRoleBinding
 
