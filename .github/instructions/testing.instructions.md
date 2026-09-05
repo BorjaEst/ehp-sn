@@ -1,15 +1,32 @@
----
-description: "Use when writing or reviewing tests, architecture checks, or coupling/responsibility-isolation review."
-applyTo: "tests/**/*.py, packages/*/tests/**/*.py, .github/workflows/**"
----
-
 # EHP-SN testing instructions
 
 ## 0. Purpose
 
-These instructions define how tests must be generated, placed, named, scoped, marked, and reviewed in EHP-SN.
+EHP-SN does **not** invent a testing framework.
 
-The goal is not to maximize test count. The goal is to preserve the EHP-SN architecture:
+EHP-SN uses the standard Python testing stack:
+
+```text
+pytest
+pytest markers
+pytest tmp_path / monkeypatch
+pytest importlib import mode
+Hypothesis for property-based tests
+Import Linter or equivalent import-boundary checks
+CI lanes based on test size and purpose
+```
+
+The EHP-SN-specific policy is a thin architectural layer on top:
+
+```text
+semantic ownership determines test location
+test size determines allowed cost and dependencies
+test purpose determines evidence
+architecture tests enforce package boundaries
+qualification tests protect reproducibility, identity, and immutability
+```
+
+The goal is not to maximize test count. The goal is to protect the EHP-SN architecture:
 
 ```text
 ehp_sn
@@ -22,23 +39,148 @@ experiments/<experiment>/vN
     concrete scientific compositions
 
 root tests/
-    repository-wide architecture, distribution, integration, and qualification
+    repository architecture, distribution, public integration, and qualification
 ```
 
 Every generated test must answer four questions before code is written:
 
 ```text
-Who owns the invariant?
+What invariant is being tested?
+Who owns that invariant?
 What size is the test?
-What public or private surface is being tested?
 What evidence does the test provide?
 ```
 
-A test without a clear answer to those questions should not be generated.
+A test without clear answers should not be generated.
 
----
+## 1. External conventions adopted
 
-## 1. Core rule
+EHP-SN follows these recognizable conventions.
+
+### 1.1 Pytest as the test framework
+
+Pytest is the project test runner and public test convention.
+
+The test suite uses:
+
+```text
+pytest test discovery
+pytest markers
+pytest fixtures
+pytest tmp_path
+pytest monkeypatch
+pytest importlib import mode
+pytest strict marker validation
+```
+
+Pytest recommends `src` layout for installable packages and notes that `--import-mode=importlib` avoids pytest modifying `sys.path` in surprising ways. Pytest strict markers make unknown marks fail instead of silently passing. Pytest also provides `tmp_path` for per-test temporary files and `monkeypatch` for scoped environment or attribute changes.
+
+### 1.2 Google-style test sizes
+
+EHP-SN classifies every test as:
+
+```text
+small
+medium
+large
+```
+
+This follows the common Google test-size model: small tests are local/unit-like, medium tests cross a nearby boundary, and large tests are end-to-end or system-level.
+
+### 1.3 Test pyramid economics
+
+EHP-SN follows test pyramid economics:
+
+```text
+many small tests
+some medium tests
+few large tests
+explicit qualification gates
+```
+
+The test pyramid is a practical convention for keeping most checks fast and local while reserving expensive end-to-end tests for higher-value workflow evidence.
+
+### 1.4 Arrange–Act–Assert / Given–When–Then
+
+Tests should normally be readable as:
+
+```text
+Arrange
+Act
+Assert
+```
+
+or equivalently:
+
+```text
+Given
+When
+Then
+```
+
+Given–When–Then is a common reformulation of setup/exercise/verify test structure, and Arrange–Act–Assert is the same idea in unit-test terminology.
+
+Preferred shape:
+
+```python
+def test_projection_identity_ignores_render_dpi():
+    # Arrange
+    projection = make_toy_projection()
+    low_dpi = RenderContext(dpi=150)
+    high_dpi = RenderContext(dpi=600)
+
+    # Act
+    low_identity = projection.identity_with(low_dpi)
+    high_identity = projection.identity_with(high_dpi)
+
+    # Assert
+    assert low_identity == high_identity
+```
+
+Do not force comments when the phases are obvious, but the structure should be visible.
+
+### 1.5 Property-based testing
+
+Use Hypothesis for property-based tests when example tests are too weak.
+
+Good targets:
+
+```text
+canonical ordering
+identity perturbation matrices
+schema validation
+configuration conflict rules
+artifact state machines
+selection tie-breaking
+```
+
+Hypothesis is the standard property-based testing library for Python. Hypothesis tests must still have deterministic outcomes when used with pytest.
+
+### 1.6 Architecture testing
+
+Use import-boundary tooling where possible.
+
+Import Linter supports layered architecture contracts where lower layers are forbidden from importing higher layers.
+
+For EHP-SN, import contracts should enforce:
+
+```text
+ehp_sn
+    must not import ehp_research
+    must not import experiments
+
+ehp_research
+    may import ehp_sn
+    must not import concrete experiments
+
+experiments
+    may import ehp_sn
+    may import ehp_research
+```
+
+Use custom pytest architecture tests only for repository-specific rules that import tooling cannot express well, such as test placement, fixture placement, and no writes to repository runtime directories.
+
+## 2. Core placement rule
 
 Test location follows semantic ownership.
 
@@ -52,251 +194,13 @@ packages/ehp-research/tests
 experiments/<experiment>/vN/tests
     concrete experiment composition semantics only
 
-root tests/
+tests/
     repository architecture, distribution, public integration, and qualification only
 ```
 
-Do not place a test where the implementation happens to be convenient. Place it where the semantic invariant is owned.
+Do not place a test where implementation access is convenient. Place it where the invariant is owned.
 
----
-
-## 2. Ownership placement rules
-
-### 2.1 Framework tests: `packages/ehp-sn/tests`
-
-Use this location for tests of generic framework mechanics.
-
-Allowed examples:
-
-```text
-contracts
-artifacts
-configuration
-discovery
-execution
-planning
-generic figures
-generic Python interfaces
-generic CLI behavior
-generic task/model/binding abstractions
-generic resource requirements
-generic identity/provenance/digest behavior
-```
-
-Framework tests may test concepts such as:
-
-```text
-FigureSpec
-FigureInputContract
-FigureRequest
-FigureSelection
-ResolvedFigureSelection
-FigureProjection
-FigureComposition
-RenderContext
-RenderedFigure
-FigureSink
-FigureSchedule
-
-DataArtifact
-SubstrateArtifact
-TaskCorpus
-ExecutionPlan
-ResourceRequirement
-ParsedOperationConfiguration
-ResolvedRequest
-```
-
-Framework tests must not import or depend on:
-
-```text
-ehp_research
-experiments
-Arena
-MazeHard
-Routebind
-Prospect
-TEM
-TEM-t
-HRM
-HRM-rl
-DungeonGen
-Maze-ND
-ObsField
-Dagflow
-```
-
-If a framework test needs one of those concrete scientific concepts, the test is misplaced.
-
-Use toy framework fixtures instead:
-
-```text
-ToyFigureSpec
-ToyFigureData
-ToyResolvedFigureSource
-ToyTaskContract
-ToyModelContract
-ToyArtifact
-ToyLogicalRecord
-ToyRenderBackend
-```
-
-Toy fixtures must have no EHP research semantics.
-
----
-
-### 2.2 Research tests: `packages/ehp-research/tests`
-
-Use this location for reusable scientific components whose meaning remains coherent independently of one concrete experiment.
-
-Allowed examples:
-
-```text
-substrates/dagflow
-substrates/dungeongen
-substrates/maze_nd
-substrates/obsfield
-
-tasks/arena
-tasks/mazehard
-tasks/prospect
-tasks/routebind
-
-models/tem
-models/tem_t
-models/hrm
-models/hrm_rl
-
-figures
-analyses
-metrics
-registration
-```
-
-Research tests may import `ehp_sn` and `ehp_research`.
-
-Research tests must not test concrete task-model experiment compositions such as:
-
-```text
-Arena + TEM
-Arena + TEM-t
-MazeHard + HRM
-MazeHard + HRM-rl
-Routebind + HRM
-```
-
-Those belong under `experiments/<experiment>/vN/tests`.
-
-Research figure tests may test reusable scientific figures such as:
-
-```text
-Arena task overview
-MazeHard task overview
-Dagflow graph overview
-HPC place-field summary
-MEC grid summary
-HRM latent-state dynamics
-```
-
-Research figure tests must not test experiment-local joint figures such as:
-
-```text
-Arena–TEM memory-pathway comparison
-MazeHard–HRM reasoning-cycle diagnostic
-MazeHard–HRM-RL deliberation-value comparison
-Routebind–HRM semantic-spatial reasoning view
-```
-
----
-
-### 2.3 Experiment tests: `experiments/<experiment>/vN/tests`
-
-Use this location for concrete scientific compositions.
-
-Allowed examples:
-
-```text
-experiments/arena-tem/v1/tests
-experiments/arena-tem-t/v1/tests
-experiments/mazehard-hrm/v1/tests
-experiments/mazehard-hrm-rl/v1/tests
-experiments/routebind-hrm/v1/tests
-```
-
-Experiment tests may test:
-
-```text
-resolved experiment definition
-concrete task-model binding
-experiment-owned adapter configuration
-experiment-specific objective composition
-experiment-specific protocol composition
-experiment-specific metric selection
-experiment-specific trace selection
-experiment-local figures
-experiment-local resource requirements
-experiment-local configuration defaults
-```
-
-Experiment tests may import:
-
-```text
-ehp_sn
-ehp_research
-the local experiment package/module/specification
-```
-
-Experiment tests must not redefine generic framework rules. They must assert that the concrete experiment uses those rules correctly.
-
----
-
-### 2.4 Root tests: `tests/`
-
-Use root tests only for repository-wide concerns.
-
-Allowed folders:
-
-```text
-tests/architecture
-tests/distribution
-tests/integration
-tests/qualification
-tests/support
-```
-
-Root tests should normally use public surfaces only:
-
-```text
-CLI
-public Python API
-installed package imports
-entry points
-artifact manifests
-configured workspaces
-committed temporary artifacts
-```
-
-Root integration tests must not import private implementation modules.
-
-Wrong:
-
-```python
-from ehp_sn.figures._internal import ...
-from ehp_research.tasks.arena._builder import ...
-```
-
-Correct:
-
-```python
-from ehp_sn import train, evaluate
-subprocess.run(["ehp-sn", "data", "inspect", ...])
-```
-
----
-
-## 3. Target directory structure
-
-Use this structure as the target layout:
+## 3. Target test layout
 
 ```text
 packages/
@@ -381,35 +285,261 @@ tests/
   support/
 ```
 
-The exact file names may vary, but ownership must not.
+The exact filenames may vary. Ownership must not.
 
----
+## 4. Ownership rules
 
-## 4. Test size model
+### 4.1 Framework tests
 
-Every test must be classified as one of:
+Location:
 
 ```text
-small
-medium
-large
+packages/ehp-sn/tests
 ```
 
-This classification controls what the test may do.
+Use this location for generic framework contracts and services.
 
-### 4.1 Small tests
+Allowed subjects:
+
+```text
+contracts
+artifacts
+configuration
+discovery
+execution
+planning
+generic figures
+generic Python interfaces
+generic CLI behavior
+generic task/model/binding abstractions
+resource requirements
+identity/provenance/digest behavior
+```
+
+Framework tests may test generic figure concepts:
+
+```text
+FigureSpec
+FigureInputContract
+FigureRequest
+FigureSelection
+ResolvedFigureSelection
+FigureProjection
+FigureComposition
+RenderContext
+RenderedFigure
+FigureSink
+FigureSchedule
+```
+
+Framework tests must not import or depend on:
+
+```text
+ehp_research
+experiments
+Arena
+MazeHard
+Routebind
+Prospect
+TEM
+TEM-t
+HRM
+HRM-rl
+DungeonGen
+Maze-ND
+ObsField
+Dagflow
+```
+
+Use toy fixtures instead:
+
+```text
+ToyFigureSpec
+ToyFigureData
+ToyResolvedFigureSource
+ToyTaskContract
+ToyModelContract
+ToyArtifact
+ToyLogicalRecord
+ToyRenderBackend
+```
+
+Toy fixtures must have no EHP research semantics.
+
+### 4.2 Research tests
+
+Location:
+
+```text
+packages/ehp-research/tests
+```
+
+Use this location for reusable scientific components whose meaning remains coherent independently of one concrete experiment.
+
+Allowed subjects:
+
+```text
+substrates/dagflow
+substrates/dungeongen
+substrates/maze_nd
+substrates/obsfield
+
+tasks/arena
+tasks/mazehard
+tasks/prospect
+tasks/routebind
+
+models/tem
+models/tem_t
+models/hrm
+models/hrm_rl
+
+figures
+analyses
+metrics
+registration
+```
+
+Research tests may import:
+
+```python
+import ehp_sn
+import ehp_research
+```
+
+Research tests must not test concrete task-model compositions such as:
+
+```text
+Arena + TEM
+Arena + TEM-t
+MazeHard + HRM
+MazeHard + HRM-rl
+Routebind + HRM
+```
+
+Those belong under the corresponding experiment.
+
+A research conformance test may still be `small` when it imports both `ehp_sn` and `ehp_research`, provided it uses tiny deterministic fixtures and does not cross an operational boundary.
+
+### 4.3 Experiment tests
+
+Location:
+
+```text
+experiments/<experiment>/vN/tests
+```
+
+Use this location for concrete scientific compositions.
+
+Allowed subjects:
+
+```text
+resolved experiment definition
+concrete task-model binding
+experiment-owned adapter configuration
+experiment-specific objective composition
+experiment-specific protocol composition
+experiment-specific metric selection
+experiment-specific trace selection
+experiment-local figures
+experiment-local resource requirements
+experiment-local configuration defaults
+```
+
+Experiment tests may import:
+
+```python
+import ehp_sn
+import ehp_research
+import local_experiment_module
+```
+
+Experiment tests must not redefine generic framework rules. They assert that the concrete experiment uses those rules correctly.
+
+### 4.4 Root tests
+
+Location:
+
+```text
+tests/
+```
+
+Use root tests only for repository-wide concerns.
+
+Allowed folders:
+
+```text
+tests/architecture
+tests/distribution
+tests/integration
+tests/qualification
+tests/support
+```
+
+Root integration and qualification tests should use public surfaces:
+
+```text
+CLI
+public Python API
+installed package imports
+entry points
+artifact manifests
+configured workspaces
+temporary committed artifacts
+```
+
+Wrong:
+
+```python
+from ehp_sn.figures._internal import ...
+from ehp_research.tasks.arena._builder import ...
+```
+
+Correct:
+
+```python
+from ehp_sn import train, evaluate
+subprocess.run(["ehp-sn", "data", "inspect", artifact])
+```
+
+Architecture tests are an exception to the public-surface-only rule. They may inspect:
+
+```text
+AST imports
+module paths
+package metadata
+public exports
+pytest collection metadata
+filesystem writes
+```
+
+They still must not depend on private runtime shortcuts to execute workflows.
+
+## 5. Test size model
+
+Every test must have exactly one size marker:
+
+```python
+@pytest.mark.small
+@pytest.mark.medium
+@pytest.mark.large
+```
+
+The size marker controls allowed cost and dependencies.
+
+### 5.1 Small tests
 
 A small test checks local behavior.
 
 Allowed:
 
 ```text
-single module
-single package boundary
+single module or narrow package-local behavior
 pure functions
 small in-memory objects
-temporary files only when the filesystem is part of the invariant
-deterministic toy data
+tiny deterministic fixtures
+tmp_path only when filesystem behavior is the invariant
+research component conformance against framework contracts using tiny fixtures
 ```
 
 Forbidden:
@@ -418,7 +548,7 @@ Forbidden:
 subprocess
 network
 real repository data/artifacts/logs/models writes
-cross-package end-to-end flows
+cross-operation workflows
 expensive model training
 large generated datasets
 ```
@@ -430,9 +560,10 @@ raster-topology rejects invalid passability length
 FigureSelection tie-breaks by stable ID
 RenderContext rejects scientific selection fields
 configuration parser rejects duplicate explicit values
+Dagflow tiny graph conforms to simple-digraph/v1
 ```
 
-### 4.2 Medium tests
+### 5.2 Medium tests
 
 A medium test crosses one architectural boundary.
 
@@ -443,7 +574,7 @@ configuration file -> resolved request
 component registry -> resolved figure catalogue
 artifact resolver -> resolved figure source
 public Python API -> internal framework service
-research component -> framework contract conformance
+research component -> framework contract conformance with resolver involvement
 CLI command -> parser/service boundary
 ```
 
@@ -451,7 +582,7 @@ Medium tests may use `tmp_path` workspaces.
 
 Medium tests may use subprocess only when the CLI itself is the surface under test.
 
-### 4.3 Large tests
+### 5.3 Large tests
 
 A large test exercises an end-to-end or qualification path.
 
@@ -465,22 +596,20 @@ built wheel -> import -> entry point load
 full figure projection -> render -> sink path
 ```
 
-Large tests must be few, public-surface only, and isolated in temporary workspaces.
+Large tests must be few, deterministic, public-surface only, and isolated in temporary workspaces.
 
-Large tests should normally live in:
+Large tests normally live in:
 
 ```text
 tests/integration
 tests/qualification
 ```
 
----
+## 6. Test purpose model
 
-## 5. Test purpose model
+Each test should have one dominant purpose marker.
 
-Each test should have one dominant purpose.
-
-Allowed purposes:
+Allowed purpose markers:
 
 ```text
 contract
@@ -488,11 +617,11 @@ conformance
 composition
 interface
 regression
-qualification
 architecture
+qualification
 ```
 
-### 5.1 Contract test
+### 6.1 Contract
 
 Validates a framework semantic contract.
 
@@ -508,7 +637,7 @@ Location:
 packages/ehp-sn/tests/contracts
 ```
 
-### 5.2 Conformance test
+### 6.2 Conformance
 
 Validates one concrete implementation against a contract.
 
@@ -524,7 +653,7 @@ Location:
 packages/ehp-research/tests/substrates/dagflow
 ```
 
-### 5.3 Composition test
+### 6.3 Composition
 
 Validates a concrete experiment composition.
 
@@ -540,26 +669,27 @@ Location:
 experiments/mazehard-hrm/v1/tests
 ```
 
-### 5.4 Interface test
+### 6.4 Interface
 
-Validates CLI or public Python API behavior.
+Validates public CLI or public Python API behavior.
 
-Example:
+Examples:
 
 ```text
-ehp-sn data inspect reports ambiguous compatible figures instead of selecting first registered figure
+ehp-sn data inspect reports ambiguous compatible figures
+render_figure convenience equals prepare_figure + render_figure_projection
 ```
 
 Location depends on scope:
 
 ```text
-packages/ehp-sn/tests/interfaces/cli
+packages/ehp-sn/tests/interfaces
 tests/integration
 ```
 
-### 5.5 Regression test
+### 6.5 Regression
 
-Locks a stable public output shape or previously fixed bug.
+Locks stable accepted behavior or a previously fixed bug.
 
 Allowed only for stable or accepted behavior.
 
@@ -568,32 +698,12 @@ Examples:
 ```text
 resolved configuration diagnostic category
 manifest resource descriptor
-normalized SVG structure for a stable report figure
+normalized SVG fragment for a stable public figure
 ```
 
 Do not create golden files for exploratory, provisional, or backend-incidental behavior.
 
-### 5.6 Qualification test
-
-Validates acceptance-level invariants.
-
-Examples:
-
-```text
-same semantic inputs produce same artifact identity
-same figure projection inputs produce same projection identity
-render-only changes do not change projection identity
-committed artifact cannot be overwritten
-CLI and Python equivalent inputs resolve to equivalent plans
-```
-
-Location:
-
-```text
-tests/qualification
-```
-
-### 5.7 Architecture test
+### 6.6 Architecture
 
 Validates repository-level boundaries mechanically.
 
@@ -613,13 +723,29 @@ Location:
 tests/architecture
 ```
 
----
+### 6.7 Qualification
 
-## 6. Required pytest configuration
+Validates acceptance-level invariants.
 
-The project should use strict markers and importlib import mode.
+Examples:
 
-Recommended baseline:
+```text
+same semantic inputs produce same artifact identity
+same figure projection inputs produce same projection identity
+render-only changes do not change projection identity
+committed artifact cannot be overwritten
+CLI and Python equivalent inputs resolve to equivalent plans
+```
+
+Location:
+
+```text
+tests/qualification
+```
+
+## 7. Required pytest configuration
+
+Use strict markers and importlib import mode.
 
 ```toml
 [tool.pytest.ini_options]
@@ -635,44 +761,103 @@ testpaths = [
 ]
 markers = [
   "small: local test with no external process or repository mutation",
-  "medium: crosses one framework or package boundary",
+  "medium: crosses one framework, package, or public-interface boundary",
   "large: end-to-end, packaging, or qualification path",
+
   "contract: validates a framework semantic contract",
   "conformance: validates one implementation against a contract",
   "composition: validates concrete experiment composition semantics",
   "interface: validates CLI or public Python API behavior",
   "regression: protects stable accepted behavior against recurrence",
-  "architecture: validates repository ownership/import/path rules",
+  "architecture: validates repository ownership, imports, or path rules",
+  "qualification: acceptance-level reproducibility, immutability, or release gate",
+
   "cli: invokes the public command-line interface",
-  "figures: exercises figure projection, realization, or sink behavior",
+  "figures: exercises figure projection, realization, sink, or telemetry behavior",
   "telemetry: exercises runtime diagnostic figure paths",
-  "qualification: acceptance-level reproducibility or release gate",
   "slow: excluded from normal local development loops",
 ]
 ```
 
-Do not add markers casually. A marker must control execution policy, test size, or acceptance level. Do not duplicate folder names as markers unless the marker changes how tests are selected.
+Do not add markers casually. A marker must control execution policy, size, purpose, or acceptance level.
 
-Every test must have a size marker:
+Every test must have exactly one size marker.
+
+A test may additionally have one or more purpose/domain markers.
+
+Example:
 
 ```python
 @pytest.mark.small
-@pytest.mark.medium
-@pytest.mark.large
-```
-
-A test may additionally have purpose markers:
-
-```python
 @pytest.mark.contract
-@pytest.mark.conformance
 @pytest.mark.figures
-@pytest.mark.architecture
+def test_projection_identity_ignores_render_dpi():
+    ...
 ```
 
----
+## 8. Optional import-linter baseline
 
-## 7. Fixture governance
+Use Import Linter or an equivalent import-boundary tool to enforce package direction.
+
+Illustrative configuration:
+
+```toml
+[tool.importlinter]
+root_package = "ehp_sn"
+
+[[tool.importlinter.contracts]]
+name = "ehp_sn must not import ehp_research"
+type = "forbidden"
+source_modules = ["ehp_sn"]
+forbidden_modules = ["ehp_research"]
+
+[[tool.importlinter.contracts]]
+name = "ehp_sn must not import experiments"
+type = "forbidden"
+source_modules = ["ehp_sn"]
+forbidden_modules = ["experiments"]
+```
+
+Because `ehp_research` is a separate package, a second root or invocation may be needed:
+
+```toml
+[tool.importlinter]
+root_package = "ehp_research"
+
+[[tool.importlinter.contracts]]
+name = "ehp_research must not import concrete experiments"
+type = "forbidden"
+source_modules = ["ehp_research"]
+forbidden_modules = ["experiments"]
+```
+
+Exact configuration may differ depending on monorepo packaging. The invariant must not differ.
+
+## 9. Test suite governance
+
+Add a repository architecture test module:
+
+```text
+tests/architecture/test_test_suite_governance.py
+```
+
+It should enforce:
+
+```text
+every collected test has exactly one size marker
+no unknown markers exist
+framework tests do not import ehp_research
+framework tests do not import experiments
+research tests do not import concrete experiments
+root integration tests do not import private modules
+concrete experiment tests are not placed under packages/ehp-sn/tests
+framework figure tests use toy fixtures only
+tests do not write into real repository runtime directories
+```
+
+Collection-time failure is preferred over relying on review comments.
+
+## 10. Fixture governance
 
 Fixture location follows ownership.
 
@@ -696,20 +881,20 @@ Promotion rule:
 A fixture may move upward only if its semantics are valid at the higher layer.
 ```
 
-Examples:
+Allowed examples:
 
 ```text
 ToyRasterTopologyRecord
-    allowed in packages/ehp-sn/tests/support
+    packages/ehp-sn/tests/support
 
 TinyDagflowRecord
-    allowed in packages/ehp-research/tests/support
+    packages/ehp-research/tests/support
 
 TinyMazeHardHrmCase
-    allowed in experiments/mazehard-hrm/v1/tests
+    experiments/mazehard-hrm/v1/tests
 
 TemporaryWorkspace
-    allowed in tests/support only if it contains no scientific defaults
+    tests/support, only if it contains no scientific defaults
 ```
 
 Forbidden global fixtures:
@@ -723,28 +908,9 @@ dungeongen_artifact
 
 Those encode scientific or experiment semantics and must remain local to the owning layer.
 
-Use `tmp_path` for filesystem isolation.
+## 11. Import rules
 
-Use `monkeypatch` for scoped environment changes.
-
-Do not write to real repository paths:
-
-```text
-data/
-artifacts/
-logs/
-models/
-config/
-notebooks/
-```
-
-Any test that needs those directory names must create them under `tmp_path`.
-
----
-
-## 8. Import rules
-
-### 8.1 `ehp_sn` tests
+### 11.1 Framework tests
 
 Allowed:
 
@@ -760,7 +926,7 @@ import ehp_research
 import experiments
 ```
 
-### 8.2 `ehp_research` tests
+### 11.2 Research tests
 
 Allowed:
 
@@ -775,17 +941,17 @@ Forbidden unless explicitly testing installed experiment discovery:
 import experiments
 ```
 
-### 8.3 Experiment tests
+### 11.3 Experiment tests
 
 Allowed:
 
 ```python
 import ehp_sn
 import ehp_research
-import local experiment module/specification
+import local_experiment_module
 ```
 
-### 8.4 Root integration tests
+### 11.4 Root integration tests
 
 Allowed:
 
@@ -805,9 +971,7 @@ direct mutation of package internals
 shortcuts around public resolvers
 ```
 
----
-
-## 9. Filesystem and workspace rules
+## 12. Filesystem and workspace rules
 
 Tests must be hermetic.
 
@@ -817,24 +981,7 @@ Default rule:
 No test writes to repository-owned data, artifact, log, model, or config directories.
 ```
 
-Use:
-
-```python
-def test_example(tmp_path):
-    workspace = tmp_path / "workspace"
-```
-
-Do not use:
-
-```python
-Path("artifacts")
-Path("data/interim")
-Path("logs")
-```
-
-unless the path is under `tmp_path`.
-
-Tests that verify “no repository mutation” should snapshot or monitor:
+Forbidden real paths:
 
 ```text
 data/
@@ -842,19 +989,36 @@ artifacts/
 logs/
 models/
 config/
+notebooks/
 ```
 
-and fail if a test writes there.
+Use `tmp_path`:
+
+```python
+def test_example(tmp_path):
+    workspace = tmp_path / "workspace"
+    output = workspace / "artifacts" / "run-001"
+```
+
+Do not use:
+
+```python
+Path("artifacts/test-run")
+Path("data/interim")
+Path("logs")
+```
+
+unless the path is under `tmp_path`.
 
 Large tests may create realistic workspace layouts, but only inside `tmp_path`.
 
----
+Use `monkeypatch` for scoped environment changes.
 
-## 10. Randomness and determinism rules
+## 13. Randomness and determinism
 
 Any test involving randomness must declare the seed role.
 
-Allowed:
+Allowed seed roles:
 
 ```text
 framework toy seed
@@ -874,7 +1038,7 @@ dictionary-order-dependent selection
 worker-completion-order-dependent selection
 ```
 
-For deterministic tests, assert repeated runs produce the same result.
+For deterministic behavior, assert repeated runs produce the same result.
 
 For stochastic figure selection, assert:
 
@@ -885,9 +1049,7 @@ changing figure seed changes only figure selection
 enabling figures does not change training/evaluation/task RNG outputs
 ```
 
----
-
-## 11. Golden-file rules
+## 14. Golden-file rules
 
 Golden files are allowed only for stable public contracts.
 
@@ -912,7 +1074,7 @@ backend-dependent text layout
 temporary telemetry images
 ```
 
-Every golden file test must state:
+Every golden-file test must state:
 
 ```text
 why the output is stable
@@ -920,15 +1082,11 @@ which contract owns the output
 what change requires updating the golden file
 ```
 
-Golden files must be small and reviewable.
-
 Prefer structural assertions over byte comparisons.
 
----
+## 15. Property-based testing
 
-## 12. Property-based testing rules
-
-Use property-based testing selectively where examples are too weak.
+Use Hypothesis selectively.
 
 Good targets:
 
@@ -953,46 +1111,43 @@ exploratory analysis
 tests whose property is not clearly defined
 ```
 
-Property tests must still be deterministic enough for CI. Use bounded strategies and keep examples small.
+Property tests must be bounded, deterministic enough for CI, and cheaper than the bug class they protect against.
 
----
+## 16. Negative tests
 
-## 13. Architecture tests required
+Every stable contract must have positive and negative tests.
 
-Maintain architecture tests for these invariants:
-
-```text
-ehp_sn imports no ehp_research modules
-ehp_sn imports no experiments modules
-ehp_research does not register experiment-local figures
-concrete experiment tests are not placed under packages/ehp-sn/tests
-root integration tests do not import private modules
-test fixtures do not create real repository artifacts
-figure modules do not introduce FigureArtifact or figure-specific store lifecycle
-figure rendering modules do not import scientific research concepts
-framework figure tests use toy framework fixtures only
-```
-
-Architecture tests should inspect public surfaces, AST imports, module exports, and file paths.
-
-Do not scan raw source text naively for forbidden words. Comments and docstrings may legitimately mention forbidden concepts as non-goals. Prefer checking:
+Example for `raster-topology/v1`:
 
 ```text
-import statements
-class/function definitions
-public __all__
-module paths
-pytest collection metadata
-actual filesystem writes
+positive:
+    valid connected grid4 topology conforms
+
+negative:
+    invalid passable length rejected
+    invalid movement self-loop rejected
+    inconsistent state mapping rejected
 ```
 
----
+Example for figure selection:
 
-## 14. Figure testing rules
+```text
+positive:
+    top-k selection resolves deterministic selected IDs
 
-Figures require stricter testing because they cross source resolution, selection, preparation, visual composition, rendering, sinks, and telemetry.
+negative:
+    missing tie-break rejected for reproducible selection
+    duplicate entity IDs rejected
+    NaN policy missing rejected
+```
 
-### 14.1 Figure test ownership
+A contract tested only by happy-path examples is not sufficiently tested.
+
+## 17. Figure testing rules
+
+Figures require stricter tests because they cross source resolution, selection, preparation, visual composition, rendering, sinks, and telemetry.
+
+### 17.1 Figure test ownership
 
 Framework figure tests:
 
@@ -1055,14 +1210,12 @@ May test:
 Arena–TEM memory-pathway figure
 MazeHard–HRM reasoning-cycle figure
 MazeHard–HRM-RL deliberation-value figure
-Routebind–HRM joint semantic-spatial reasoning figure
+Routebind–HRM semantic-spatial reasoning figure
 ```
 
----
+### 17.2 Projection tests
 
-### 14.2 Projection tests
-
-Every stable figure capability should have projection tests for:
+Every stable figure capability should test:
 
 ```text
 input-contract validation
@@ -1101,13 +1254,9 @@ consume scientific RNG streams
 
 If a desired figure needs a missing scientific quantity, the test should expect failure, not silent computation.
 
----
+### 17.3 Projection identity perturbation matrix
 
-### 14.3 Projection identity perturbation matrix
-
-Every figure family with persisted or reproducible projections must test identity perturbations.
-
-Expected behavior:
+Every figure family with persisted or reproducible projections must test:
 
 ```text
 same exact sources
@@ -1148,11 +1297,9 @@ notebook display handle
 Matplotlib figure object identity
 ```
 
----
+### 17.4 Visual-composition tests
 
-### 14.4 Visual-composition tests
-
-Visual-composition tests should assert that a `FigureProjection` maps to the expected generic composition structure.
+Visual-composition tests assert that a `FigureProjection` maps to the expected generic composition structure.
 
 Assert:
 
@@ -1168,7 +1315,7 @@ layout relationships are explicit
 
 Do not assert private Matplotlib internals unless the backend wrapper itself is under test.
 
-Framework visual-composition tests must not contain scientific terms such as:
+Framework visual-composition tests must not contain scientific semantics such as:
 
 ```text
 place cell
@@ -1180,9 +1327,7 @@ MazeHard
 
 Research and experiment figure tests may contain those terms when they own the scientific meaning.
 
----
-
-### 14.5 Rendering tests
+### 17.5 Rendering tests
 
 Rendering tests must prove that rendering is downstream of projection.
 
@@ -1219,11 +1364,9 @@ CLI token position
 notebook object address
 ```
 
-Changing only destination must not change realization identity if serialized bytes are unchanged.
+Changing only destination must not change realization identity if serialized bytes and declared realization semantics are unchanged.
 
----
-
-### 14.6 Visual regression tests
+### 17.6 Visual regression tests
 
 Use visual regression sparingly.
 
@@ -1232,7 +1375,7 @@ Preferred order:
 ```text
 1. structural composition assertions
 2. normalized SVG or metadata assertions
-3. Matplotlib figure equality tests
+3. backend wrapper tests
 4. image-baseline comparison only for stable public outputs
 ```
 
@@ -1254,13 +1397,11 @@ large stochastic figures
 minor layout choices not yet stable
 ```
 
-When comparing images, keep examples tiny and deterministic.
+Avoid full PNG byte comparison unless the rendering contract explicitly guarantees byte stability.
 
----
+### 17.7 Sink tests
 
-### 14.7 Sink tests
-
-Sink tests must verify that sinks define delivery, not scientific meaning.
+Sink tests verify that sinks define delivery, not scientific meaning.
 
 Assert:
 
@@ -1274,9 +1415,7 @@ ExportSink writes only to explicit destination
 
 Sink destination must not enter scientific projection identity.
 
----
-
-### 14.8 Telemetry figure tests
+### 17.8 Telemetry tests
 
 Telemetry tests must prove runtime isolation.
 
@@ -1308,13 +1447,11 @@ shutdown behavior
 Default expectation:
 
 ```text
-optional telemetry may be dropped or coalesced;
-scientific execution must continue unchanged.
+optional telemetry may be dropped or coalesced
+scientific execution must continue unchanged
 ```
 
----
-
-## 15. Configuration tests
+## 18. Configuration tests
 
 Configuration tests belong mostly in:
 
@@ -1335,7 +1472,7 @@ frontend source precedence
 workspace consumed projection
 unused workspace fields do not affect identity
 shadowed values do not affect identity
-source provenance is recorded
+semantic provenance is recorded
 diagnostic provenance does not affect semantic identity
 ```
 
@@ -1352,9 +1489,7 @@ no backend-native rcParams tree becomes public stable config
 no universal figure TOML schema is invented prematurely
 ```
 
----
-
-## 16. Artifact tests
+## 19. Artifact tests
 
 Artifact tests belong mostly in:
 
@@ -1366,11 +1501,11 @@ tests/qualification
 Test:
 
 ```text
-staging directory is not committed artifact
+staging directory is not a committed artifact
 failed build leaves no valid committed artifact
 committed coordinate cannot be overwritten
 reuse requires matching identity/fingerprint
-different valid artifact at destination is conflict
+different valid artifact at destination is a conflict
 manifest declares required resources
 content digest validation detects mutation
 task corpus is self-contained without parent artifacts
@@ -1387,9 +1522,7 @@ reports may rerender existing science without mutating source artifacts
 figure-specific digest systems are not introduced
 ```
 
----
-
-## 17. CLI tests
+## 20. CLI tests
 
 CLI tests should live in:
 
@@ -1398,7 +1531,7 @@ packages/ehp-sn/tests/interfaces/cli
 tests/integration
 ```
 
-Use package-local CLI tests for command parsing and service boundary behavior.
+Use package-local CLI tests for command parsing and service-boundary behavior.
 
 Use root integration tests for actual public workflows.
 
@@ -1427,15 +1560,14 @@ destination options affect sink/placement only
 
 Do not use CLI tests to cover every internal branch. Internal branches belong in smaller package tests.
 
----
-
-## 18. Python API tests
+## 21. Python API tests
 
 Python API tests should live in:
 
 ```text
 packages/ehp-sn/tests/interfaces/python
-packages/ehp-research/tests/... where scientific implementation is owned
+packages/ehp-research/tests/... when scientific implementation is owned there
+experiments/<experiment>/vN/tests when composition is experiment-owned
 ```
 
 Test:
@@ -1450,11 +1582,9 @@ raw dict/tensor/path inputs are rejected unless explicitly supported
 controlled framework errors are raised
 ```
 
-Do not allow notebook convenience APIs to bypass validation.
+Notebook convenience APIs must not bypass validation.
 
----
-
-## 19. Discovery and registration tests
+## 22. Discovery and registration tests
 
 Framework discovery tests:
 
@@ -1504,13 +1634,11 @@ provider catalogue loads in installed form
 README examples are marked executable/provisional correctly
 ```
 
----
-
-## 20. Integration tests
+## 23. Integration tests
 
 Root integration tests should be few and public.
 
-Recommended initial integration tests:
+Recommended initial tests:
 
 ```text
 test_data_to_tasks_minimal.py
@@ -1541,13 +1669,11 @@ real repository artifacts
 training loops unless explicitly marked slow/qualification
 ```
 
----
-
-## 21. Qualification tests
+## 24. Qualification tests
 
 Qualification tests are acceptance gates, not normal development tests.
 
-Use:
+Location:
 
 ```text
 tests/qualification
@@ -1568,9 +1694,7 @@ test_provider_catalogue_installed_environment.py
 
 Qualification tests may be slower, but must remain deterministic and isolated.
 
----
-
-## 22. Naming conventions
+## 25. Naming conventions
 
 Use names that state the invariant.
 
@@ -1608,41 +1732,7 @@ def test_integration():
 
 Prefer one invariant per test. A test name should make the expected failure obvious.
 
----
-
-## 23. Negative tests are mandatory for contracts
-
-Every stable contract must have both positive and negative tests.
-
-Example for `raster-topology/v1`:
-
-```text
-positive:
-    valid connected grid4 topology conforms
-
-negative:
-    invalid passable length rejected
-    invalid movement self-loop rejected
-    inconsistent state mapping rejected
-```
-
-Example for figure selection:
-
-```text
-positive:
-    top-k selection resolves deterministic selected IDs
-
-negative:
-    missing tie-break rejected for reproducible selection
-    duplicate entity IDs rejected
-    NaN policy missing rejected
-```
-
-A contract tested only by happy-path examples is not sufficiently tested.
-
----
-
-## 24. Test data policy
+## 26. Test data policy
 
 Use the smallest data that proves the invariant.
 
@@ -1670,186 +1760,7 @@ large PNG baselines
 
 Large examples belong only in slow integration or qualification tests.
 
----
-
-## 25. Review checklist for generated tests
-
-Before accepting a generated test, check:
-
-```text
-Does the test live under the owner of the invariant?
-Does it have exactly one size marker?
-Does it have the right purpose marker?
-Does it avoid forbidden imports for its layer?
-Does it use tmp_path for filesystem writes?
-Does it avoid writing into real repository directories?
-Does it avoid hidden scientific semantics in shared fixtures?
-Does it assert the architectural boundary directly?
-Does it include a negative case when testing a contract?
-Is the data minimal?
-Is randomness seeded and isolated?
-Does the test fail for the intended bug?
-Does it avoid freezing incidental backend behavior?
-```
-
-Reject or rewrite tests that fail this checklist.
-
----
-
-## 26. Anti-patterns
-
-Do not generate tests with these patterns.
-
-### 26.1 Framework test importing research
-
-Wrong:
-
-```python
-# packages/ehp-sn/tests/figures/test_projection.py
-from ehp_research.tasks.arena import ...
-```
-
-Correction:
-
-```python
-# use ToyFigureSource or ToyLogicalRecord
-```
-
-### 26.2 Root fixture with experiment semantics
-
-Wrong:
-
-```python
-# tests/support/fixtures.py
-@pytest.fixture
-def arena_tem_workspace(...):
-    ...
-```
-
-Correction:
-
-```text
-move to experiments/arena-tem/v1/tests/conftest.py
-```
-
-### 26.3 Image baseline for every figure
-
-Wrong:
-
-```text
-Every figure test compares full PNG output.
-```
-
-Correction:
-
-```text
-Most figure tests assert projection identity, composition structure, labels, and sink behavior.
-Only stable public outputs get image regression tests.
-```
-
-### 26.4 Integration test using private shortcuts
-
-Wrong:
-
-```python
-from ehp_research.tasks.arena._builder import build_internal
-```
-
-Correction:
-
-```python
-subprocess.run(["ehp-sn", "tasks", "build", ...])
-```
-
-or public Python API.
-
-### 26.5 Test writes to real artifacts
-
-Wrong:
-
-```python
-output = Path("artifacts/test-run")
-```
-
-Correction:
-
-```python
-output = tmp_path / "artifacts" / "test-run"
-```
-
-### 26.6 Test freezes implementation accident
-
-Wrong:
-
-```python
-assert list(my_dict.keys()) == [...]
-```
-
-unless ordering is part of the public contract.
-
-Correction:
-
-```python
-assert resolved_order == expected_order
-```
-
-where the order is produced by an explicit deterministic ordering rule.
-
-### 26.7 Architecture test scans comments/docstrings naively
-
-Wrong:
-
-```python
-assert "FigureArtifact" not in source_text
-```
-
-Correction:
-
-```python
-assert "FigureArtifact" not in exported_symbols
-assert no class/function named "FigureArtifact" exists in AST
-```
-
----
-
-## 27. Minimum testing matrix for figures
-
-Every implemented figure slice should satisfy the relevant rows below.
-
-```text
-Framework figure core
-    small contract tests
-    medium API tests
-    architecture boundary tests
-
-Reusable research figure
-    research conformance tests
-    composition semantics tests
-    registration tests
-    small deterministic source fixtures
-
-Experiment-local figure
-    experiment composition tests
-    source-role compatibility tests
-    projection identity tests
-    fixed probe/selection tests if telemetry is involved
-
-Rendering backend
-    structural rendering tests
-    realization identity tests
-    mutation tests
-    sparse visual regression only when stable
-
-Telemetry figure path
-    snapshot isolation tests
-    no-inference tests
-    bounded queue tests
-    failure isolation tests
-```
-
----
-
-## 28. Minimum CI lanes
+## 27. CI lanes
 
 Recommended CI lanes:
 
@@ -1858,10 +1769,10 @@ local-fast
     small tests only, no slow/integration/qualification
 
 package-contract
-    ehp-sn and ehp-research small+medium tests
+    package small+medium tests
 
 architecture
-    root architecture tests
+    import-boundary and repository-governance checks
 
 integration
     root public-surface integration tests
@@ -1880,18 +1791,18 @@ pytest packages/ehp-sn/tests packages/ehp-research/tests experiments \
   -m "small and not slow"
 
 pytest packages/ehp-sn/tests packages/ehp-research/tests \
-  -m "small or medium"
+  -m "(small or medium) and not slow"
 
 pytest tests/architecture -m architecture
 
-pytest tests/integration -m "medium or large"
+pytest tests/integration -m "(medium or large) and not slow"
 
 pytest tests/qualification -m qualification
 
 pytest
 ```
 
-Exact commands may be adapted to the CI system, but the lanes must preserve the same economics:
+Exact commands may be adapted to the CI system, but the economics must remain:
 
 ```text
 many small tests
@@ -1900,11 +1811,9 @@ few large tests
 qualification as an explicit gate
 ```
 
----
+## 28. KPIs
 
-## 29. KPIs
-
-Track these KPIs.
+Track architectural KPIs over raw line coverage.
 
 ```text
 ehp_sn tests importing ehp_research
@@ -1920,6 +1829,9 @@ tests writing to repository data/artifacts/logs/models/config
     target: 0
 
 unknown pytest markers
+    target: 0
+
+tests without exactly one size marker
     target: 0
 
 small tests using subprocess
@@ -1947,11 +1859,144 @@ CI lanes documented and runnable
     target: 100%
 ```
 
-Prefer these architectural KPIs over raw line coverage. Line coverage is useful but insufficient for EHP-SN because the major risks are semantic leakage, identity mistakes, nondeterminism, artifact mutation, and misplaced ownership.
+Line coverage may be collected, but it is not the primary quality signal. EHP-SN’s highest risks are semantic leakage, identity mistakes, nondeterminism, artifact mutation, misplaced ownership, and hidden scientific computation.
 
----
+## 29. Review checklist
 
-## 30. Instruction for LLM/code agents generating tests
+Before accepting a generated test, check:
+
+```text
+Does the test state one invariant?
+Does the test live under the owner of that invariant?
+Does it have exactly one size marker?
+Does it have the right purpose marker?
+Does it avoid forbidden imports for its layer?
+Does it use tmp_path for filesystem writes?
+Does it avoid writing into real repository directories?
+Does it avoid hidden scientific semantics in shared fixtures?
+Does it assert the architectural boundary directly?
+Does it include a negative case when testing a contract?
+Is the data minimal?
+Is randomness seeded and isolated?
+Does the test fail for the intended bug?
+Does it avoid freezing incidental backend behavior?
+```
+
+Reject or rewrite tests that fail this checklist.
+
+## 30. Anti-patterns
+
+### 30.1 Framework test importing research
+
+Wrong:
+
+```python
+# packages/ehp-sn/tests/figures/test_projection.py
+from ehp_research.tasks.arena import ...
+```
+
+Correct:
+
+```python
+# use ToyFigureSource or ToyLogicalRecord
+```
+
+### 30.2 Root fixture with experiment semantics
+
+Wrong:
+
+```python
+# tests/support/fixtures.py
+@pytest.fixture
+def arena_tem_workspace(...):
+    ...
+```
+
+Correct:
+
+```text
+move to experiments/arena-tem/v1/tests/conftest.py
+```
+
+### 30.3 Image baseline for every figure
+
+Wrong:
+
+```text
+Every figure test compares full PNG output.
+```
+
+Correct:
+
+```text
+Most figure tests assert projection identity, composition structure, labels, and sink behavior.
+Only stable public outputs get image regression tests.
+```
+
+### 30.4 Integration test using private shortcuts
+
+Wrong:
+
+```python
+from ehp_research.tasks.arena._builder import build_internal
+```
+
+Correct:
+
+```python
+subprocess.run(["ehp-sn", "tasks", "build", ...])
+```
+
+or a public Python API.
+
+### 30.5 Test writes to real artifacts
+
+Wrong:
+
+```python
+output = Path("artifacts/test-run")
+```
+
+Correct:
+
+```python
+output = tmp_path / "artifacts" / "test-run"
+```
+
+### 30.6 Test freezes implementation accident
+
+Wrong:
+
+```python
+assert list(my_dict.keys()) == [...]
+```
+
+unless ordering is part of the public contract.
+
+Correct:
+
+```python
+assert resolved_order == expected_order
+```
+
+where the order is produced by an explicit deterministic ordering rule.
+
+### 30.7 Architecture test scans comments/docstrings naively
+
+Wrong:
+
+```python
+assert "FigureArtifact" not in source_text
+```
+
+Correct:
+
+```python
+assert "FigureArtifact" not in exported_symbols
+assert no class/function named "FigureArtifact" exists in AST
+```
+
+## 31. LLM/code-agent procedure
 
 When generating a new test, follow this procedure:
 
@@ -1975,38 +2020,43 @@ When generating a new test, follow this procedure:
        regression
        architecture
        qualification
-6. Use the smallest deterministic fixture that proves the invariant.
-7. Use tmp_path for all filesystem writes.
-8. Avoid forbidden imports for the layer.
-9. Add a negative test if the invariant is a contract.
-10. Assert public semantics, not private accidents.
-11. Ensure the test would fail for the intended architectural or behavioral bug.
+6. Use Arrange–Act–Assert.
+7. Use the smallest deterministic fixture that proves the invariant.
+8. Use tmp_path for all filesystem writes.
+9. Avoid forbidden imports for the layer.
+10. Add a negative test if the invariant is a contract.
+11. Assert public semantics, not private accidents.
+12. Ensure the test would fail for the intended architectural or behavioral bug.
 ```
 
 Do not generate broad “coverage” tests that merely execute code.
 
 Do not generate tests that silently encode new semantics.
 
-Do not generate tests that make framework tests depend on research components.
+Do not generate framework tests that depend on research components.
 
-Do not generate tests that make integration tests depend on private internals.
+Do not generate integration tests that depend on private internals.
 
 Do not generate tests that write into real repository data or artifact directories.
 
----
+## 32. Final principle
 
-## 31. Final principle
-
-The EHP-SN testing system exists to protect architectural meaning.
+The EHP-SN testing system is a pytest-based, standard Python test suite with an architectural ownership policy.
 
 ```text
-Test location follows semantic ownership.
-Test size controls cost and allowed dependencies.
-Test purpose states the evidence provided.
-Fixtures obey ownership boundaries.
-Integration tests use public surfaces.
-Figure tests protect projection, realization, identity, sink, and telemetry boundaries.
-Qualification tests prove reproducibility and immutability.
+pytest provides the framework
+Google-style sizes control cost
+test pyramid economics control distribution
+AAA/GWT controls readability
+Hypothesis strengthens pure contracts
+Import Linter and architecture tests enforce boundaries
+
+EHP-SN adds:
+    semantic ownership decides location
+    fixtures obey ownership boundaries
+    integration tests use public surfaces
+    figure tests protect projection/render/sink/telemetry separation
+    qualification tests prove reproducibility and immutability
 ```
 
 A test that violates those principles should be moved, narrowed, or deleted.
