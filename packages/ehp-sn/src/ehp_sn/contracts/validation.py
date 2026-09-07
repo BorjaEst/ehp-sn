@@ -1,78 +1,25 @@
-"""Framework-owned shared contract validation (Phase 1 · canonical conformance).
-
-This module is the **one framework authority** for validating the *declared
-logical instance* of each shared logical schema against its normative
-``* /v1`` contract, and it is the boundary that makes normal loading
-non-repairing (``docs/invariants.md`` ARCH-014; Phase 1 § 8–9, § 19).
-
-The required interpretation path is:
-
-```text
-committed resource
-        ↓  lossless physical decoding  (read the content dict verbatim)
-declared logical instance   (a JSON-ish dict)
-        ↓  shared contract validation  (this module)
-validated shared logical record
-```
-
-Decoding is deliberately not performed here: :mod:`ehp_sn.artifacts.resolve`
-already reads a committed record's ``content`` verbatim (lossless). This module
-validates that decoded declared logical instance and returns a validated typed
-record, or raises an explicit contract-domain error.
-
-Three things it does, and which map onto the phase requirements:
-
-* **Lossless-decoding boundary enforcement** — it accepts only the
-  authoritative field keys for each schema. A `raster-topology/v1` instance
-  containing `domain` instead of `extent` is rejected (not silently repaired),
-  and a `categorical-field/v1` instance containing `extent` instead of
-  `domain` is rejected. This implements the negative schema-drift requirement
-  (Phase 1 § 34) and prevents a loader from making non-conforming input
-  conforming (Phase 1 § 8, "Never" block).
-* **Single validation authority** — each validator reconstructs the typed
-  record through the owning contract constructor, which enforces every
-  ``*-REC-*`` invariant from the authoritative content. It does not reimplement
-  any invariant (Phase 1 § 25: producer duplicated shared invariants = 0).
-* **Materialized derived-view agreement** — when a declared instance also
-  stores a canonical derived view, the validator verifies it agrees exactly
-  with the value derived from authoritative content (Phase 1 § 19). It never
-  trusts an independently materialized derived view as authoritative.
-
-Each validator raises a :class:`ContractValidationError` identifying the
-schema, the violated invariant, and the observed versus expected value, so a
-caller can translate it into a controlled conformance failure rather than a raw
-exception leak.
-
-Producer validators (in ``ehp_research``) must invoke these shared validators
-and add only producer-owned invariants; they must not reimplement a shared
-invariant (Phase 1 § 25).
-"""
-
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-from .domains import (
+from ehp_sn.contracts.data.structures.observations import (
+    CategoricalField,
+    CategoricalFieldError,
+)
+from ehp_sn.contracts.data.structures.relations import SimpleDigraph, SimpleDigraphError
+
+from .data.structures.domains import (
     AmbientDomainError,
     RectangularRowColumnDomain,
     rectangular_row_column_domain,
 )
-from .observations import CategoricalField, CategoricalFieldError, categorical_field
-from .relations import SimpleDigraph, SimpleDigraphError, simple_digraph
+from .data.structures.observations import categorical_field
+from .data.structures.relations import simple_digraph
 from .topology import RasterTopology, RasterTopologyError, raster_topology
 
 
 class ContractValidationError(ValueError):
-    """A declared logical instance does not conform to its shared contract.
-
-    Raised by the shared validators when a decoded declared logical instance
-    violates a ``*-REC-*`` invariant, includes an alias/legacy field instead of
-    the authoritative one, or stores a derived view that disagrees with
-    authoritative content. This is a contract-domain (framework-owned) error,
-    not a producer error.
-    """
-
     def __init__(
         self,
         schema_ref: str,
@@ -92,13 +39,6 @@ def _require_only_keys(
     allowed: frozenset[str],
     present: frozenset[str],
 ) -> None:
-    """Reject a declared instance that carries a non-authoritative field.
-
-    ``present`` lists the non-authoritative keys that would previously have
-    been tolerated as aliases and that this boundary must reject. This is the
-    silent-repair prevention: an instance declaring the wrong field is invalid
-    current-schema content, not a migration candidate.
-    """
     present_but_invalid = sorted(present & instance.keys())
     if present_but_invalid:
         raise ContractValidationError(
@@ -124,19 +64,7 @@ def _require_authoritative_keys(
         )
 
 
-# ---------------------------------------------------------------------------
-# ambient-domain/v1 (AD-REC-001..003)
-# ---------------------------------------------------------------------------
-
-
 def validate_extent_declaration(schema_ref: str, declaration: object) -> RectangularRowColumnDomain:
-    """Reconstruct and validate a ``rectangular-row-column/v1`` domain declaration.
-
-    Validates ``AD-REC-001`` (complete dense position reconstruction), the
-    registered schema identity (``AD-REC-002``), and schema-determined versus
-    derived field agreement (``AD-REC-003``). Returns the validated
-    :class:`~ehp_sn.contracts.domains.RectangularRowColumnDomain`.
-    """
     if not isinstance(declaration, Mapping):
         raise ContractValidationError(
             schema_ref,
@@ -144,11 +72,11 @@ def validate_extent_declaration(schema_ref: str, declaration: object) -> Rectang
             f"domain declaration must be a mapping, got {type(declaration).__name__}",
         )
     schema = declaration.get("schema")
-    if schema != "rectangular-row-column/v1":
+    if schema != "rectangular-grid/v1":
         raise ContractValidationError(
             schema_ref,
             "AD-REC-002",
-            f"expected registered domain schema 'rectangular-row-column/v1', got {schema!r}",
+            f"expected registered domain schema 'rectangular-grid/v1', got {schema!r}",
         )
     try:
         height = int(declaration["height"])
@@ -163,7 +91,7 @@ def validate_extent_declaration(schema_ref: str, declaration: object) -> Rectang
         domain = rectangular_row_column_domain(height, width)
     except AmbientDomainError as exc:
         raise ContractValidationError(schema_ref, "AD-REC-001", str(exc)) from exc
-    # AD-REC-003 — schema-determined and derived declaration fields must agree.
+
     declared_count = declaration.get("position_count")
     if declared_count is not None and int(declared_count) != domain.position_count:
         raise ContractValidationError(
@@ -185,25 +113,10 @@ def validate_extent_declaration(schema_ref: str, declaration: object) -> Rectang
     return domain
 
 
-# ---------------------------------------------------------------------------
-# simple-digraph/v1 (SG-REC-001..006)
-# ---------------------------------------------------------------------------
-
-
 def validate_simple_digraph(instance: Mapping[str, Any]) -> SimpleDigraph:
-    """Validate a declared ``simple-digraph/v1`` logical instance.
-
-    Accepts the authoritative fields ``node_count`` and ``edges``, rejects any
-    alias representation (for example a ``successor`` table is not accepted as
-    an alias for ``edges``), reconstructs the typed
-    :class:`~ehp_sn.contracts.relations.SimpleDigraph` through the owning
-    constructor (which enforces ``SG-REC-001..006``), and — when a materialized
-    derived view is present — verifies it agrees with authoritative content
-    (``SG-REC-006``).
-    """
     schema_ref = "simple-digraph/v1"
     _require_authoritative_keys(schema_ref, "SG-REC-001", instance, frozenset({"node_count", "edges"}))
-    # Negative drift: a successor table is not an alias for edges.
+
     _require_only_keys(
         schema_ref,
         "SG-REC-005",
@@ -249,26 +162,10 @@ def validate_simple_digraph(instance: Mapping[str, Any]) -> SimpleDigraph:
     return graph
 
 
-# ---------------------------------------------------------------------------
-# raster-topology/v1 (RT-REC-001..007)
-# ---------------------------------------------------------------------------
-
-
 def validate_raster_topology(instance: Mapping[str, Any]) -> RasterTopology:
-    """Validate a declared ``raster-topology/v1`` logical instance.
-
-    Accepts the authoritative fields ``extent`` (a complete
-    ``rectangular-row-column/v1`` declaration) and ``passable``. Rejects a
-    ``domain`` alias (the historical raster field name is *not* accepted as an
-    alias for ``extent``; that is invalid current-schema content), reconstructs
-    the typed :class:`~ehp_sn.contracts.topology.RasterTopology` through the
-    owning constructor (which enforces ``RT-REC-001..007`` under the fixed
-    grid4/undirected/unit/no-stay parameters), and verifies any materialized
-    derived view agrees with authoritative content.
-    """
     schema_ref = "raster-topology/v1"
     _require_authoritative_keys(schema_ref, "RT-REC-001", instance, frozenset({"extent", "passable"}))
-    # Negative drift: the historical raster `domain` field is not `extent`.
+
     _require_only_keys(
         schema_ref,
         "RT-REC-001",
@@ -299,26 +196,12 @@ def validate_raster_topology(instance: Mapping[str, Any]) -> RasterTopology:
     return topology
 
 
-# ---------------------------------------------------------------------------
-# categorical-field/v1 (CF-REC-001..006)
-# ---------------------------------------------------------------------------
-
-
 def validate_categorical_field(instance: Mapping[str, Any]) -> CategoricalField:
-    """Validate a declared ``categorical-field/v1`` logical instance.
-
-    Accepts the authoritative fields ``domain``, ``vocabulary``, and
-    ``observation_id``. Rejects a topology-parent reference and a ``extent``
-    alias for ``domain`` (``CF-REC-001``/``CF-REC-006``), reconstructs the typed
-    :class:`~ehp_sn.contracts.observations.CategoricalField` through the owning
-    constructor (which enforces ``CF-REC-001..005``), and rejects any topology
-    reference (``CF-REC-006``).
-    """
     schema_ref = "categorical-field/v1"
     _require_authoritative_keys(
         schema_ref, "CF-REC-001", instance, frozenset({"domain", "vocabulary", "observation_id"})
     )
-    # Negative drift: a categorical field contains `domain`, never `extent`.
+
     _require_only_keys(
         schema_ref,
         "CF-REC-001",
@@ -326,7 +209,7 @@ def validate_categorical_field(instance: Mapping[str, Any]) -> CategoricalField:
         frozenset({"domain", "vocabulary", "observation_id"}),
         frozenset({"extent"}),
     )
-    # CF-REC-006 — no topology parent / state-mapping / schema reference.
+
     _require_only_keys(
         schema_ref,
         "CF-REC-006",
@@ -359,13 +242,7 @@ def validate_categorical_field(instance: Mapping[str, Any]) -> CategoricalField:
 
 
 def _coerce_vocabulary(schema_ref: str, declaration: object):
-    """Coerce a vocabulary declaration into a resolved contract Vocabulary.
-
-    Supports the anonymous and external vocabulary logical forms per
-    ``categorical-field/v1`` § "Vocabulary contract", reconstructing the
-    type through the owning types rather than a parallel parser.
-    """
-    from .observations import AnonymousVocabulary, ExternalVocabulary
+    from .data.structures.observations import AnonymousVocabulary, ExternalVocabulary
 
     if not isinstance(declaration, Mapping):
         raise ContractValidationError(
@@ -406,13 +283,7 @@ def _coerce_vocabulary(schema_ref: str, declaration: object):
     )
 
 
-# ---------------------------------------------------------------------------
-# shared helpers
-# ---------------------------------------------------------------------------
-
-
 def _coerce_cardinality(schema_ref: str, declaration: Mapping[str, Any]) -> int:
-    """Validate and return the vocabulary cardinality as a positive integer."""
     cardinality = declaration.get("cardinality")
     if not isinstance(cardinality, int) or isinstance(cardinality, bool) or cardinality < 1:
         raise ContractValidationError(
@@ -424,7 +295,6 @@ def _coerce_cardinality(schema_ref: str, declaration: Mapping[str, Any]) -> int:
 
 
 def _from_constructor(schema_ref: str, constructor: Any, *args: Any) -> Any:
-    """Invoke the owning contract constructor, translating its validation error."""
     try:
         return constructor(*args)
     except (RasterTopologyError, SimpleDigraphError, CategoricalFieldError, AmbientDomainError) as exc:
@@ -437,14 +307,6 @@ def _validate_materialized_derived_views(
     instance: Mapping[str, Any],
     expected: Mapping[str, Any],
 ) -> None:
-    """Verify any materialized canonical derived view agrees with authoritative content.
-
-    A producer/storage implementation may materialize a canonical derived value
-    for efficiency (Phase 1 § 19). When present, the materialized value must
-    equal the value canonically derived from the authoritative content. When
-    absent, generic consumers obtain it through contract utilities — a consumer
-    never requires redundant materialization.
-    """
     for field, value in expected.items():
         if field in instance and instance[field] != value:
             raise ContractValidationError(
