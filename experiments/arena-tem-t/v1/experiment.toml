@@ -1,61 +1,82 @@
-# Arena–TEM-t v1 — canonical concrete declaration
-#
-# This declaration instantiates the EHP-SN `ExperimentDefinition` specification
-# (schema "ehp-sn/experiment/v1"). It selects and configures reusable components;
-# it does not redefine any of their semantics. Scientific rationale and motivation
-# live in README.md; unresolved design reasoning lives in design/.
-
 schema = "ehp-sn/experiment/v1"
+ref    = "experiment:arena-tem-t/v1"
 
-ref = "experiment:arena-tem-t/v1"
 
-task  = "task:arena/v1"
-model = "model:tem-t/v1"
+# ---------------------------------------------------------------------------
+# Substrates
+# ---------------------------------------------------------------------------
+
+[substrates.topology]
+producer = "substrate:dungeongen/v1"
+config   = "config/data/dungeongen/arena-random-30x30.toml"
+
+
+[substrates.observation_field]
+producer = "substrate:obsfield/v1"
+config   = "config/data/obsfield/arena-random-30x30.toml"
+
+
+# ---------------------------------------------------------------------------
+# Task
+# ---------------------------------------------------------------------------
+
+[task]
+ref    = "task:arena/v1"
+config = "config/tasks/arena/default.toml"
+
+
+[task.corpora.main]
+config = "config/tasks/arena/dungeongen-random-30x30-t250.toml"
+
+
+[task.corpora.main.parents]
+topology          = "substrates.topology"
+observation_field = "substrates.observation_field"
+
+
+# ---------------------------------------------------------------------------
+# Model
+# ---------------------------------------------------------------------------
+
+[model]
+ref    = "model:tem-t/v1"
+config = "config/models/tem-t/arena-reference.toml"
+
+
+# ---------------------------------------------------------------------------
+# Binding
+# ---------------------------------------------------------------------------
+
+[binding]
+joint = "config/bindings/arena-tem-t/joint.toml"
+
 
 [binding.input]
-    adapter = "adapter:relational-sequence/v1"
-    # Identical configuration to the arena-tem binding: TEM-t declares the same native
-    # inputs as TEM (sensory_id, relation_id, reset, sequence_mask; tem-t.md §3), so the
-    # resolved configuration carries over unchanged from experiments/arena-tem/v1/experiment.toml.
-    #   task_step_to_model_step: t -> t (Arena temporal-canonicalization, arena.md §7.4)
-    #   observation_mapping: injective Arena public observation vocabulary -> TEM-t sensory_id
-    #   relation_mapping: injective Arena grid4 (+ optional STAY) -> TEM-t relation_id
-    #   reset: emitted at task step 0 (satisfies SIN-CMP-002); carries Arena episode_start
-    #   sequence_mask: none when fixed episode length T
+adapter = "adapter:relational-sequence/v1"
+config  = "config/bindings/relational-sequence/arena.toml"
+
 
 [binding.output]
-    adapter = "adapter:observation-prediction/v1"
-    # per pathway, independently:
-    #   source role: the selected declared sensory-prediction output (see note below)
-    #   task_step_to_model_step / model_step_to_task_step: t -> t
-    #   category_mapping: identity / injective TEM-t sensory vocabulary -> Arena observation vocab
-    #   score-to-label: argmax (target y_t* = o_t is a single categorical label)
-    #
-    # NOTE: the two sensory-prediction roles used here (structural-only, attention-recall)
-    # are tentative binding-side reasoning about how TEM-t's attention mechanism can be
-    # probed; see design/prediction-pathways.md. This experiment selects roles; it does not
-    # define how TEM-t computes them (tem-t.md §4/§8: adapters must not construct relational
-    # state, attention memory, or associative retrieval). prediction_timing = current_step
-    # for both roles, matching Arena's target timing (observation-prediction-v1.md §2.2).
+adapter = "adapter:observation-prediction/v1"
+config  = "config/bindings/observation-prediction/arena-tem-t.toml"
 
-[objective]
-    # supervised cross-entropy between each selected pathway's predicted observation
-    # distribution and y_t* = o_t at every valid replay step. Padding excluded from the
-    # loss (relational-sequence-v1.md SIN-MAP-004).
 
-[metrics]
-    A_obs_rev         = "task:arena/v1#revisit-conditioned-observation-accuracy"
-    A_obs_rev_overall = "task:arena/v1#overall-first-visit-accuracy"
-    # per-pathway specializations A_struct_rev and A_attn_rev reuse A_obs^rev definition
-    # over the selected structural-only / attention-recall roles.
+# ---------------------------------------------------------------------------
+# Objectives
+# ---------------------------------------------------------------------------
 
-[corpus]
-    requirement              = "task:arena/v1"
-    topology_parent          = "substrate:dungeongen/v1#general"
-    observation_field_parent = "substrate:obsfield/v1#categorical-complete"
-    assignment_protocol      = "obsfield:categorical-random/v1"
-    # corpus held identical to arena-tem deliberately, so the TEM/TEM-t model swap is not
-    # confounded by a corpus difference.
+[objectives.components.observation]
+ref    = "objective:categorical-cross-entropy/v1"
+config = "config/objectives/arena-tem-t/observation.toml"
 
-[resources]
-    # resource requirements declared here (framework CONFIG-001)
+
+# ---------------------------------------------------------------------------
+# Training / evaluation
+# ---------------------------------------------------------------------------
+
+[training]
+protocol = "config/train/arena-tem-t/reference.toml"
+
+
+[evaluation]
+protocol = "config/evaluate/arena-tem-t/reference.toml"
