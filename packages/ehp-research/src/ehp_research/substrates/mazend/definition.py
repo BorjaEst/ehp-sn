@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from ehp_sn import components, substrates
-from ehp_sn.contracts.data.structures.observations import categorical_field
+from ehp_sn.contracts.data.structures.topology import raster_topology
 
 from . import configuration, generation, inspection, planning, validation
 
 _DESCRIPTION = (
-    "Reusable categorical observation-field substrate: "
-    "procedurally generated persistent categorical fields conforming to "
-    "categorical-field/v1, independent of topology."
+    "Reusable raster maze-topology substrate: "
+    "normalized raster topologies extracted from an authoritative external "
+    "source and conforming to raster-topology/v1."
 )
 
 
@@ -43,7 +43,7 @@ class Definition(substrates.Definition):
     def validate(
         self,
         *,
-        artifact: categorical_field.Artifact,
+        artifact: raster_topology.Artifact,
         level: substrates.ValidationLevel,
     ) -> substrates.ValidateResult:
         return validation.validate(
@@ -54,7 +54,7 @@ class Definition(substrates.Definition):
     def summarize(
         self,
         *,
-        artifact: categorical_field.Artifact,
+        artifact: raster_topology.Artifact,
     ) -> substrates.SummaryResult:
         return inspection.summarize(
             artifact=artifact,
@@ -63,7 +63,7 @@ class Definition(substrates.Definition):
     def inspect(
         self,
         *,
-        artifact: categorical_field.Artifact,
+        artifact: raster_topology.Artifact,
         record_id: str,
     ) -> substrates.InspectResult:
         return inspection.inspect(
@@ -73,9 +73,9 @@ class Definition(substrates.Definition):
 
 
 DEFINITION = Definition(
-    ref=components.ComponentRef(kind="substrate", name="obsfield", version=1),
+    ref=components.ComponentRef(kind="substrate", name="maze-nd", version=1),
     description=_DESCRIPTION,
-    contract=categorical_field.V1,
+    contract=raster_topology.V1,
 )
 
 

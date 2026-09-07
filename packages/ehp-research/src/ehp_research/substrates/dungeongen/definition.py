@@ -1,35 +1,82 @@
-"""Authoritative DungeonGen v1 substrate definition.
-
-This module is the single authoritative home of the
-``substrate:dungeongen/v1`` definition object (``DUNGEONGEN_DEFINITION``) at
-the discovery level in ``ehp_research``.
-
-It carries only demonstrated discovery facts:
-
-* canonical reference: ``substrate:dungeongen/v1``;
-* a concise description of the substrate definition;
-* the normalized output contract: ``raster-topology/v1``.
-
-It deliberately carries no generation/acceptance/conversion configuration and
-no planner/builder/execution hooks (those are planning-phase concerns in this
-package). The scientific specification for DungeonGen v1 is
-``docs/docs/research/substrates/dungeongen-v1.md``.
-"""
-
 from __future__ import annotations
 
-from ehp_sn.experiments import ComponentRef
+from ehp_sn import components, substrates
+from ehp_sn.contracts.data.structures.topology import raster_topology
 
-from .._definition import SubstrateDefinition
+from . import configuration, generation, inspection, planning, validation
 
-DUNGEONGEN_DEFINITION = SubstrateDefinition(
-    ref=ComponentRef.parse("substrate:dungeongen/v1"),
-    description=(
-        "Reusable procedural irregular raster-topology substrate: normalized "
-        "raster topologies generated from the frozen dungeongen production "
-        "dependency and conforming to raster-topology/v1."
-    ),
-    output_contract="raster-topology/v1",
+_DESCRIPTION = (
+    "Reusable procedural irregular raster-topology substrate: "
+    "normalized raster topologies generated from the frozen dungeongen "
+    "production dependency and conforming to raster-topology/v1."
 )
 
-__all__ = ["DUNGEONGEN_DEFINITION"]
+
+class Definition(substrates.Definition):
+    def resolve_configuration(
+        self,
+        *,
+        document: substrates.LoadedConfiguration,
+    ) -> substrates.Configuration:
+        return configuration.resolve(
+            document=document,
+        )
+
+    def plan(
+        self,
+        *,
+        config: substrates.Configuration,
+    ) -> substrates.PlanningDeclaration:
+        return planning.create(
+            config=config,
+        )
+
+    def build(
+        self,
+        *,
+        config: substrates.Configuration,
+    ) -> substrates.BuildResult:
+        return generation.generate(
+            config=config,
+        )
+
+    def validate(
+        self,
+        *,
+        artifact: raster_topology.Artifact,
+        level: substrates.ValidationLevel,
+    ) -> substrates.ValidateResult:
+        return validation.validate(
+            artifact=artifact,
+            level=level,
+        )
+
+    def summarize(
+        self,
+        *,
+        artifact: raster_topology.Artifact,
+    ) -> substrates.SummaryResult:
+        return inspection.summarize(
+            artifact=artifact,
+        )
+
+    def inspect(
+        self,
+        *,
+        artifact: raster_topology.Artifact,
+        record_id: str,
+    ) -> substrates.InspectResult:
+        return inspection.inspect(
+            artifact=artifact,
+            record_id=record_id,
+        )
+
+
+DEFINITION = Definition(
+    ref=components.ComponentRef(kind="substrate", name="dungeongen", version=1),
+    description=_DESCRIPTION,
+    contract=raster_topology.V1,
+)
+
+
+__all__ = ["DEFINITION"]

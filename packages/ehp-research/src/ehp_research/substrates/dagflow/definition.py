@@ -1,34 +1,81 @@
-"""Authoritative Dagflow v1 substrate definition.
-
-This module is the single authoritative home of the ``substrate:dagflow/v1``
-definition object (``DAGFLOW_DEFINITION``) at the discovery level in
-``ehp_research``.
-
-It carries only demonstrated discovery facts:
-
-* canonical reference: ``substrate:dagflow/v1``;
-* a concise description of the substrate definition;
-* the normalized output contract: ``simple-digraph/v1``.
-
-It deliberately carries no generation, configuration, or planning semantics
-(pending the planning phase), and no producer/execution hooks. The scientific
-specification for Dagflow v1 is
-``docs/docs/research/substrates/dagflow-v1.md``.
-"""
-
 from __future__ import annotations
 
-from ehp_sn.experiments import ComponentRef
+from ehp_sn import components, substrates
+from ehp_sn.contracts.data.structures.relations import simple_digraph
 
-from .._definition import SubstrateDefinition
+from . import configuration, generation, inspection, planning, validation
 
-DAGFLOW_DEFINITION = SubstrateDefinition(
-    ref=ComponentRef.parse("substrate:dagflow/v1"),
-    description=(
-        "Reusable single-terminal directed-graph substrate: procedurally "
-        "generated directed graphs conforming to simple-digraph/v1."
-    ),
-    output_contract="simple-digraph/v1",
+_DESCRIPTION = (
+    "Reusable single-terminal directed-graph substrate: "
+    "procedurally generated directed graphs conforming to simple-digraph/v1."
 )
 
-__all__ = ["DAGFLOW_DEFINITION"]
+
+class Definition(substrates.Definition):
+    def resolve_configuration(
+        self,
+        *,
+        document: substrates.LoadedConfiguration,
+    ) -> substrates.Configuration:
+        return configuration.resolve(
+            document=document,
+        )
+
+    def plan(
+        self,
+        *,
+        config: substrates.Configuration,
+    ) -> substrates.PlanningDeclaration:
+        return planning.create(
+            config=config,
+        )
+
+    def build(
+        self,
+        *,
+        config: substrates.Configuration,
+    ) -> substrates.BuildResult:
+        return generation.generate(
+            config=config,
+        )
+
+    def validate(
+        self,
+        *,
+        artifact: simple_digraph.Artifact,
+        level: substrates.ValidationLevel,
+    ) -> substrates.ValidateResult:
+        return validation.validate(
+            artifact=artifact,
+            level=level,
+        )
+
+    def summarize(
+        self,
+        *,
+        artifact: simple_digraph.Artifact,
+    ) -> substrates.SummaryResult:
+        return inspection.summarize(
+            artifact=artifact,
+        )
+
+    def inspect(
+        self,
+        *,
+        artifact: simple_digraph.Artifact,
+        record_id: str,
+    ) -> substrates.InspectResult:
+        return inspection.inspect(
+            artifact=artifact,
+            record_id=record_id,
+        )
+
+
+DEFINITION = Definition(
+    ref=components.ComponentRef(kind="substrate", name="dagflow", version=1),
+    description=_DESCRIPTION,
+    contract=simple_digraph.V1,
+)
+
+
+__all__ = ["DEFINITION"]
