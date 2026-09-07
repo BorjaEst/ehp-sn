@@ -8,9 +8,13 @@
     },
     "ruff.configuration": "pyproject.toml",
     // TOML configuration
+    "[toml]": {
+        "editor.defaultFormatter": "tamasfe.even-better-toml",
+        "editor.formatOnSave": true
+    },
     "evenBetterToml.formatter.alignEntries": true,
-    "evenBetterToml.formatter.indentEntries": true,
-    "evenBetterToml.formatter.alignComments": false,
+    "evenBetterToml.formatter.indentEntries": false,
+    "evenBetterToml.formatter.alignComments": true,
     // Copilot configuration
     "chat.agent.maxRequests": 200,
     "chat.tools.terminal.autoApprove": {
