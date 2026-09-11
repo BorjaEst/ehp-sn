@@ -1,10 +1,7 @@
-from typing import *
+from __future__ import annotations
 
-import ehp_sn.contracts.substrates as contracts
-from ehp_sn import figures
 from ehp_sn.figures import Figure
 
-from .configuration import Configuration
 from .inspection import InspectResult, SummaryResult
 
 

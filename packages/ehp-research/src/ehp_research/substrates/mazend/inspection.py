@@ -1,24 +1,23 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import *
 
-import ehp_sn.contracts.substrates as contracts
-from ehp_sn.contracts.topology import raster_topology
-from ehp_sn.contracts.topology.raster_topology import Artifact
+from ehp_sn import substrates
+from ehp_sn.contracts.data.structures.topology import raster_topology
+from ehp_sn.contracts.data.structures.topology.raster_topology import Artifact
 
 from .configuration import Configuration
 
 
 @dataclass(frozen=True)
-class SummaryResult(contracts.SummaryResult): ...
+class SummaryResult(substrates.SummaryResult): ...
 
 
 def summarize(artifact: Artifact) -> SummaryResult: ...
 
 
 @dataclass(frozen=True)
-class InspectResult(contracts.InspectResult): ...
+class InspectResult(substrates.InspectResult): ...
 
 
 def inspect(artifact: Artifact, record_id: str) -> InspectResult: ...

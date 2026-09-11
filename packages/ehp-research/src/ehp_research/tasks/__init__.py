@@ -1,37 +1,16 @@
-"""Reusable scientific task definitions (``ehp_research.tasks``).
-
-This package owns reusable scientific task meaning for ``ehp_research``
-(``docs/authority.md``): each concrete task family's specification, builder,
-validator, and scientific invariants. Task construction, validation, provenance,
-and figures are reached through the generic framework task layer via each
-registered definition — never through task-name branching in generic
-orchestration.
-"""
-
 from __future__ import annotations
 
-from .mazehard import (
-    MAZEHARD_DEFINITION,
-    MazeHardBuilder,
-    MazeHardCase,
-    MazeHardCorpus,
-    MazeHardCorpusValidator,
-    MazeHardDefinition,
-    MazeHardValidation,
-    validate_case,
-)
+from .arena import DEFINITION as ARENA
+from .mazehard import DEFINITION as MAZEHARD
+from .prospect import DEFINITION as PROSPECT
+from .routebind import DEFINITION as ROUTEBIND
 
-#: All reusable task definitions this package admits to the generic catalogue.
-TASK_DEFINITIONS = (MAZEHARD_DEFINITION,)
+TASK_DEFINITIONS = (ARENA, MAZEHARD, PROSPECT, ROUTEBIND)
 
 __all__ = [
-    "MAZEHARD_DEFINITION",
-    "MazeHardBuilder",
-    "MazeHardCase",
-    "MazeHardCorpus",
-    "MazeHardCorpusValidator",
-    "MazeHardDefinition",
-    "MazeHardValidation",
+    "ARENA",
+    "MAZEHARD",
+    "PROSPECT",
+    "ROUTEBIND",
     "TASK_DEFINITIONS",
-    "validate_case",
 ]

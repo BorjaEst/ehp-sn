@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import *
 
-import ehp_sn.contracts.substrates as contracts
-from ehp_sn.configuration import ConfigurationError, LoadedConfiguration
+from ehp_sn import substrates
+from ehp_sn.configuration import LoadedConfiguration
 
 
 @dataclass(frozen=True)
-class Configuration(contracts.Configuration): ...
+class Configuration(substrates.Configuration): ...
 
 
 def resolve(document: LoadedConfiguration) -> Configuration: ...

@@ -2,15 +2,17 @@ from __future__ import annotations
 
 from ehp_sn import components, tasks
 from ehp_sn.contracts.data.datasets.records import sample_dataset
-from ehp_sn.contracts.data.structures import topology
+from ehp_sn.contracts.data.structures import observations, relations, topology
+from ehp_sn.contracts.data.structures.observations import categorical_field
+from ehp_sn.contracts.data.structures.relations import simple_digraph
 from ehp_sn.contracts.data.structures.topology import raster_topology
 
 from . import configuration, generation, inspection, planning, validation
 
 _DESCRIPTION = (
-    "Maze-hard task: "
-    "full-observation static shortest-route prediction over a raster maze, "
-    "with a single topology source and a single case role."
+    "Fully observed spatial-semantic prospective routing task: "
+    "visible spatial structure and observation placement under a hidden "
+    "corpus-level semantic transition law."
 )
 
 
@@ -33,6 +35,8 @@ class Definition(tasks.Definition):
         return planning.create(
             config=config,
             topology=sources.require(topology.ROLE),
+            observation=sources.require(observations.ROLE),
+            relations=sources.require(relations.ROLE),
         )
 
     def build(
@@ -44,6 +48,8 @@ class Definition(tasks.Definition):
         return generation.generate(
             config=config,
             topology=sources.require(topology.ROLE),
+            observation=sources.require(observations.ROLE),
+            semantic_graph_source=sources.require(relations.ROLE),
         )
 
     def validate(
@@ -79,10 +85,12 @@ class Definition(tasks.Definition):
 
 
 DEFINITION = Definition(
-    ref=components.ComponentRef(kind="task", name="maze-hard", version=1),
+    ref=components.ComponentRef(kind="task", name="routebind", version=1),
     description=_DESCRIPTION,
     sources={
         topology.ROLE: raster_topology.V1,
+        observations.ROLE: categorical_field.V1,
+        relations.ROLE: simple_digraph.V1,
     },
     contract=sample_dataset.V1,
 )

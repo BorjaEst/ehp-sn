@@ -1,16 +1,17 @@
 from __future__ import annotations
 
 from ehp_sn import components, tasks
-from ehp_sn.contracts.data.datasets.records import sample_dataset
-from ehp_sn.contracts.data.structures import topology
+from ehp_sn.contracts.data.datasets.sequences import sequence_dataset
+from ehp_sn.contracts.data.structures import observations, topology
+from ehp_sn.contracts.data.structures.observations import categorical_field
 from ehp_sn.contracts.data.structures.topology import raster_topology
 
 from . import configuration, generation, inspection, planning, validation
 
 _DESCRIPTION = (
-    "Maze-hard task: "
-    "full-observation static shortest-route prediction over a raster maze, "
-    "with a single topology source and a single case role."
+    "Sequential spatial replay task: "
+    "observation prediction and environment-specific memory acquisition "
+    "over compatible raster topology and categorical observation fields."
 )
 
 
@@ -33,6 +34,7 @@ class Definition(tasks.Definition):
         return planning.create(
             config=config,
             topology=sources.require(topology.ROLE),
+            observation=sources.require(observations.ROLE),
         )
 
     def build(
@@ -44,12 +46,13 @@ class Definition(tasks.Definition):
         return generation.generate(
             config=config,
             topology=sources.require(topology.ROLE),
+            observation=sources.require(observations.ROLE),
         )
 
     def validate(
         self,
         *,
-        artifact: sample_dataset.Artifact,
+        artifact: sequence_dataset.Artifact,
         level: tasks.ValidationLevel,
     ) -> tasks.ValidateResult:
         return validation.validate(
@@ -60,7 +63,7 @@ class Definition(tasks.Definition):
     def summarize(
         self,
         *,
-        artifact: sample_dataset.Artifact,
+        artifact: sequence_dataset.Artifact,
     ) -> tasks.SummaryResult:
         return inspection.summarize(
             artifact=artifact,
@@ -69,7 +72,7 @@ class Definition(tasks.Definition):
     def inspect(
         self,
         *,
-        artifact: sample_dataset.Artifact,
+        artifact: sequence_dataset.Artifact,
         record_id: str,
     ) -> tasks.InspectResult:
         return inspection.inspect(
@@ -79,12 +82,13 @@ class Definition(tasks.Definition):
 
 
 DEFINITION = Definition(
-    ref=components.ComponentRef(kind="task", name="maze-hard", version=1),
+    ref=components.ComponentRef(kind="task", name="arena", version=1),
     description=_DESCRIPTION,
     sources={
         topology.ROLE: raster_topology.V1,
+        observations.ROLE: categorical_field.V1,
     },
-    contract=sample_dataset.V1,
+    contract=sequence_dataset.V1,
 )
 
 

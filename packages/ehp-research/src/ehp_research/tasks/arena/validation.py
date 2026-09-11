@@ -2,19 +2,19 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ehp_sn import substrates
-from ehp_sn.contracts.data.structures.relations import simple_digraph
-from ehp_sn.contracts.data.structures.relations.simple_digraph import Artifact
+from ehp_sn import tasks
+from ehp_sn.contracts.data.datasets.sequences import sequence_dataset
+from ehp_sn.contracts.data.datasets.sequences.sequence_dataset import Artifact
 
 from .configuration import Configuration
 
 
 @dataclass(frozen=True)
-class ValidationLevel(substrates.ValidationLevel): ...
+class ValidationLevel(tasks.ValidationLevel): ...
 
 
 @dataclass(frozen=True)
-class ValidateResult(substrates.ValidateResult): ...
+class ValidateResult(tasks.ValidateResult): ...
 
 
 def validate(artifact: Artifact, level: ValidationLevel) -> ValidateResult: ...

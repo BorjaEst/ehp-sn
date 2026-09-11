@@ -3,13 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import *
 
-import ehp_sn.contracts.substrates as contracts
+from ehp_sn import substrates
 
 from .configuration import Configuration
 
 
 @dataclass(frozen=True)
-class PlanningDeclaration(contracts.PlanningDeclaration): ...
+class PlanningDeclaration(substrates.PlanningDeclaration): ...
 
 
 def create(config: Configuration) -> PlanningDeclaration: ...
