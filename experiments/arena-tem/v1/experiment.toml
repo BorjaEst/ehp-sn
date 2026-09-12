@@ -13,7 +13,7 @@ config   = "config/data/dungeongen/arena-random-30x30.toml"
 
 [substrates.observation_field]
 producer = "substrate:obsfield/v1"
-config   = "config/data/obsfield/arena-random-30x30.toml"
+config   = "config/data/obsfield/grid30x30-45-uniform.toml"
 
 
 # ---------------------------------------------------------------------------

@@ -1,13 +1,15 @@
-# ObsField `uniform-random` — independent uniform categorical assignment
+# ObsField `weighted-random` — independent categorical assignment by explicit vector
 #
 # Reusable concrete realization of substrate:obsfield/v1 (categorical-complete
 # variant), selected by the generic `ehp-sn data` lifecycle:
 #
-#   ehp-sn data plan substrate:obsfield/v1 --config config/data/obsfield/uniform-random.toml
+#   ehp-sn data plan substrate:obsfield/v1 --config config/data/obsfield/weighted-random.toml
 #
 # Each ambient position independently receives a categorical observation drawn
-# uniformly from the declared vocabulary (every entry has probability 1/K, repeats
-# permitted). ObsField is topology-independent and defines no intrinsic splits.
+# according to an explicitly declared probability vector over the declared
+# vocabulary (repeats permitted). ObsField is topology-independent and defines
+# no intrinsic splits. The vector is a valid categorical probability vector for
+# the declared cardinality.
 #
 # NOTE (provisional identity): `categorical-random/v1` is the assignment protocol
 # documented by the obsfield/v1 spec as the initial (and sole) permitted protocol;
@@ -17,19 +19,19 @@
     variant = "categorical-complete"
 
 [domain]
-    schema = "rectangular-row-column/v1"
+    schema = "rectangular-grid/v1"
     height = 30
     width  = 30
 
 [vocabulary]
-    identity    = "obs-vocabulary:anonymous-45/v1"
-    cardinality = 45
+    identity    = "obs-vocabulary:anonymous-4/v1"
+    cardinality = 4
 
 [assignment]
     protocol = "categorical-random/v1"
 
 [assignment.parameters]
-    distribution = "uniform"
+    distribution = [0.50, 0.25, 0.15, 0.10]
 
 [generation]
     seed              = 0
