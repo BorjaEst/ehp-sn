@@ -1,18 +1,19 @@
 from __future__ import annotations
 
-from ehp_sn import components, tasks
+from ehp_sn import components, execution, tasks
 from ehp_sn.contracts.data.datasets.records import sample_dataset
 from ehp_sn.contracts.data.structures import observations, relations, topology
 from ehp_sn.contracts.data.structures.observations import categorical_field
 from ehp_sn.contracts.data.structures.relations import simple_digraph
 from ehp_sn.contracts.data.structures.topology import raster_topology
 
-from . import configuration, generation, inspection, planning, validation
+from . import configuration, generation, inspection, planning, state, validation
 
 _DESCRIPTION = (
     "Memory-conditioned spatial-semantic prospective routing task: "
-    "route prediction from acquired environment-specific memory while "
-    "direct topology and complete observation placement are withheld."
+    "route prediction from acquired environment-specific state while "
+    "direct topology and complete observation placement are withheld "
+    "from model execution."
 )
 
 
@@ -36,7 +37,7 @@ class Definition(tasks.Definition):
             config=config,
             topology=sources.require(topology.ROLE),
             observation=sources.require(observations.ROLE),
-            semantic_graph_source=sources.require(relations.ROLE),
+            relations=sources.require(relations.ROLE),
         )
 
     def build(
@@ -50,6 +51,15 @@ class Definition(tasks.Definition):
             topology=sources.require(topology.ROLE),
             observation=sources.require(observations.ROLE),
             relations=sources.require(relations.ROLE),
+        )
+
+    def state_requirements(
+        self,
+        *,
+        artifact: sample_dataset.Artifact,
+    ) -> tuple[execution.StateRequirement, ...]:
+        return state.requirements(
+            artifact=artifact,
         )
 
     def validate(
@@ -92,6 +102,7 @@ DEFINITION = Definition(
         observations.ROLE: categorical_field.V1,
         relations.ROLE: simple_digraph.V1,
     },
+    states={state.ROLE: state.CONTRACT},
     contract=sample_dataset.V1,
 )
 

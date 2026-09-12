@@ -27,7 +27,7 @@ This specification defines:
 
 - what constitutes one ambient spatial domain;
 - the required domain-declaration properties;
-- the registered domain schemas (`rectangular-row-column/v1`, with `hex` pending);
+- the registered domain schemas (`rectangular-grid/v1`, with `hex` pending);
 - domain identity and equality.
 
 ### Excluded semantics
@@ -42,10 +42,10 @@ This specification does not define:
 
 A conforming domain declaration declares these fixed identity values:
 
-| Property                  | Required value                                  |
-| ------------------------- | ----------------------------------------------- |
-| Domain-declaration schema | `ambient-domain/v1`                             |
-| Registered domain schemas | `rectangular-row-column/v1` (hexagonal pending) |
+| Property                  | Required value                            |
+| ------------------------- | ----------------------------------------- |
+| Domain-declaration schema | `ambient-domain/v1`                       |
+| Registered domain schemas | `rectangular-grid/v1` (hexagonal pending) |
 
 The domain-declaration schema is embedded by the contract that reuses it, not a standalone artifact schema — see "Registered domain schemas" below for the hexagonal-domain status.
 
@@ -111,7 +111,7 @@ It is embedded inline within the contract that reuses it (for example as a `rast
 
 ### Domain declaration fields
 
-Every registered domain schema must define semantics for the following properties. The concrete declaration fields used to instantiate those semantics may be schema-specific; for example, `rectangular-row-column/v1` uses `height` and `width` directly rather than a generic nested `shape_parameters` field.
+Every registered domain schema must define semantics for the following properties. The concrete declaration fields used to instantiate those semantics may be schema-specific; for example, `rectangular-grid/v1` uses `height` and `width` directly rather than a generic nested `shape_parameters` field.
 
 | Property               | Requirement                                                                             |
 | ---------------------- | --------------------------------------------------------------------------------------- |
@@ -125,7 +125,7 @@ Every registered domain schema must define semantics for the following propertie
 
 A concrete domain declaration must contain the fields required by its registered schema and must be sufficient to reconstruct the complete position set and canonical position order without another artifact.
 
-For `rectangular-row-column/v1`, membership in the domain is fully determined by `height` and `width`; no separate boundary field is needed. A domain schema with different membership semantics (for example, coordinate wrapping) is a separately named schema, not a variant setting of an existing one.
+For `rectangular-grid/v1`, membership in the domain is fully determined by `height` and `width`; no separate boundary field is needed. A domain schema with different membership semantics (for example, coordinate wrapping) is a separately named schema, not a variant setting of an existing one.
 
 `coordinate_structure` describes how coordinates are laid out geometrically — enough to interpret them — not which neighbor transitions a topology may later declare admissible. A topology contract (for example `raster-topology/v1`) owns movement semantics separately; this schema does not require or assert one.
 
@@ -155,7 +155,7 @@ derived assertion
 For the required v1 rectangular raster domain:
 
 ```text
-schema: rectangular-row-column/v1
+schema: rectangular-grid/v1
 coordinate_system: row-column
 shape: rectangle
 height: H
@@ -177,7 +177,7 @@ Canonical enumeration is row-major by increasing `position_id`.
 
 #### Square domain
 
-Squareness is a derived property (`height == width`) of a `rectangular-row-column/v1` declaration, not a separate authored `shape` value.
+Squareness is a derived property (`height == width`) of a `rectangular-grid/v1` declaration, not a separate authored `shape` value.
 A square position space is declared as `shape: rectangle` with `height = width`; `shape: square` does not exist as a registered value and does not conform to `ambient-domain/v1`.
 
 #### Hexagonal domain

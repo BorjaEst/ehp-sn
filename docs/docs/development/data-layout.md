@@ -7,7 +7,8 @@ api_stability: not-applicable
 
 # Data layout
 
-The repository `data/` directory stores local source data, committed substrate artifacts, and committed task corpora.
+The repository `data/` directory stores committed scientific data products: retained upstream material, task-neutral substrate artifacts, reusable execution-derived state, and task corpora.
+Its area names describe semantic role, not pipeline order.
 
 This document describes the physical monorepo convention and developer workflow. It does not define artifact identity, manifest schemas, digest algorithms, or scientific channel semantics.
 
@@ -25,7 +26,7 @@ data/
 
 ## `external/`
 
-`data/external/` contains data obtained from external projects or providers.
+`data/external/` contains upstream material retained in its original, provider-native representation.
 
 Examples include:
 
@@ -33,45 +34,43 @@ Examples include:
 - third-party augmented datasets;
 - externally maintained archives.
 
-External data should remain as close as practical to the provider representation. Acquisition instructions, licensing constraints, and expected source fingerprints should be documented where applicable.
+External material should remain as close as practical to the provider representation.
+Acquisition instructions, licensing constraints, and expected source fingerprints should be documented where applicable.
 
-External data is not automatically an EHP-SN artifact.
+External material is not automatically an EHP-SN artifact.
 
 ## `raw/`
 
-`data/raw/` contains local source material before publication as an EHP-SN artifact.
+`data/raw/` contains committed canonical task-neutral substrate artifacts produced by `ehp-sn data`.
 
-Examples include:
-
-- procedural-generator output;
-- extracted external records;
-- source-preserving conversions;
-- imported source files.
-
-Raw data may be mutable or incomplete during development. Training and evaluation must not consume it unless another public contract explicitly permits that use.
-
-## `interim/`
-
-`data/interim/` contains committed substrate artifacts produced by `ehp-sn data`.
+These are the EHP-SN-normalized data products from which task corpora are built: procedurally generated structures (DungeonGen, ObsField, Dagflow) and normalized external sources (Maze-ND).
 
 The conventional local layout is:
 
 ```text
-data/interim/<family>/<variant>/v<N>/
+data/raw/<family>/<variant>/v<N>/
 ```
 
 Examples:
 
 ```text
-data/interim/obsfield/categorical-complete/v1/
-data/interim/dagflow/single-terminal/v1/
-data/interim/dungeongen/general/v1/
-data/interim/maze-nd/source-topology/v1/
+data/raw/obsfield/categorical-complete/v1/
+data/raw/dagflow/single-terminal/v1/
+data/raw/dungeongen/general/v1/
+data/raw/maze-nd/source-topology/v1/
 ```
 
-Despite the directory name, a committed release is complete, immutable, validated, and reusable.
+A committed release is complete, immutable, validated, and reusable.
 
-Temporary staging directories are implementation details and must not occupy a path that appears to be a committed release.
+## `interim/`
+
+`data/interim/` contains committed reusable derived state that crosses execution boundaries: model-derived execution state produced from a resolved model, binding, and acquisition context. It is neither upstream material, task-neutral substrate, nor task-corpus data.
+
+Despite the directory name, `interim` does not mean "intermediate between `raw` and `processed`": an execution-state artifact may be produced after both.
+
+A committed release is complete, immutable, validated, identified, and lineage-bearing.
+
+Temporary staging directories and disposable caches are implementation details and must not occupy a path that appears to be a committed release.
 
 ## `processed/`
 
@@ -115,11 +114,11 @@ The manifest and index determine resource roles and split membership. Directory 
 The intended workflow is:
 
 ```text
-external or raw source
+external source or procedural generator
         ↓
 ehp-sn data plan/build
         ↓
-data/interim/<family>/<variant>/v<N>/
+data/raw/<family>/<variant>/v<N>/
         ↓
 ehp-sn tasks plan/build
         ↓

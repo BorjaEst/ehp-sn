@@ -100,7 +100,7 @@ data → tasks → train → evaluate → analyze → report
 Substrates represent reusable domain structure and are stored under:
 
 ```text
-data/interim/
+data/raw/
 ```
 
 Task builders compose compatible upstream resources and materialize self-contained task corpora under:
@@ -225,7 +225,7 @@ repository/
 | ------------------------ | ----------------------------------------------- |
 | `packages/ehp-sn/`       | Reusable framework package                      |
 | `packages/ehp-research/` | Concrete scientific package                     |
-| `data/interim/`          | Committed reusable substrate artifacts          |
+| `data/raw/`              | Committed reusable substrate artifacts          |
 | `data/processed/`        | Committed task corpora                          |
 | `config/`                | Workspace and operation configuration           |
 | `artifacts/`             | Framework-produced execution/analysis artifacts |

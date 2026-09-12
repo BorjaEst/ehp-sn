@@ -68,11 +68,7 @@ It is not a concrete data release.
 
 ### Variant
 
-A variant is a stable, consumer-visible subdivision of a family represented in the artifact coordinate:
-
-```text
-data/interim/<family>/<variant>/v<N>/
-```
+A variant is a stable, consumer-visible subdivision of a family, represented as the `<variant>` component of the framework substrate release coordinate.
 
 A variant is not automatically equivalent to a package configuration preset.
 A concrete family specification must define their relationship.

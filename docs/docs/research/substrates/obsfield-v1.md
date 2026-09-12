@@ -80,12 +80,7 @@ categorical-complete
 
 Assignment profiles such as `unique`, `categorical-random`, `balanced`, and `landmark-background` are assignment protocols or presets, not variants.
 
-A conforming release therefore uses:
-
-```text
-data/interim/obsfield/categorical-complete/v<N>/
-```
-
+A conforming release therefore uses the framework substrate release coordinate `obsfield/categorical-complete/v<N>/`.
 The final `v<N>` is a framework release number, not the specification version.
 
 ## Conceptual model

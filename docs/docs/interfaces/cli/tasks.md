@@ -12,10 +12,10 @@ Build, validate, and inspect immutable processed task corpora.
 
 ## Overview
 
-Use `ehp-sn tasks` after the required interim substrates exist and before training or evaluation. The command consumes a task definition, task-generation configuration, and one or more substrate artifacts. It produces a versioned corpus containing task inputs, targets, splits, and provenance.
+Use `ehp-sn tasks` after the required substrate artifacts exist and before training or evaluation. The command consumes a task definition, task-generation configuration, and one or more substrate artifacts. It produces a versioned corpus containing task inputs, targets, splits, and provenance.
 
 ```text
-data/interim/<substrate>/...
+data/raw/<substrate>/...
         ↓
 ehp-sn tasks
         ↓

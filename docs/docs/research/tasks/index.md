@@ -86,7 +86,7 @@ The current research data architecture separates task-neutral substrates from pr
 
 ```text
 task-neutral substrate artifacts
-    data/interim/<family>/<variant>/v<N>/
+    <family>/<variant>/v<N>/
 
         topology substrates
         observation-field substrates
@@ -95,7 +95,7 @@ task-neutral substrate artifacts
                 ↓ task-owned selection and composition
 
 self-contained task corpora
-    data/processed/<task>/<corpus>/v<N>/
+    <task>/<corpus>/v<N>/
 ```
 
 A task builder may compose several independent substrates.

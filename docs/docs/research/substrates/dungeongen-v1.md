@@ -55,12 +55,7 @@ A conforming release satisfies:
 2. the complete `raster-topology/v1` contract;
 3. every applicable DungeonGen-specific requirement and invariant in this specification.
 
-A concrete release uses:
-
-```text
-data/interim/dungeongen/<variant>/v<release>/
-```
-
+A concrete release uses the framework substrate release coordinate `dungeongen/<variant>/v<release>/`.
 The release number is independent of the `v1` specification version.
 
 ## Conceptual model

@@ -54,11 +54,7 @@ A conforming release satisfies:
 2. the complete `raster-topology/v1` contract;
 3. every applicable Maze-ND-specific source, normalization, deduplication, and lineage requirement in this specification.
 
-A concrete release uses:
-
-```text
-data/interim/maze-nd/source-topology/v<release>/
-```
+A concrete release uses the framework substrate release coordinate `maze-nd/source-topology/v<release>/`.
 
 ## Conceptual model
 
@@ -373,7 +369,7 @@ Removing source-instance fields from Maze-ND does not permit their loss.
 
 Exact source starts, goals, solutions, source split labels, and other problem-instance annotations remain available through:
 
-- immutable external or raw source material;
+- immutable external source material;
 - complete source-lineage mapping;
 - a MazeHard source-reproduction pipeline;
 - a future normalized source-instance artifact only if multiple consumers justify that abstraction.

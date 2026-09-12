@@ -30,11 +30,12 @@ This document defines:
 
 It does not define:
 
-- the repository-wide purpose of `data/external/` or `data/raw/`;
+- the repository-wide purpose of the `data/` areas;
 - concrete substrate channels or payload schemas;
 - task cases, episodes, inputs, targets, or supervision;
 - canonical manifest serialization or digest algorithms;
-- package-specific generation values.
+- package-specific generation values;
+- figure selection, figure composition, rendering, or render destinations.
 
 The repository data layout is described in [Data layout](../development/data-layout.md).
 
@@ -63,7 +64,7 @@ A shared implementation may provide:
 - resource lookup;
 - payload loading;
 - digest verification;
-- bounded inspection;
+- record lookup by stable record identifier;
 - physical-location resolution.
 
 The common implementation must preserve the semantic distinction between substrate artifacts and task corpora.
@@ -93,12 +94,38 @@ A substrate artifact must not define:
 
 The same substrate artifact may be reused by multiple task-corpus builders.
 
+## Substrate summarization and record inspection
+
+Committed substrate artifacts support two distinct read-only scientific inspection operations through their concrete substrate definition:
+
+```text
+summarize(artifact)
+    → SummaryResult
+
+inspect(artifact, record_id)
+    → InspectResult
+```
+
+`summarize` operates at artifact scope. It describes the committed substrate as a whole and may compute substrate-specific counts, statistics, distributions, structural properties, or other aggregate scientific information.
+
+`summary` does not implicitly select or inspect representative records. Record-level inspection is an explicit operation.
+
+`inspect` operates at record scope. It resolves exactly one logical record by its stable `record_id` and exposes the substrate-specific information required to understand that record.
+
+The substrate inspection contract uses record identity, not positional indexing.
+
+Both operations are read-only. They must not mutate, repair, republish, or otherwise alter the artifact.
+
+Summarization and inspection are distinct from validation. Validation determines whether an artifact satisfies required structural, integrity, and scientific invariants; summarization and inspection describe already resolved scientific data.
+
+`SummaryResult` and `InspectResult` contain scientific inspection results only. Figure selection, figure composition, interactive display, and persisted rendering are separate visualization concerns and are not part of these return contracts.
+
 ## Conventional release coordinates
 
 Committed substrate releases use:
 
 ```text
-data/interim/<family>/<variant>/v<N>/
+data/raw/<family>/<variant>/v<N>/
 ```
 
 Committed task-corpus releases use:
@@ -148,7 +175,7 @@ Accidental mutation or corruption of a committed release does not create a new v
 It makes the existing release invalid.
 A corrected artifact must be rebuilt from an explicit configuration and published under a new release coordinate.
 
-## Version source and overrides
+## Release source and overrides
 
 The release number selects _where a concrete publication is committed_.
 It is an invocation-layer publication coordinate, not a scientific configuration field: a reusable scientific profile describes _what_ data should be produced, while `--release N` (or the equivalent resolved release) describes _where_ a given publication is committed.
@@ -164,8 +191,10 @@ legacy config release       temporary compatibility fallback only
 missing release             unresolved coordinate
 ```
 
-The `--release` CLI parameter (or the equivalent resolved release value) is the highest authority.
-A `release` value declared in the effective configuration is accepted only as a temporary compatibility fallback so existing reusable profiles do not need immediate edits; it is not an equally canonical mechanism and is deprecated in favor of the invocation-layer selection.
+The `--release` CLI parameter, or the equivalent resolved release value, is the highest authority.
+A `release` value declared in an input configuration document is accepted only as a temporary compatibility fallback so existing reusable profiles do not need immediate edits; it is not an equally canonical mechanism and is deprecated in favor of invocation-layer selection.
+The fallback value is consumed only to resolve the publication coordinate.
+It must not become part of the resolved scientific builder configuration or its identity-bearing digest.
 
 `--version` is a root-level CLI interface that reports the installed tool version; it is not a release-number override.
 
@@ -256,7 +285,7 @@ The digest algorithm and canonical representation are defined by [Digests](diges
 
 ### Producer descriptors and resolution fidelity
 
-Beyond record payloads, a producer may declare opaque canonical descriptors that the framework carries without interpreting (`descriptors.py`): per-record descriptors (for example an intrinsic split label or an acceptance attempt) and an artifact-level aggregation of the distinct per-record descriptor surface.
+Beyond record payloads, a producer may declare opaque canonical descriptors that the framework carries without interpreting (`descriptors.py`): per-record descriptors, for example an intrinsic split label or an acceptance attempt, and an artifact-level aggregation of the distinct per-record descriptor surface.
 
 A committed release persists these descriptors alongside the record payload and the record index.
 Resolution of a committed release reconstructs them, so a resolved artifact exposes the same descriptor surface the committed artifact carries on disk — resolution is a faithful read of the committed release, not a lossy round-trip.
@@ -273,13 +302,14 @@ The **build-input identity** is derived from the resolved identity-affecting inp
 - artifact kind;
 - substrate or task reference;
 - family and variant, or task and corpus name;
-- release version;
 - resolved configuration digest;
 - generation seed or seed roles;
 - source fingerprints;
 - parent artifact fingerprints;
 - builder protocol identity;
 - declared schema and channel contract.
+
+The release number is not part of the build-input identity.
 
 The build-input identity does not include output resource digests because those do not exist before generation.
 
@@ -353,7 +383,7 @@ Only a committed artifact is available for normal framework consumption.
 
 ### Planned
 
-Configuration, version, inputs, destination, and build-input identity are resolved.
+Configuration, release coordinate, inputs, destination, and build-input identity are resolved.
 No output is written.
 
 ### Staging
@@ -395,7 +425,7 @@ Validation failure must not repair or mutate an artifact implicitly.
 A build operation must:
 
 1. load and validate the effective configuration;
-2. resolve the explicit release version;
+2. resolve the explicit release number;
 3. resolve source and parent artifacts;
 4. compute the build-input identity;
 5. classify the destination;
@@ -413,8 +443,8 @@ A failed build must not leave a destination that appears committed.
 
 `ehp_sn` owns:
 
-- data-artifact kinds and typed contracts;
-- common artifact loading and validation orchestration;
+- data-artifact kinds and typed contracts, including substrate-operation result contracts;
+- common artifact loading, record resolution, and validation orchestration;
 - build-input identity and artifact-fingerprint application;
 - release semantics;
 - planning states;
@@ -428,7 +458,10 @@ A failed build must not leave a destination that appears committed.
 - generation parameters;
 - substrate builders;
 - concrete validation rules;
+- substrate-specific summarization and record-inspection semantics;
 - package-owned default configurations.
+
+Figure ownership and rendering are outside this data-artifact contract.
 
 ## Related documents
 

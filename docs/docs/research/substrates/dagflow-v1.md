@@ -50,11 +50,7 @@ A conforming Dagflow substrate artifact declares these fixed identity values:
 The family identifier is exactly `dagflow`.
 
 A conforming release satisfies the generic framework `SubstrateArtifact` contract, the complete `simple-digraph/v1` contract, and every applicable requirement and invariant in this specification.
-A concrete release uses the framework coordinate form:
-
-```text
-data/interim/dagflow/<variant>/v<release>/
-```
+A concrete release uses the framework substrate release coordinate `dagflow/<variant>/v<release>/`.
 
 The release number is independent of the `v1` specification version.
 
@@ -398,7 +394,7 @@ For a bounded policy, every record falls within the declared bounds and the prot
 
 ### Validation requirements
 
-Validation must operate on materialized interim graph records rather than only on generator-runtime objects, and must invoke the shared `simple-digraph/v1` checks in addition to the invariants above.
+Validation must operate on materialized committed graph records rather than only on generator-runtime objects, and must invoke the shared `simple-digraph/v1` checks in addition to the invariants above.
 
 NetworkX may be used to reconstruct a `DiGraph` and perform DAG, degree, terminal, reachability, path, and summary checks.
 A non-NetworkX validator is also conforming when it verifies the same normative conditions.

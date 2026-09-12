@@ -84,7 +84,7 @@ self-contained TaskCorpus
 Substrates are committed under:
 
 ```text
-data/interim/
+data/raw/
 ```
 
 Task corpora are committed under:

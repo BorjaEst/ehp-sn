@@ -1,37 +1,41 @@
-"""Generic framework component registration and discovery.
+import abc
 
-This package is the framework-owned registration/discovery interface
-(``docs/invariants.md`` ARCH-001/ARCH-003): installed research definitions
-register against framework-owned registries rather than each package
-maintaining its own catalogue.
+from ehp_sn import core, substrates, tasks
 
-It is deliberately generic. It understands component references, component
-kinds, and registered definitions — not substrates, tasks, models, or CLI
-commands. No component-family-specific logic lives here.
-"""
 
-from __future__ import annotations
+class BaseRegistry(abc.ABC):
+    @abc.abstractmethod
+    def register(self, definition: core.Definition) -> None:
+        raise NotImplementedError
 
-from .providers import (
-    PROVIDER_ENTRY_POINT_GROUP,
-    effective_registry,
-    register_installed_providers,
-)
-from .registry import (
-    ComponentRegistry,
-    DiscoverableDefinition,
-    DuplicateRegistrationError,
-    RegistryError,
-    UnknownReferenceError,
-)
+    @abc.abstractmethod
+    def get(self, name: str) -> core.Definition:
+        raise NotImplementedError
+
+
+class SubstrateRegistry:
+    def __init__(self) -> None:
+        self._registry: dict[str, substrates.Definition] = {}
+
+    def register(self, definition: substrates.Definition) -> None:
+        self._registry[definition.ref.name] = definition
+
+    def get(self, name: str) -> substrates.Definition:
+        return self._registry[name]
+
+
+class TaskRegistry:
+    def __init__(self) -> None:
+        self._registry: dict[str, tasks.Definition] = {}
+
+    def register(self, definition: tasks.Definition) -> None:
+        self._registry[definition.ref.name] = definition
+
+    def get(self, name: str) -> tasks.Definition:
+        return self._registry[name]
+
 
 __all__ = [
-    "ComponentRegistry",
-    "DiscoverableDefinition",
-    "DuplicateRegistrationError",
-    "PROVIDER_ENTRY_POINT_GROUP",
-    "RegistryError",
-    "UnknownReferenceError",
-    "effective_registry",
-    "register_installed_providers",
+    "SubstrateRegistry",
+    "TaskRegistry",
 ]

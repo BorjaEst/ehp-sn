@@ -17,7 +17,24 @@ class ValidationLevel(substrates.ValidationLevel): ...
 class ValidateResult(substrates.ValidateResult): ...
 
 
-def validate(artifact: Artifact, level: ValidationLevel) -> ValidateResult: ...
+def validate(artifact: Artifact, level: ValidationLevel) -> ValidateResult:
+    """Validate a committed artifact against `categorical-field/v1` and `obsfield/v1`."""
+    diagnostics = _artifact_diagnostics(artifact, level)
+    return ValidateResult(ok=not diagnostics, diagnostics=tuple(diagnostics))
+
+
+def _artifact_diagnostics(artifact: Artifact, level: ValidationLevel) -> list[str]:
+    """Artifact-scope invariants, together with every record's own invariants."""
+    ...
+
+
+def _record_diagnostics(record: categorical_field.RectangularField, level: ValidationLevel) -> list[str]:
+    """CF-REC-001..006 plus OF-REC-008 and OF-REC-009, for one record.
+
+    Full validation invokes the shared `categorical-field/v1` checks in
+    addition to the family-specific ones.
+    """
+    ...
 
 
 __all__ = ["validate", "ValidationLevel", "ValidateResult"]

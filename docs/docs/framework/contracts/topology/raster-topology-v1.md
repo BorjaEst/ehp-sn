@@ -54,10 +54,10 @@ This specification does not define:
 
 A conforming record declares these fixed identity values:
 
-| Property              | Required value                                                                                |
-| --------------------- | --------------------------------------------------------------------------------------------- |
-| Logical record schema | `raster-topology/v1`                                                                          |
-| Ambient-domain schema | `rectangular-row-column/v1`, per [Ambient spatial domain v1](../domains/ambient-domain-v1.md) |
+| Property              | Required value                                                                          |
+| --------------------- | --------------------------------------------------------------------------------------- |
+| Logical record schema | `raster-topology/v1`                                                                    |
+| Ambient-domain schema | `rectangular-grid/v1`, per [Ambient spatial domain v1](../domains/ambient-domain-v1.md) |
 
 The ambient-domain schema is reused here rather than redefined, so a topology record and a categorical-field record can be compared for ambient-domain compatibility against one shared schema.
 
@@ -76,7 +76,7 @@ RasterTopology
 domain
     coordinate_system: row-column
     extent: height, width
-    (per rectangular-row-column/v1, see "Canonical identity and conformance")
+    (per rectangular-grid/v1, see "Canonical identity and conformance")
 
 structure (authoritative)
     passable[position]  — one boolean per ambient position
@@ -115,7 +115,7 @@ A future version that lets movement parameters vary per record or per producer w
 Compact state identity (`state_id`), the `state_to_position` / `position_to_state` mappings, and the movement tables (`next_state`, `movement_valid`) are canonical derived views: mechanically reconstructible from the authoritative passability structure under `v1`'s fixed movement parameters, and carrying no identity information beyond them.
 Derived views do not define a second, independent notion of record equality.
 
-Compact states are enumerated in canonical row-major order over passable positions, consistent with `rectangular-row-column/v1`'s dense position enumeration.
+Compact states are enumerated in canonical row-major order over passable positions, consistent with `rectangular-grid/v1`'s dense position enumeration.
 
 ## Logical record schema
 
@@ -124,7 +124,7 @@ Compact states are enumerated in canonical row-major order over passable positio
 | Field               | Requiredness | Domain                                                     | Meaning                                                                         |
 | ------------------- | ------------ | ---------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | `record_id`         | required     | scalar identifier                                          | Identifier within the containing artifact (see [Contracts](../index.md))        |
-| `extent`            | required     | `rectangular-row-column/v1` domain declaration             | Authoritative ambient-domain declaration (height, width, coordinate convention) |
+| `extent`            | required     | `rectangular-grid/v1` domain declaration                   | Authoritative ambient-domain declaration (height, width, coordinate convention) |
 | `passable`          | required     | boolean, one per ambient position, row-major order         | Authoritative passability structure                                             |
 | `state_count`       | derived      | positive integer                                           | Number of passable positions                                                    |
 | `state_to_position` | derived      | mapping, canonical row-major order over passable positions | Compact state identity to ambient position                                      |
@@ -148,14 +148,14 @@ Other movement geometries, edge-cost models, topology self-transitions, or a gen
 
 These values are the same for every record conforming to `raster-topology/v1`; they are schema constants, not producer-declared or per-record data, and do not need to be checked for compatibility since they cannot differ between conforming records:
 
-| Parameter           | Fixed `v1` value | Meaning                                                                                                              |
-| ------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `topology_kind`     | `raster`         | The structural family of the movement space                                                                          |
-| `coordinate_system` | `row-column`     | The ambient-domain coordinate convention (implied by the required `rectangular-row-column/v1` ambient-domain schema) |
-| `movement_kind`     | `grid4`          | The admissible movement geometry                                                                                     |
-| `directed`          | `false`          | The movement relation is symmetric                                                                                   |
-| `edge_cost_kind`    | `unit`           | Every valid transition has cost one                                                                                  |
-| `stay_included`     | `false`          | The topology-level movement relation contains no self-transition                                                     |
+| Parameter           | Fixed `v1` value | Meaning                                                                                                        |
+| ------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------- |
+| `topology_kind`     | `raster`         | The structural family of the movement space                                                                    |
+| `coordinate_system` | `row-column`     | The ambient-domain coordinate convention (implied by the required `rectangular-grid/v1` ambient-domain schema) |
+| `movement_kind`     | `grid4`          | The admissible movement geometry                                                                               |
+| `directed`          | `false`          | The movement relation is symmetric                                                                             |
+| `edge_cost_kind`    | `unit`           | Every valid transition has cost one                                                                            |
+| `stay_included`     | `false`          | The topology-level movement relation contains no self-transition                                               |
 
 A future specification version may broaden any of these to vary per producer once a concrete need is demonstrated (see "Evolution"); `v1` defines only this single combination.
 
@@ -183,7 +183,7 @@ These invariants hold for every record conforming to `raster-topology/v1`, indep
 
 #### RT-REC-001 — Domain reconstruction
 
-`extent` is a complete `rectangular-row-column/v1` domain declaration sufficient to reconstruct the full ambient position set and canonical enumeration without another artifact.
+`extent` is a complete `rectangular-grid/v1` domain declaration sufficient to reconstruct the full ambient position set and canonical enumeration without another artifact.
 
 #### RT-REC-002 — Passability coverage
 
@@ -222,7 +222,7 @@ Diagnostics should identify the record ID, the violated invariant, and the obser
 
 A consumer of `raster-topology/v1` may rely on the following schema-fixed semantics:
 
-- ambient domain: `rectangular-row-column/v1`;
+- ambient domain: `rectangular-grid/v1`;
 - topology kind: raster;
 - movement kind: `grid4`;
 - directedness: `false`;
@@ -250,7 +250,7 @@ The following are compatible with `raster-topology/v1` when existing conforming 
 A new contract version is required for changes that alter:
 
 - the meaning of authoritative `passable` content;
-- the required `rectangular-row-column/v1` ambient domain;
+- the required `rectangular-grid/v1` ambient domain;
 - fixed `grid4`, undirected, unit-cost, no-self-transition movement semantics;
 - canonical compact-state enumeration;
 - the derivation or meaning of existing movement views;
@@ -262,6 +262,6 @@ Support for `grid8`, weighted movement, topology self-transitions, or genuinely 
 ## Related specifications
 
 - [`Contracts`](../index.md)
-- [`Ambient spatial domain v1`](../domains/ambient-domain-v1.md) — shared `rectangular-row-column/v1` ambient-domain schema
+- [`Ambient spatial domain v1`](../domains/ambient-domain-v1.md) — shared `rectangular-grid/v1` ambient-domain schema
 - [`Resource requirements`](../../../interfaces/configuration/resource-requirements.md) — schema ID and compatibility-validator mechanism used to bind a requirement to a concrete producer
 - [`Data artifacts`](../../data-artifacts.md)

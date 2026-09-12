@@ -276,7 +276,7 @@ An exhausted logical query fails explicitly.
 
 ### 7.4 Source-reproduction profile
 
-A named source-reproduction corpus may reconstruct original source start/goal/solution problem rows through immutable Maze-ND source lineage or raw-source material.
+A named source-reproduction corpus may reconstruct original source start/goal/solution problem rows through immutable Maze-ND source lineage or external source material.
 
 Such a profile must state explicitly that its query and reference solution are source-instance data.
 It must not redefine Maze-ND topology records to contain those fields.

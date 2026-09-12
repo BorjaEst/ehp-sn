@@ -8,24 +8,24 @@ api_stability: provisional
 
 # `ehp-sn data`
 
-Generate, validate, and inspect immutable interim substrates.
+Generate, validate, and inspect immutable substrate artifacts.
 
 ## Overview
 
 Use `ehp-sn data` when a research workflow needs a versioned environment or topology artifact before task-specific episodes, targets, or supervision are created.
-The command consumes a substrate definition and generation configuration and produces an immutable artifact under the configured interim-data root.
+The command consumes a substrate definition and generation configuration and produces an immutable artifact under the configured data root.
 
 ```text
 external or synthetic source
         ↓
 ehp-sn data
         ↓
-data/interim/<family>/<variant>/v<N>/
+data/raw/<family>/<variant>/v<N>/
         ↓
 ehp-sn tasks
 ```
 
-`ehp-sn data` orchestrates substrate generation: it resolves and invokes the installed substrate definitions, produces immutable interim artifacts with manifests, provenance, checksums, and validation, and manages release coordinates.
+`ehp-sn data` orchestrates substrate generation: it resolves and invokes the installed substrate definitions, produces immutable substrate artifacts with manifests, provenance, checksums, and validation, and manages release coordinates.
 The scientific semantics it operates on — topology generation, environment-level observations, source normalization, and intrinsic split assignment — are owned by the research substrate specifications (`docs/authority.md` § "Authority map").
 Task episodes, learning targets, model tokenization, training batches, and task scoring are outside its scope.
 
@@ -97,7 +97,7 @@ Complete configuration schemas belong in the substrate specification and are not
 ehp-sn data show obsfield
 ```
 
-The result explains what ObsField generation consumes and the kind of interim substrate it produces.
+The result explains what ObsField generation consumes and the kind of substrate artifact it produces.
 
 ### Errors
 
@@ -146,7 +146,7 @@ It does not create staging directories or output files.
 
 - substrate definition selected by `TARGET`;
 - generation configuration;
-- referenced raw or external sources, when required.
+- referenced upstream (external) sources, when required.
 
 ### Outputs
 
@@ -234,7 +234,7 @@ A different valid artifact at `--output` exits with code `8`.
 ### Outputs
 
 ```text
-data/interim/<family>/<variant>/v<N>/
+data/raw/<family>/<variant>/v<N>/
 ├── manifest.json
 ├── config.resolved.toml
 ├── provenance.json
@@ -295,7 +295,7 @@ The command exits with code `5` when validation fails.
 ### Example
 
 ```console
-ehp-sn data validate data/interim/obsfield/default/v1 --level full
+ehp-sn data validate data/raw/obsfield/default/v1 --level full
 ```
 
 The command reports whether the complete ObsField artifact satisfies its declared contract.
@@ -314,7 +314,7 @@ Display substrate metadata and the exact logical record selected by `--record` w
 ehp-sn data inspect ARTIFACT --record RECORD_ID [--format text|json]
 ```
 
-`ARTIFACT` is either a physical path to a committed release directory (for example `data/interim/dagflow/single-terminal/v1`) or a canonical `artifact:<name>/v<N>` reference.
+`ARTIFACT` is either a physical path to a committed release directory (for example `data/raw/dagflow/single-terminal/v1`) or a canonical `artifact:<name>/v<N>` reference.
 
 ### Options
 
@@ -366,7 +366,7 @@ The three artifact-scope summary figures are:
 ### Example
 
 ```console
-ehp-sn data inspect data/interim/dagflow/single-terminal/v1 --record sha256:...
+ehp-sn data inspect data/raw/dagflow/single-terminal/v1 --record sha256:...
 ```
 
 The result includes the committed artifact identity, the exact record
@@ -376,7 +376,7 @@ With `--figure`, the result also reports the requested figure reference and the
 projection identity:
 
 ```console
-ehp-sn data inspect data/interim/dungeongen/general/v1 \
+ehp-sn data inspect data/raw/dungeongen/general/v1 \
     --record sha256:... \
     --figure figure:raster-topology-inspection/v1
 ```
@@ -384,7 +384,7 @@ ehp-sn data inspect data/interim/dungeongen/general/v1 \
 Artifact scope:
 
 ```console
-ehp-sn data inspect data/interim/dagflow/single-terminal/v1 \
+ehp-sn data inspect data/raw/dagflow/single-terminal/v1 \
     --figure figure:simple-digraph-artifact-summary/v1
 ```
 
@@ -400,7 +400,7 @@ ehp-sn data inspect data/interim/dagflow/single-terminal/v1 \
 
 ## Related commands
 
-- [`tasks`](tasks.md) — consumes interim substrates to create task corpora.
+- [`tasks`](tasks.md) — consumes substrate artifacts to create task corpora.
 
 ## See also
 
