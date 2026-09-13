@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# `ehp-sn report`
-
 > **Provisional.** This command group remains provisional until at least two completed experiment workflows demonstrate shared reporting requirements. Subcommand details are deferred until the report-package specification is accepted.
 
 Package existing evaluation and analysis results for presentation or export.

@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Artifact interface
-
 EHP-SN artifacts are durable scientific outputs. Their manifests are the authoritative records of completed operations.
 
 This page defines how Python callers use artifact identities and resources. Physical layouts, checksum algorithms, publication transactions, schema migration, and reference grammar belong to framework artifact specifications.

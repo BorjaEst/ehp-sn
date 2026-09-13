@@ -92,7 +92,7 @@ The implementation may include `q_values` among the STR input features, but that
 
 STR is non-recurrent in HRM-rl and does not constitute an additional H/L reasoning level.
 
-## 3. Native interface
+## Native interface
 
 ### Inputs
 
@@ -124,7 +124,7 @@ Task-specific answer prediction is owned by the model IO specification and decod
 
 The action axis of `q_values` is fixed and must not depend on implementation ordering.
 
-## 4. State and computation
+## State and computation
 
 PFC H/L/workspace state may persist across multiple deliberation interactions for the same problem.
 
@@ -151,7 +151,7 @@ halt / continue
 
 If the controller selects `continue`, the next interaction may resume only the state belonging to the same problem/deliberation lineage.
 
-## 5. Model parameters
+## Model parameters
 
 Model-owned parameters include:
 
@@ -174,7 +174,7 @@ In particular, HRM-rl owns:
 
 Task decoder dimensions, reward values, discount factor, rollout truncation, exploration policy, TD algorithm, loss coefficients, warm-up schedule, optimizer settings, task corpus, device, and precision are outside the model.
 
-## 6. Observables
+## Observables
 
 Stable model-native observables are:
 
@@ -191,7 +191,7 @@ Optional diagnostic traces may expose:
 
 Sampled action, reward, termination, return, and TD target are controller/training observables rather than model observables.
 
-## 7. Conformance
+## Conformance
 
 A conforming HRM-rl implementation must satisfy:
 
@@ -205,7 +205,7 @@ A conforming HRM-rl implementation must satisfy:
 - reward, return, and TD targets are not required native forward inputs;
 - action sampling/selection remains controller-owned.
 
-## 8. Boundaries and related specifications
+## Boundaries and related specifications
 
 Model IO specifications own:
 

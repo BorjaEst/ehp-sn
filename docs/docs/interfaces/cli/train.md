@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# `ehp-sn train`
-
 Plan, validate, and execute model training from an experiment definition.
 
 ## Overview

@@ -4,8 +4,6 @@ authority: normative
 document_status: draft
 ---
 
-# Research models
-
 ## Purpose
 
 This directory contains the scientific specifications of the models used by `ehp_research`.
@@ -75,17 +73,17 @@ The generic `InputAdapter`/`OutputAdapter` contract and the task/model/adapter r
 
 Model documents use the following compact structure:
 
-| Section                                  | Include                                                                       | Do not include                                              |
-| ---------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Normative summary                        | shortest complete definition of the model and its role                        | training recipe, results, implementation detail             |
-| 1. Model definition                      | defining scientific idea, local notation, model-specific concepts             | literature review, shared/common math documents             |
-| 2. Architecture                          | model-owned components, information flow, defining equations                  | Python class layout unless semantically normative           |
-| 3. Native interface                      | model-native inputs/outputs, ordering, capacity, masks, reset, timing         | task-specific mappings                                      |
-| 4. State and computation                 | recurrent state, memory/workspace, persistence, reset, update/inference order | generic runtime lifecycle                                   |
-| 5. Model parameters                      | architecture-affecting parameters                                             | optimizer, learning rate, batch size, corpus, device, paths |
-| 6. Observables                           | stable scientifically meaningful model-native states/traces                   | arbitrary internal tensors                                  |
-| 7. Conformance                           | small set of model-defining invariants                                        | benchmark thresholds                                        |
-| 8. Boundaries and related specifications | model-specific ownership edge and links                                       | duplicated neighboring specifications                       |
+| Section                               | Include                                                                       | Do not include                                              |
+| ------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Normative summary                     | shortest complete definition of the model and its role                        | training recipe, results, implementation detail             |
+| Model definition                      | defining scientific idea, local notation, model-specific concepts             | literature review, shared/common math documents             |
+| Architecture                          | model-owned components, information flow, defining equations                  | Python class layout unless semantically normative           |
+| Native interface                      | model-native inputs/outputs, ordering, capacity, masks, reset, timing         | task-specific mappings                                      |
+| State and computation                 | recurrent state, memory/workspace, persistence, reset, update/inference order | generic runtime lifecycle                                   |
+| Model parameters                      | architecture-affecting parameters                                             | optimizer, learning rate, batch size, corpus, device, paths |
+| Observables                           | stable scientifically meaningful model-native states/traces                   | arbitrary internal tensors                                  |
+| Conformance                           | small set of model-defining invariants                                        | benchmark thresholds                                        |
+| Boundaries and related specifications | model-specific ownership edge and links                                       | duplicated neighboring specifications                       |
 
 Sections should remain concise. Do not add material merely to fill the structure.
 

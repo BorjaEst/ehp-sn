@@ -5,8 +5,6 @@ document_status: specified
 api_stability: not-applicable
 ---
 
-# Data layout
-
 The repository `data/` directory stores committed scientific data products: retained upstream material, task-neutral substrate artifacts, reusable execution-derived state, and task corpora.
 Its area names describe semantic role, not pipeline order.
 

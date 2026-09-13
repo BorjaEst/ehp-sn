@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Ambient spatial domain v1
-
 ## Normative summary
 
 `ambient-domain/v1` defines a producer-agnostic, consumer-agnostic canonical position space: a finite set of positions, a coordinate convention, and a canonical dense enumeration over them.

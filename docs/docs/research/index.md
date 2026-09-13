@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Research
-
 This section contains the `ehp_research` specifications: reusable scientific building blocks — substrates, tasks, models, and (as they are added) objectives, controllers, metrics, analyses, and figures.
 It mirrors the scientific ownership model of the `ehp_research` package.
 

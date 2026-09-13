@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Configuration model
-
 This page defines the semantic objects involved in configuration and the ownership of configurable values.
 
 ## Definition defaults

@@ -20,6 +20,14 @@ applyTo: "docs/**, README.md, packages/*/README.md, experiments/**/README.md"
 - Normative domain specs: the actual semantics of each concept.
 - READMEs / summaries: orientation, examples, links.
 
+## Document structure
+
+- Do not number section headings; section order is carried by heading level and position.
+- The document title is the frontmatter `title` (`docs/authority.md` owns that field), so the body must not repeat it as a heading.
+  Body sections start at `##`.
+- Refer to a section by its heading name or an anchor link, never by a section number.
+- READMEs carry no specification frontmatter and keep their `#` heading.
+
 ## Reviewing documentation as one system
 
 When reviewing documentation consistency: resolve the concept, its owner and normative authority (`docs/authority.md`), its upstream and downstream specifications, then compare actual claims.

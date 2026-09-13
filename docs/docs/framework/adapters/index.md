@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Adapters
-
 This document defines the generic adapter concepts used by `ehp_sn`: `InputAdapter`, `OutputAdapter`, their responsibility boundaries, the ownership rules for adapter configuration, and the principles used to resolve representational compatibility inside an experiment.
 
 Adapters connect task-domain representations to model-native representations without redefining either side.
@@ -177,20 +175,18 @@ The complete representation and lifecycle of a model IO specification are define
 
 Concrete adapter specifications use a common section structure:
 
-```text
-1. Purpose and scope
-2. Interface contract
-3. Transformation semantics
-4. Configuration and derivation
-5. Compatibility and resolution
-6. Runtime behavior
-7. Information and semantic boundaries
-8. Invariants and validation
-9. Identity and reproducibility
-10. Failure semantics
-11. Evolution
-12. Examples
-```
+- Purpose and scope;
+- Interface contract;
+- Transformation semantics;
+- Configuration and derivation;
+- Compatibility and resolution;
+- Runtime behavior;
+- Information and semantic boundaries;
+- Invariants and validation;
+- Identity and reproducibility;
+- Failure semantics;
+- Evolution;
+- Examples.
 
 Current adapter specifications:
 

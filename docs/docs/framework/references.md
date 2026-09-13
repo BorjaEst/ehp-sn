@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Component and resource references
-
 This document defines the canonical reference grammar for EHP-SN components and resources. It is the authoritative home for reference syntax, version semantics, and reference kinds.
 
 ## Canonical reference grammar

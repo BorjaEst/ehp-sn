@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Framework components
-
 The framework defines generic component abstractions (contracts) that concrete scientific definitions implement.
 Generic `Task` and `Model` contracts, the `ModelIOSpec` abstraction, and the `ExperimentDefinition` abstraction are framework-owned; their concrete scientific definitions and compositions are research- or experiment-owned (`docs/authority.md`).
 

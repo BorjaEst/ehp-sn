@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# `ehp-sn evaluate`
-
 Plan, validate, and execute model evaluation for an experiment and checkpoint.
 
 ## Overview

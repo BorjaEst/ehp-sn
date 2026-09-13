@@ -6,8 +6,6 @@ capability_status: partial
 api_stability: provisional
 ---
 
-# Python figures
-
 ## Normative summary
 
 The Python figure interface exposes the same figure semantics used by CLI-integrated inspection (`data inspect --figure`), and — through the same service — by telemetry, analysis, evaluation, and reporting.

@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Configuration files and overrides
-
 This page defines public TOML documents, canonical field paths, and typed command-line override syntax.
 
 ## Public format

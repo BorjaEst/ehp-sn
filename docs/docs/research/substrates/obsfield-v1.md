@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# ObsField v1
-
 ## Normative summary
 
 `obsfield/v1` is a substrate family that procedurally generates persistent categorical observation fields conforming to [`categorical-field/v1`](../../framework/contracts/observations/categorical-field-v1.md) for downstream task-corpus construction.

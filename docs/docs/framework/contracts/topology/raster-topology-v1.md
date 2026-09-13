@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Raster topology v1
-
 ## Normative summary
 
 `raster-topology/v1` defines a producer-agnostic, consumer-agnostic logical record schema for a raster movement structure: which positions in an ambient spatial domain are traversable, and how movement between them is defined.

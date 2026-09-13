@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# TEM
-
 ## Normative summary
 
 TEM is the Tolman–Eichenbaum Machine used in EHP-SN as a recurrent relational-memory model.
@@ -23,7 +21,7 @@ TEM owns the computation that constructs and updates these representations, the 
 
 Task semantics, task-to-model conversion, task targets, experiment protocols, and runtime configuration are outside the model.
 
-## 1. Model definition
+## Model definition
 
 TEM combines reusable relational structure with environment-specific sensory associations.
 
@@ -58,7 +56,7 @@ It is not a decoded physical position supplied by a task.
 The model follows the TEM architecture introduced by Whittington et al. (2020).
 Any EHP-SN deviation that changes the model computation must be documented at the affected rule rather than in a separate compatibility/versioning layer.
 
-## 2. Architecture
+## Architecture
 
 ```text
 sensory_id
@@ -115,7 +113,7 @@ TEM maintains environment-specific associative memory over its internal represen
 The memory supports retrieval of previously associated information from the current model state.
 Its representation and update rule are part of the TEM implementation and must preserve the adopted TEM semantics.
 
-## 3. Native interface
+## Native interface
 
 ### Inputs
 
@@ -135,7 +133,7 @@ At the first valid step after reset, no ordinary relation from a preceding task 
 The stable task-facing model output is the declared sensory-prediction role.
 
 TEM may declare one or more named sensory-prediction roles, each with its own temporal meaning and prediction scope.
-A model IO specification selects among the declared roles and maps the selected role to the task-prediction interface; a model IO specification must not construct new sensory-prediction roles or define how TEM computes a role (`ADAPT-002`; see §8).
+A model IO specification selects among the declared roles and maps the selected role to the task-prediction interface; a model IO specification must not construct new sensory-prediction roles or define how TEM computes a role (`ADAPT-002`; see § "Boundaries and related specifications").
 The semantics of each declared role — what it is conditioned on and when it is emitted — are model-owned and belong to this specification, not to the experiment.
 
 The following are model-native observables rather than task predictions:
@@ -159,7 +157,7 @@ The candidate set exercised by the Arena–TEM exemplar is:
 These are candidate names for model-owned roles.
 their exact conditioning, timing, and vocabulary must be finalized as part of this model specification before they are relied on as stable TEM semantics; until then a model IO specification or experiment must not treat the candidate split as established TEM authority (see experiment `design/` notes for the working interpretation).
 
-## 4. State and computation
+## State and computation
 
 TEM distinguishes:
 
@@ -193,7 +191,7 @@ A model step follows the adopted TEM inference schedule:
 The precise read/inference/write equations are implementation-level details only to the extent that alternative implementations preserve this adopted TEM computation.
 A model IO specification must never own or reorder these operations.
 
-## 5. Model parameters
+## Model parameters
 
 Model-owned parameters are architectural or computational parameters such as:
 
@@ -208,7 +206,7 @@ Model-owned parameters are architectural or computational parameters such as:
 
 Optimizer settings, learning rate, batch size, training duration, corpus selection, device, precision, and output paths are not model parameters.
 
-## 6. Observables
+## Observables
 
 Stable model-native observables are:
 
@@ -222,7 +220,7 @@ Each observable must define its step timing and semantic axes.
 
 Recording an observational trace must not alter model computation.
 
-## 7. Conformance
+## Conformance
 
 A conforming TEM implementation must satisfy:
 
@@ -234,7 +232,7 @@ A conforming TEM implementation must satisfy:
 - reset clears every sequence/environment-specific state declared by the model;
 - the model emits the declared sensory-prediction role without privileged task information.
 
-## 8. Boundaries and related specifications
+## Boundaries and related specifications
 
 Model IO specifications own transformation between task semantics and the TEM native interface.
 

@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Configuration interface
-
 The EHP-SN configuration interface defines how package-owned defaults, an optional explicit workspace, one operation configuration file, and explicit invocation values are resolved into a typed request and immutable execution plan.
 
 Within this documentation section, **must**, **must not**, **should**, and **may** express normative requirements.

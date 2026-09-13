@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# ExperimentDefinition
-
 This document defines the framework abstraction for an **experiment definition**.
 
 An `ExperimentDefinition` is the generic framework contract stating what a resolved scientific experiment composition contains and how it is resolved.

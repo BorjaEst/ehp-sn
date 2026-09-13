@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# ModelIOSpec
-
 This document defines the framework abstraction for a **model IO specification**: the declaration of how one selected task's declared interfaces are reconciled with one selected model's declared interfaces.
 
 An experiment selects one task and one model independently. A `ModelIOSpec` selects neither; it is the narrow contract for the correspondence between their declared interfaces, formed by one configured `InputAdapter` and one configured `OutputAdapter`.

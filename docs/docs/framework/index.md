@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Framework reference
-
 The framework reference defines the authoritative semantics for EHP-SN's core infrastructure: identity, references, artifacts, manifests, digests, checkpoints, and provenance.
 
 These documents are the single authoritative home for each concept. Other documentation — particularly the configuration interface — references them rather than duplicating their definitions.

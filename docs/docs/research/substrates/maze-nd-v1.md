@@ -6,8 +6,6 @@ capability_status: specified
 api_stability: provisional
 ---
 
-# Maze-ND v1
-
 ## Normative summary
 
 `maze-nd/v1` defines reusable raster maze topologies extracted and normalized from an authoritative external source.

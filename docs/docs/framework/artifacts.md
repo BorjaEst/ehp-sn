@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Artifacts
-
 This document defines the artifact schema, artifact kinds, commitment semantics, and immutability guarantees for EHP-SN. It is the authoritative home for artifact behavior.
 
 ## Artifact kinds

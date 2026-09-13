@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# TEM-t
-
 ## Normative summary
 
 TEM-t is the Transformer reformulation of TEM used in EHP-SN.
@@ -30,7 +28,7 @@ retrieved associative content
 
 TEM-t owns the relation-dependent structural state, attention-memory construction and retrieval, and its native prediction and trace outputs.
 
-## 1. Model definition
+## Model definition
 
 TEM-t uses relation-dependent latent structural state rather than ordinary sequence position.
 
@@ -59,7 +57,7 @@ g_t
 
 TEM-t is distinct from TEM because associative memory and retrieval are implemented through attention over prior experience rather than the original TEM memory mechanism.
 
-## 2. Architecture
+## Architecture
 
 ```text
 sensory_id ─→ sensory pathway ─→ x_t ────────────┐
@@ -97,7 +95,7 @@ For the current prediction step:
 
 These temporal rules are part of the model rather than the model IO specification.
 
-## 3. Native interface
+## Native interface
 
 ### Inputs
 
@@ -125,7 +123,7 @@ Model-native observables may expose:
 
 Prediction outputs must state their timing and conditioning explicitly.
 
-## 4. State and computation
+## State and computation
 
 TEM-t maintains:
 
@@ -155,7 +153,7 @@ One model step follows this semantic order:
 
 If a prediction pathway intentionally includes current sensory evidence, that pathway must be separately named rather than silently changing the causal memory rule above.
 
-## 5. Model parameters
+## Model parameters
 
 Model-owned parameters include:
 
@@ -170,7 +168,7 @@ Model-owned parameters include:
 
 Training schedule, optimizer, dataset, batch size, runtime device, and output placement are not model parameters.
 
-## 6. Observables
+## Observables
 
 Stable model-native observables are limited to scientifically meaningful states:
 
@@ -184,7 +182,7 @@ Raw query/key/value tensors are implementation diagnostics unless a later analys
 
 Each standardized observable must define timing and semantic axes.
 
-## 7. Conformance
+## Conformance
 
 A conforming TEM-t implementation must satisfy:
 
@@ -196,7 +194,7 @@ A conforming TEM-t implementation must satisfy:
 - attention and memory construction remain model-owned;
 - the model emits its declared sensory-prediction role without privileged task information.
 
-## 8. Boundaries and related specifications
+## Boundaries and related specifications
 
 Model IO specifications translate task semantics into the native sensory/relation sequence interface and map the declared sensory prediction back into task prediction semantics.
 

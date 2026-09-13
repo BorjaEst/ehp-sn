@@ -4,8 +4,6 @@ authority: normative
 document_status: specified
 ---
 
-# Documentation and semantic authority
-
 This document answers one question: **where is a concept owned, and where does its normative specification live?**
 
 It does not state rules.

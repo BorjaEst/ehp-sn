@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Python interface
-
 The EHP-SN Python interface exposes supported scientific workflows to notebooks, scripts, tests, and research applications.
 
 It defines the public programming model: the objects callers construct, how requests are resolved into immutable plans, how plans are validated and executed, what operations return, and how committed artifacts are passed downstream.

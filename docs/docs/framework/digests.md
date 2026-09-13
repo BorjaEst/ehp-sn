@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Content digests
-
 This document defines digest semantics for EHP-SN artifacts and resources. It is the authoritative home for digest algorithms, canonical serialization, integrity verification, and the relationship between digests and identity.
 
 ## Digest algorithm and canonical serialization

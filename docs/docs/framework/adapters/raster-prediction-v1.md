@@ -8,9 +8,7 @@ adapter_role: output
 contract: RasterPredictionAdapter
 ---
 
-# Categorical sequence to raster adapter v1
-
-## 1. Purpose and scope
+## Purpose and scope
 
 `RasterPredictionAdapter` transforms a categorical model-output sequence into a categorical prediction over a rectangular task-domain position space.
 
@@ -32,9 +30,9 @@ The adapter owns:
 
 It does not own model-output-role selection, task scoring, oracle repair, threshold tuning, scientific validity correction, or task/model semantics.
 
-## 2. Interface contract
+## Interface contract
 
-### 2.1 Source interface
+### Source interface
 
 The selected model-output role must declare:
 
@@ -47,7 +45,7 @@ The selected model-output role must declare:
 
 The selected model-output role is supplied by model-IO/experiment composition; this adapter does not decide which scientific output role should be used.
 
-### 2.2 Target interface
+### Target interface
 
 A compatible target declares:
 
@@ -60,7 +58,7 @@ A compatible target declares:
 | `target_vocabulary`           | immutable identity and finite categorical domain                    |
 | canonical score-to-label rule | only when the target explicitly requires labels derived from scores |
 
-## 3. Transformation semantics
+## Transformation semantics
 
 The adapter consumes an explicit resolved position-slot correspondence:
 
@@ -101,9 +99,9 @@ Score-to-label conversion occurs only when the target prediction interface expli
 
 `v1` supports `argmax` only when the target explicitly requires `argmax` for mutually exclusive categorical scores.
 
-## 4. Configuration and derivation
+## Configuration and derivation
 
-### 4.1 Authored configuration
+### Authored configuration
 
 The only adapter-owned semantic configuration is an explicit `category_mapping` when endpoint declarations do not determine one uniquely.
 
@@ -111,7 +109,7 @@ Model-output-role selection is model-IO/experiment configuration, not adapter-ow
 
 No slot ordering, target position count, temporal/spatial layout, thresholds, or oracle correction is authored here.
 
-### 4.2 Endpoint-owned values
+### Endpoint-owned values
 
 | Value                              | Authority                 |
 | ---------------------------------- | ------------------------- |
@@ -122,7 +120,7 @@ No slot ordering, target position count, temporal/spatial layout, thresholds, or
 | target prediction kind/vocabulary  | task-prediction interface |
 | canonical score-to-label rule      | task-prediction interface |
 
-### 4.3 Derived values
+### Derived values
 
 Successful resolution validates/reuses:
 
@@ -136,7 +134,7 @@ Successful resolution validates/reuses:
 
 The spatial correspondence is not independently authored by this output adapter.
 
-## 5. Compatibility and resolution
+## Compatibility and resolution
 
 Resolution succeeds only when:
 
@@ -150,7 +148,7 @@ Resolution succeeds only when:
 
 No unspecified "equivalent layout evidence" is accepted: the adapter requires an explicit correspondence satisfying these invariants.
 
-## 6. Runtime behavior
+## Runtime behavior
 
 At runtime the adapter:
 
@@ -162,7 +160,7 @@ At runtime the adapter:
 6. applies a score-to-label conversion only when explicitly required by the resolved target interface;
 7. emits the task-domain prediction in canonical position order.
 
-## 7. Information and semantic boundaries
+## Information and semantic boundaries
 
 The adapter may consume only the selected model prediction role, the explicit position-slot correspondence, and categorical metadata needed for mapping.
 
@@ -170,7 +168,7 @@ It must not consume task targets, oracle outputs, hidden task truth, evaluation 
 
 Representational reconstruction is permitted. Prediction repair, shortest-path correction, threshold tuning, and task scoring are not.
 
-## 8. Invariants and validation
+## Invariants and validation
 
 ### Interface invariants
 
@@ -226,7 +224,7 @@ Runtime performs only the transformation established during resolution.
 
 Produced predictions conform exactly to the resolved task-prediction interface.
 
-## 9. Identity and reproducibility
+## Identity and reproducibility
 
 Identity-bearing adapter semantics include contract identity/version and authored category mapping when required.
 
@@ -236,7 +234,7 @@ Endpoint-owned properties and derived spatial correspondence are recorded for re
 
 Runtime execution concerns are not adapter semantic identity.
 
-## 10. Failure semantics
+## Failure semantics
 
 ### Resolution failures
 
@@ -246,7 +244,7 @@ Resolution fails for missing correspondence, missing slot-preservation guarantee
 
 Runtime fails when actual model output violates the resolved source interface, declared slot identity is not preserved, or produced predictions cannot satisfy the target interface.
 
-## 11. Evolution
+## Evolution
 
 ### Compatible changes
 
@@ -256,7 +254,7 @@ Compatible changes include clarifications, diagnostics, and optional metadata th
 
 A new version or family is required to infer correspondence from cardinality, aggregate/split score axes, introduce adapter-owned thresholds, perform scientific repair, or alter position reconstruction semantics.
 
-## 12. Examples
+## Examples
 
 ### Non-normative HRM–MazeHard-style composition
 

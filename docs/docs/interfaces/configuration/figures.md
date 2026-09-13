@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Figure configuration
-
 ## Normative summary
 
 Figure configuration classifies figure-specific values used by existing EHP-SN operations.

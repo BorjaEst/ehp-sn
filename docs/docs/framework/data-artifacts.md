@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Data artifacts
-
 EHP-SN represents generated scientific data as immutable, manifest-governed artifacts.
 
 This document defines the framework contract shared by generated data artifacts and the additional requirements of substrate artifacts.

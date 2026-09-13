@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# `ehp-sn analyze`
-
 Execute an available scientific analysis over committed artifacts.
 
 ## Overview

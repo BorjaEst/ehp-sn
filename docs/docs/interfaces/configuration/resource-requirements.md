@@ -6,8 +6,6 @@ capability_status: partial
 api_stability: provisional
 ---
 
-# Resource requirements
-
 Resource requirements define package-owned resource roles and deterministic selection of exact logical resources.
 
 This document owns the resource requirement model, candidate selection and precedence, and the resource states.

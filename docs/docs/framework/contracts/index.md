@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Contracts
-
 This section contains `ehp_sn`-owned standard scientific data contracts: producer-agnostic, consumer-agnostic logical record schemas for reusable structures such as spatial domains, topology, and relational graphs.
 
 ```text

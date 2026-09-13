@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Research tasks
-
 This section defines the scientific task specifications used by EHP-SN research experiments.
 
 A task defines a scientific problem.
@@ -40,21 +38,21 @@ They should also avoid model-specific tensor layouts, concrete Python helper nam
 
 Task documents use the following common structure:
 
-1. Purpose and scientific claim
-2. Scope and ownership
-3. Conceptual model
-4. Information regime
-5. Unit of record and shared task context
-6. Parent roles and composition
-7. Case, query, or episode generation
-8. Oracle and target semantics
-9. Logical corpus contract
-10. Split and sampling semantics
-11. Determinism and task identity inputs
-12. Validation and invariants
-13. Metrics and evaluation semantics
-14. Model IO specification boundary
-15. Open issues
+- Purpose and scientific claim;
+- Scope and ownership;
+- Conceptual model;
+- Information regime;
+- Unit of record and shared task context;
+- Parent roles and composition;
+- Case, query, or episode generation;
+- Oracle and target semantics;
+- Logical corpus contract;
+- Split and sampling semantics;
+- Determinism and task identity inputs;
+- Validation and invariants;
+- Metrics and evaluation semantics;
+- Model IO specification boundary;
+- Open issues.
 
 A subsection that does not apply may be omitted or replaced by a precise non-applicability statement.
 The structure is intended to expose task semantics, not to force boilerplate.

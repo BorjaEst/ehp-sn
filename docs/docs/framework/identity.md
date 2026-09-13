@@ -6,8 +6,6 @@ capability_status: partial
 api_stability: provisional
 ---
 
-# Identity
-
 This document defines identity categories for EHP-SN components, requests, plans, and artifacts.
 It is the authoritative home for what constitutes identity and what does not.
 

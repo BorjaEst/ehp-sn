@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Interfaces
-
 EHP-SN exposes two operational interfaces — Python and CLI — and one shared input surface for configuration.
 
 | Surface           | Role                                                           | Reference                                        |

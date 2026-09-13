@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Analysis interface
-
 The Python analysis interface executes one versioned scientific post-hoc analysis over an ordered set of committed artifacts.
 
 The canonical initial contract is singular: one analysis identity, one request, one validation boundary, one result, and at most one committed analysis artifact per call.

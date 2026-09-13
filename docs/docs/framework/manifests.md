@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Artifact manifests
-
 This document defines the structure and authority of EHP-SN artifact manifests. It is the authoritative home for manifest schema, declared resources, and manifest authority.
 
 ## Manifest authority

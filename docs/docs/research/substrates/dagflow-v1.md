@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Dagflow v1
-
 ## Normative summary
 
 `dagflow/v1` is a substrate family that procedurally generates directed graphs conforming to [`simple-digraph/v1`](../../framework/contracts/relations/simple-digraph-v1.md), guaranteeing the additional `single-terminal` structural capability, for downstream task-corpus construction.

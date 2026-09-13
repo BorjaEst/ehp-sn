@@ -8,9 +8,7 @@ adapter_role: output
 contract: RasterFieldPredictionAdapter
 ---
 
-# Sequence to continuous raster field adapter v1
-
-## 1. Purpose and scope
+## Purpose and scope
 
 `RasterFieldPredictionAdapter` transforms one continuous-valued model-output sequence into one continuous-valued prediction field over a rectangular task-domain position space.
 
@@ -33,9 +31,9 @@ It does not own model-output-role selection, task scoring, oracle repair, thresh
 `v1` produces exactly one continuous prediction channel per adapter instance.
 A task requiring several independent continuous channels (for example, distinct trajectory and waypoint fields) configures one adapter instance per channel — this adapter does not multiplex several scientific channels through one instance, matching `raster-prediction-v1`'s single-channel-per-instance precedent.
 
-## 2. Interface contract
+## Interface contract
 
-### 2.1 Source interface
+### Source interface
 
 The selected model-output role must declare:
 
@@ -48,7 +46,7 @@ The selected model-output role must declare:
 
 The selected model-output role is supplied by model-IO/experiment composition; this adapter does not decide which scientific output role, or which of several continuous channels, should be used.
 
-### 2.2 Target interface
+### Target interface
 
 A compatible target declares:
 
@@ -63,7 +61,7 @@ A compatible target declares:
 `v1` requires source and target `value_range` to match exactly.
 The adapter does not infer a rescaling between differently declared ranges — a task and model that declare different ranges are not compatible under `v1`.
 
-## 3. Transformation semantics
+## Transformation semantics
 
 The adapter consumes an explicit resolved position-slot correspondence:
 
@@ -92,16 +90,16 @@ task_value(p) = model_value(position_to_slot(p))
 
 No aggregation, splitting, rescaling, clipping, or thresholding is performed.
 
-## 4. Configuration and derivation
+## Configuration and derivation
 
-### 4.1 Authored configuration
+### Authored configuration
 
 `v1` has no adapter-owned semantic configuration.
 The spatial correspondence and value range are endpoint-owned or reused from a compatible input adapter's resolution; the selected continuous model-output role is model-IO/experiment configuration, not adapter-owned configuration.
 
 No slot ordering, target position count, value transformation, thresholds, or oracle correction is authored here.
 
-### 4.2 Endpoint-owned values
+### Endpoint-owned values
 
 | Value                                  | Authority                 |
 | -------------------------------------- | ------------------------- |
@@ -111,7 +109,7 @@ No slot ordering, target position count, value transformation, thresholds, or or
 | target rectangular position domain     | task-prediction interface |
 | target `prediction_kind`/`value_range` | task-prediction interface |
 
-### 4.3 Derived values
+### Derived values
 
 Successful resolution validates/reuses:
 
@@ -124,7 +122,7 @@ Successful resolution validates/reuses:
 
 The spatial correspondence is not independently authored by this output adapter.
 
-## 5. Compatibility and resolution
+## Compatibility and resolution
 
 Resolution succeeds only when:
 
@@ -137,7 +135,7 @@ Resolution succeeds only when:
 
 No unspecified "equivalent layout evidence" is accepted: the adapter requires an explicit correspondence satisfying these invariants, matching `raster-prediction-v1`'s resolution discipline.
 
-## 6. Runtime behavior
+## Runtime behavior
 
 At runtime the adapter:
 
@@ -148,7 +146,7 @@ At runtime the adapter:
 5. copies each value unchanged;
 6. emits the task-domain continuous field in canonical position order.
 
-## 7. Information and semantic boundaries
+## Information and semantic boundaries
 
 The adapter may consume only the selected model prediction role, the explicit position-slot correspondence, and range metadata needed for validation.
 
@@ -157,7 +155,7 @@ It must not consume task targets, oracle outputs, hidden task truth, evaluation 
 Representational reconstruction is permitted.
 Prediction repair, rescaling across different declared ranges, threshold tuning, and task scoring are not.
 
-## 8. Invariants and validation
+## Invariants and validation
 
 ### Interface invariants
 
@@ -209,7 +207,7 @@ Runtime performs only the transformation established during resolution.
 
 Produced predictions conform exactly to the resolved task-prediction interface.
 
-## 9. Identity and reproducibility
+## Identity and reproducibility
 
 Identity-bearing adapter semantics are limited to contract identity/version — `v1` has no authored configuration to record beyond it.
 
@@ -219,7 +217,7 @@ Endpoint-owned properties and derived spatial correspondence are recorded for re
 
 Runtime execution concerns are not adapter semantic identity.
 
-## 10. Failure semantics
+## Failure semantics
 
 ### Resolution failures
 
@@ -229,7 +227,7 @@ Resolution fails for missing correspondence, missing slot-preservation guarantee
 
 Runtime fails when actual model output violates the resolved source interface, declared slot identity is not preserved, or produced predictions cannot satisfy the target interface.
 
-## 11. Evolution
+## Evolution
 
 ### Compatible changes
 
@@ -239,7 +237,7 @@ Compatible changes include clarifications, diagnostics, and optional metadata th
 
 A new version or family is required to infer correspondence from cardinality, support several scientific channels in one instance, perform cross-range rescaling, introduce adapter-owned thresholds, perform scientific repair, or alter position reconstruction semantics.
 
-## 12. Examples
+## Examples
 
 ### Non-normative Routebind–HRM-style composition
 

@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Arena v1
-
 ## Normative summary
 
 `arena/v1` defines sequential spatial replay for observation prediction and environment-specific memory acquisition in composed spatial environments.
@@ -23,9 +21,9 @@ It does not own topology generation, observation-field generation, generic artif
 
 A conforming Arena corpus also satisfies the generic `DataArtifact` and `TaskCorpus` contracts.
 
-## 1. Purpose and scientific claim
+## Purpose and scientific claim
 
-### 1.1 Computational objective
+### Computational objective
 
 Arena provides a temporally ordered sequence of environment observations and actions from which a model may acquire environment-specific state and produce observation predictions.
 
@@ -45,11 +43,11 @@ Arena does not prescribe the internal computational pathway by which a model pre
 In the reference Arena–TEM evaluation, the same replay supports several model-specific prediction pathways with different access to the current sensory observation, including posterior, sensory-recall, and structural-prior/path-integration predictions.
 Those pathway-specific information restrictions and metrics are properties of the Arena–TEM model IO specification and model evaluation, not different Arena corpus records.
 
-### 1.2 Scientific question
+### Scientific question
 
 Arena tests whether a system can acquire and use structured environment-specific state from sequential action-observation experience, with revisit prediction providing the primary behavioral probe of environment-specific recall.
 
-### 1.3 Intended comparisons
+### Intended comparisons
 
 Arena supports comparisons including:
 
@@ -58,7 +56,7 @@ Arena supports comparisons including:
 - different ObsField realizations over compatible ambient domains;
 - different acquisition or walk policies when represented by distinct corpus releases or experiment conditions.
 
-### 1.4 Non-claims
+### Non-claims
 
 Success on Arena does not by itself establish:
 
@@ -70,9 +68,9 @@ Success on Arena does not by itself establish:
 
 Those claims require model-specific analyses or other tasks.
 
-## 2. Scope and ownership
+## Scope and ownership
 
-### 2.1 Task-owned semantics
+### Task-owned semantics
 
 Arena defines:
 
@@ -87,7 +85,7 @@ Arena defines:
 - task-specific randomness roles;
 - task-specific validation and metrics.
 
-### 2.2 Excluded semantics
+### Excluded semantics
 
 Arena does not define:
 
@@ -99,20 +97,22 @@ Arena does not define:
 - optimizer, loss weighting, curriculum, or training schedule;
 - repository-local scripts or CLI option spelling.
 
-### 2.3 Authoritative dependencies
+### Authoritative dependencies
 
-| Concern                             | Authoritative specification                     |
-| ----------------------------------- | ----------------------------------------------- |
-| Generic generated-data contract     | `data-artifacts`                                |
-| Generic task-corpus contract        | `corpora`                                       |
-| Traversability and movement         | `raster-topology/v1`                            |
-| Persistent categorical observations | `categorical-field/v1`                          |
-| Task semantics                      | this document                                   |
-| Task-to-model encoding              | applicable `InputAdapter`/`OutputAdapter`, § 14 |
+| Concern                             | Authoritative specification               |
+| ----------------------------------- | ----------------------------------------- |
+| Generic generated-data contract     | `data-artifacts`                          |
+| Generic task-corpus contract        | `corpora`                                 |
+| Traversability and movement         | `raster-topology/v1`                      |
+| Persistent categorical observations | `categorical-field/v1`                    |
+| Task semantics                      | this document                             |
+| Task-to-model encoding              | applicable `InputAdapter`/`OutputAdapter` |
 
-## 3. Conceptual model
+The task-to-model encoding boundary is defined in § "Model IO specification boundary".
 
-### 3.1 Notation and composed environment
+## Conceptual model
+
+### Notation and composed environment
 
 Arena defines its mathematical symbols locally.
 Primed structural symbols denote decoded environment-level quantities; hats denote predictions; stars denote oracle/reference targets; and $p$ is reserved for the model-internal conjunctive representation rather than a physical position.
@@ -145,7 +145,7 @@ The topology supplies $G'_{\mathrm{free}}$ and $E'_{\mathrm{spatial}}$.
 The compatible ObsField supplies the ambient observation assignment from which $\phi$ is obtained by restriction to traversable positions.
 This composition is task context, not a new substrate artifact.
 
-### 3.2 Episode
+### Episode
 
 An Arena episode of length $T$ consists of decoded positions, observations, and actions
 
@@ -168,7 +168,7 @@ $$
 For $t>0$, $a_t$ denotes the action whose application at $g'_{t-1}$ produces $g'_t$.
 The initialization value $a_0$ is defined by the Arena action protocol and does not imply a topology self-loop.
 
-### 3.3 Revisit
+### Revisit
 
 Step $t$ is a physical revisit exactly when its decoded position occurred previously in the same episode:
 
@@ -180,9 +180,9 @@ $$
 
 Observation equality alone does not imply a revisit because $\phi$ may assign the same observation identity to several positions.
 
-## 4. Information regime
+## Information regime
 
-### 4.1 Public replay information
+### Public replay information
 
 For each valid replay step `t`, Arena makes available semantically:
 
@@ -193,7 +193,7 @@ For each valid replay step `t`, Arena makes available semantically:
 
 Arena does not expose decoded coordinates, topology-state identifiers, wall maps, or movement-valid masks as ordinary task inputs.
 
-### 4.2 Target information
+### Target information
 
 The observation associated with the current replay step is also the task-level prediction/reconstruction target:
 
@@ -208,7 +208,7 @@ A model IO specification/model evaluation may construct a restricted prediction 
 
 `is_revisit[t]` is task evaluation truth used for metric stratification and is not a sensory observation input.
 
-### 4.3 Privileged information
+### Privileged information
 
 The corpus may retain corpus-local task context required for validation or declared analysis, including:
 
@@ -218,7 +218,7 @@ The corpus may retain corpus-local task context required for validation or decla
 
 Privileged spatial context must not become an ordinary model input unless a different task version explicitly changes the information regime.
 
-### 4.4 Withheld task information
+### Withheld task information
 
 Arena withholds from the ordinary replay interface:
 
@@ -228,14 +228,14 @@ Arena withholds from the ordinary replay interface:
 - future observations and actions;
 - revisit truth for use as a predictive cue.
 
-### 4.5 Pathway-specific restrictions
+### Pathway-specific restrictions
 
 Arena defines the replay sequence and task truth, not model-internal prediction pathways.
 A model IO specification or evaluation regime may restrict which public replay quantities a particular prediction pathway may consume, provided that the restriction does not change the underlying episode, target observation, or revisit truth.
 
-## 5. Unit of record and shared task context
+## Unit of record and shared task context
 
-### 5.1 Unit of record
+### Unit of record
 
 One Arena record represents:
 
@@ -243,7 +243,7 @@ One Arena record represents:
 
 Batching several episodes is a physical or model-IO concern and does not change the logical record unit.
 
-### 5.2 Record discriminators
+### Record discriminators
 
 Task-semantic discriminators include:
 
@@ -255,7 +255,7 @@ Task-semantic discriminators include:
 - episode-length policy;
 - Arena randomness derivation.
 
-### 5.3 Shared task context
+### Shared task context
 
 A corpus may deduplicate repeated environment information through a corpus-local environment table referenced by multiple episode records.
 
@@ -268,9 +268,9 @@ One environment entry may contain the corpus-local representation required to re
 
 Environment entries are not model-visible merely because they are corpus-local.
 
-## 6. Parent roles and composition
+## Parent roles and composition
 
-### 6.1 Parent roles
+### Parent roles
 
 Arena depends on these parent roles, the generic contract each must satisfy, and how the task uses it:
 
@@ -282,7 +282,7 @@ Arena depends on these parent roles, the generic contract each must satisfy, and
 Arena depends on topology capabilities rather than a concrete topology family.
 DungeonGen and Maze-ND are both admissible when their records satisfy the required capabilities.
 
-### 6.2 Required topology capabilities
+### Required topology capabilities
 
 Arena v1 requires:
 
@@ -297,7 +297,7 @@ edge_cost_kind: unit
 Arena does not require topology-level self-loops.
 `STAY`, when enabled by the episode protocol, is task-owned.
 
-### 6.3 Parent exclusions
+### Parent exclusions
 
 Arena must not assume that:
 
@@ -307,13 +307,13 @@ Arena must not assume that:
 - an observation ID identifies a physical position;
 - topology-state IDs equal ambient-position IDs unless the shared contracts establish that mapping explicitly.
 
-### 6.4 Compatibility relation
+### Compatibility relation
 
 A topology record and ObsField record are compatible only when their complete ambient-domain semantics identify the same position space, including coordinate convention, natural extent, canonical position identity, enumeration, movement geometry, and boundary policy.
 
 Every topology state must map to exactly one valid ambient position in the ObsField domain.
 
-### 6.5 Composition procedure
+### Composition procedure
 
 For each selected pair:
 
@@ -324,13 +324,13 @@ For each selected pair:
 5. construct corpus-local environment context sufficient for episode generation and validation;
 6. generate Arena episodes.
 
-### 6.6 Rejection conditions
+### Rejection conditions
 
 The pair is rejected if any required domain semantic differs, any topology state lacks a valid ambient position, the vocabulary declaration is invalid, or the composed environment violates an Arena requirement.
 
-## 7. Task generation
+## Task generation
 
-### 7.1 Episode initialization
+### Episode initialization
 
 The episode protocol selects one valid decoded position $g'_0\in G'_{\mathrm{free}}$ using record-addressable deterministic randomness or another explicitly declared deterministic policy.
 
@@ -340,7 +340,7 @@ $$
 o_0=\phi(g'_0).
 $$
 
-### 7.2 Task action domain
+### Task action domain
 
 Arena v1 uses the canonical grid4 movement actions supplied by the topology contract and may additionally define:
 
@@ -352,7 +352,7 @@ STAY
 
 The resolved episode protocol must state whether `STAY` may occur only at initialization or also during the generated walk.
 
-### 7.3 Walk protocol
+### Walk protocol
 
 A walk protocol must define:
 
@@ -365,7 +365,7 @@ A walk protocol must define:
 
 Named policies such as angle-biased or uniform-valid walks are protocols or presets, not changes to Arena task semantics when they preserve the same information regime and record meaning.
 
-### 7.4 Temporal canonicalization
+### Temporal canonicalization
 
 For a generated trajectory $(g'_0,\ldots,g'_{T-1})$, the builder materializes the observation relation
 
@@ -379,17 +379,17 @@ and an action sequence aligned so that, for $t>0$, `action[t]` is the action pro
 The action convention is part of Arena v1 task semantics.
 A model IO specification may shift or re-encode the sequence for a model-native recurrent API, but must preserve the same transition alignment.
 
-### 7.5 Revisit truth
+### Revisit truth
 
 `is_revisit[t]` is computed from the complete prefix of physical states and is valid for all `t`.
 It is independent of observation repetition.
 
-### 7.6 Retry and exhaustion
+### Retry and exhaustion
 
 If an episode protocol can reject candidate starts or trajectories, it must define deterministic attempt identity, attempt budget, and exhaustion behavior.
 Exhaustion is explicit failure; it must not silently substitute a different logical episode identity.
 
-## 8. Oracle and target semantics
+## Oracle and target semantics
 
 Arena does not require a planning oracle.
 For each valid replay step $t$, the authoritative task truth consists of
@@ -414,9 +414,9 @@ Observation prediction is evaluated against $o_t$.
 The task does not prescribe the internal pathway used to produce a compatible prediction.
 Pathway-specific outputs and diagnostics belong to the applicable model IO specification/model evaluation contract.
 
-## 9. Logical corpus contract
+## Logical corpus contract
 
-### 9.1 Episode record fields
+### Episode record fields
 
 One logical episode record contains or resolves at least these fields, split across two tables by concern.
 
@@ -446,7 +446,7 @@ The following table gives each field's visibility, role, and meaning:
 
 A physical serialization may use padded fixed-width arrays, but padding is not part of the logical episode semantics.
 
-### 9.2 Shared environment resource
+### Shared environment resource
 
 A corpus-local environment resource must provide enough information to validate observations and trajectories without resolving parent artifacts.
 It may deduplicate information shared by several episodes.
@@ -459,26 +459,26 @@ At minimum it resolves:
 - traversable-position set or equivalent topology representation;
 - observation assignment needed for traversable positions.
 
-### 9.3 Sentinels and padding
+### Sentinels and padding
 
 If physical serialization pads variable-length episodes, the corpus schema must distinguish padding from valid values through an explicit valid-step mask or length field.
 Sentinel values must never be interpreted as semantic observation, action, or position identities.
 
-## 10. Split and sampling semantics
+## Split and sampling semantics
 
-### 10.1 Parent split use
+### Parent split use
 
 Arena follows the generic parent-to-corpus split rule where parents declare intrinsic splits.
 
 ObsField and some topology substrates may define no intrinsic experimental splits.
 For such parents, the Arena corpus specification or named corpus profile owns assignment of reusable records to task splits and must record that policy explicitly.
 
-### 10.2 Multi-parent pairing
+### Multi-parent pairing
 
 Pairing of topology and ObsField records must be deterministic and compatibility-aware.
 The policy may deliberately hold one factor fixed while varying the other, but the policy is part of the corpus build semantics.
 
-### 10.3 Leakage and novelty
+### Leakage and novelty
 
 Named Arena corpora must state whether train/validation/test novelty applies to:
 
@@ -489,9 +489,9 @@ Named Arena corpora must state whether train/validation/test novelty applies to:
 
 No universal novelty policy is imposed by Arena v1.
 
-## 11. Determinism and task identity inputs
+## Determinism and task identity inputs
 
-### 11.1 Randomness roles
+### Randomness roles
 
 Arena randomness roles may include:
 
@@ -500,11 +500,11 @@ Arena randomness roles may include:
 - walk action selection;
 - retry selection where applicable.
 
-### 11.2 Deterministic derivation
+### Deterministic derivation
 
 Episode generation must be record-addressable and invariant to worker count, scheduling, sharding, and physical serialization order.
 
-### 11.3 Task-semantic identity inputs
+### Task-semantic identity inputs
 
 Arena-specific identity-affecting semantics include:
 
@@ -519,7 +519,7 @@ Arena-specific identity-affecting semantics include:
 
 Generic build-input identity and artifact fingerprints remain framework-owned.
 
-## 12. Validation and invariants
+## Validation and invariants
 
 ### AR-COMP-001 — Parent-domain compatibility
 
@@ -558,9 +558,9 @@ Every required episode and environment channel is resolvable from corpus-local r
 
 Every episode and contributing parent record conforms to the corpus's declared split and novelty policy.
 
-## 13. Metrics and evaluation semantics
+## Metrics and evaluation semantics
 
-### 13.1 Primary metric: revisit-conditioned observation accuracy
+### Primary metric: revisit-conditioned observation accuracy
 
 The primary Arena task metric is observation-prediction accuracy over replay steps whose decoded physical position is a revisit:
 
@@ -573,7 +573,7 @@ $$
 This corresponds to the revisit-conditioned observation-prediction quantity used by the formal research evaluation.
 The metric is undefined for an evaluation set with zero revisit targets; an evaluator must report the empty denominator rather than silently substitute a value.
 
-### 13.2 Secondary task metrics
+### Secondary task metrics
 
 Task-level supporting quantities include:
 
@@ -585,16 +585,16 @@ Task-level supporting quantities include:
 Arena–TEM evaluation over a given model IO specification may additionally report the pathway metrics `A_post`, `A_rec^rev`, and `A_PI^rev`.
 These are not generic Arena task channels because they refer to particular TEM inference/retrieval pathways.
 
-### 13.3 Aggregation
+### Aggregation
 
 Count-based sufficient statistics are summed across batches or distributed workers before accuracy is derived.
 
-### 13.4 Interpretation
+### Interpretation
 
 Higher `A_obs^rev` supports the behavioral claim that the evaluated system can recover environment-specific sensory–spatial information at previously experienced locations.
 It does not by itself identify which internal pathway or representation produced that recovery.
 
-## 14. Model IO specification boundary
+## Model IO specification boundary
 
 Arena defines the replay sequence $(o_t,a_t)$, episode boundaries, decoded trajectory truth used for validation, observation targets, and revisit truth.
 
@@ -614,7 +614,7 @@ Recurrent unrolling and state reset belong to the experiment's training protocol
 For the Arena–TEM model IO specification, posterior and sensory-recall pathways may use the current encoded observation according to the TEM model contract, while the structural-prior/path-integration pathway must not use the current observation.
 The resolved model IO specification must not expose decoded topology or privileged spatial identity beyond the Arena task contract.
 
-## 15. Open issues
+## Open issues
 
 - The initial named Arena corpus must choose its walk protocol, episode-length policy, and `STAY` policy.
 - The initial split/novelty policy for independent topology and ObsField pools must be declared by the concrete corpus profile.

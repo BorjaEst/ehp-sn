@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Experiments
-
 An `ExperimentDefinition` is the semantically immutable scientific composition consumed by training and evaluation.
 
 This page defines public construction, identity, equality, canonicalization, and reuse behavior.

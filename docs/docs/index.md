@@ -4,8 +4,6 @@ authority: descriptive
 document_status: specified
 ---
 
-# EHP-SN documentation
-
 EHP-SN is a specification-first framework and research programme for spatial navigation, relational memory, and structural reasoning.
 
 The documentation is organized by semantic responsibility.

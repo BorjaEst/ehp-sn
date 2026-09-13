@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Provenance
-
 This document defines the separation between portable semantic provenance and local diagnostic provenance. It is the authoritative home for provenance schema and identity contribution rules.
 
 ## Portable vs diagnostic provenance

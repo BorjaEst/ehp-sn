@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Categorical observation field v1
-
 ## Normative summary
 
 `categorical-field/v1` defines a producer-agnostic, consumer-agnostic logical record schema for a persistent categorical observation assignment over an ambient spatial domain: one categorical observation for every canonical position in the domain.

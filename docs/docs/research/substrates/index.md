@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Substrates
-
 ## Purpose
 
 This section contains the research-owned specifications for substrate families implemented by `ehp_research`.

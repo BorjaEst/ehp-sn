@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Checkpoints
-
 This document defines checkpoint identity, capability levels, and resume/initialization semantics. It is the authoritative home for checkpoint behavior.
 
 ## Checkpoint identity

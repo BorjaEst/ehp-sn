@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Compatibility
-
 This document defines component compatibility declarations, support levels, and maturity classifications. It is the authoritative home for task–model compatibility semantics.
 
 ## Support levels

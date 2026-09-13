@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Python interface conventions
-
 This page defines conventions that apply identically to multiple public Python operations.
 
 ## Calling conventions

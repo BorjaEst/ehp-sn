@@ -8,9 +8,7 @@ adapter_role: output
 contract: ObservationPredictionAdapter
 ---
 
-# Sensory-prediction sequence to observation sequence adapter v1
-
-## 1. Purpose and scope
+## Purpose and scope
 
 `ObservationPredictionAdapter` transforms an aligned model-native sequence of categorical sensory predictions into an aligned task-domain sequence of categorical observation predictions.
 
@@ -32,9 +30,9 @@ The adapter owns:
 
 It does not own model-output-role selection, scientific preference between prediction pathways, task scoring, revisit semantics, temporal shifting, threshold tuning, calibration, oracle repair, or model trace interpretation.
 
-## 2. Interface contract
+## Interface contract
 
-### 2.1 Source interface
+### Source interface
 
 The selected model-output role must declare:
 
@@ -51,7 +49,7 @@ Latent structural state, conjunctive state, recurrent state, memory diagnostics,
 
 The selected source role is supplied by model-IO/experiment composition.
 
-### 2.2 Target interface
+### Target interface
 
 A compatible target declares:
 
@@ -66,7 +64,7 @@ A compatible target declares:
 
 `v1` requires source and target `prediction_timing` identities to match exactly. The adapter does not infer semantic equivalence between differently declared timing/conditioning regimes.
 
-## 3. Transformation semantics
+## Transformation semantics
 
 The adapter consumes an explicit task-step/model-step correspondence:
 
@@ -107,9 +105,9 @@ Score-to-label conversion occurs only when the target explicitly declares a cano
 
 `v1` supports `argmax` only when the target explicitly requires `argmax`.
 
-## 4. Configuration and derivation
+## Configuration and derivation
 
-### 4.1 Authored configuration
+### Authored configuration
 
 The only adapter-owned semantic configuration is an explicit `category_mapping` when endpoint declarations do not determine one uniquely.
 
@@ -117,7 +115,7 @@ The selected model prediction role is model-IO/experiment configuration, not ada
 
 There is no authored temporal offset, task/model sequence length, threshold, calibration rule, revisit-conditioned decision, or oracle correction.
 
-### 4.2 Endpoint-owned values
+### Endpoint-owned values
 
 | Value                                 | Authority                 |
 | ------------------------------------- | ------------------------- |
@@ -130,7 +128,7 @@ There is no authored temporal offset, task/model sequence length, threshold, cal
 | target prediction kind/vocabulary     | task-prediction interface |
 | canonical score-to-label rule         | task-prediction interface |
 
-### 4.3 Derived values
+### Derived values
 
 Successful resolution validates/reuses:
 
@@ -144,7 +142,7 @@ Successful resolution validates/reuses:
 
 No temporal alignment is independently authored by this output adapter.
 
-## 5. Compatibility and resolution
+## Compatibility and resolution
 
 Resolution succeeds only when:
 
@@ -161,7 +159,7 @@ Resolution succeeds only when:
 
 The adapter does not infer compatibility from task/model identity or from informal similarity between prediction-conditioning descriptions.
 
-## 6. Runtime behavior
+## Runtime behavior
 
 At runtime the adapter:
 
@@ -175,7 +173,7 @@ At runtime the adapter:
 
 It does not evaluate correctness, revisit status, memory quality, or scientific validity.
 
-## 7. Information and semantic boundaries
+## Information and semantic boundaries
 
 The adapter may consume only the selected declared prediction role, explicit step correspondence, and endpoint categorical/timing metadata needed for mapping.
 
@@ -185,7 +183,7 @@ It must not reinterpret latent structural/conjunctive states, memory values, rec
 
 Representational decoding is permitted. Scientific interpretation and correction are not.
 
-## 8. Invariants and validation
+## Invariants and validation
 
 ### Interface invariants
 
@@ -257,7 +255,7 @@ Runtime performs only the transformation established during resolution.
 
 Produced task predictions conform exactly to the resolved target interface.
 
-## 9. Identity and reproducibility
+## Identity and reproducibility
 
 Identity-bearing adapter semantics include contract identity/version and authored category mapping when required.
 
@@ -267,7 +265,7 @@ Endpoint-owned prediction/timing semantics and derived step correspondence are r
 
 Runtime execution concerns are not adapter semantic identity.
 
-## 10. Failure semantics
+## Failure semantics
 
 ### Resolution failures
 
@@ -277,7 +275,7 @@ Resolution fails for missing correspondence, undeclared prediction roles, missin
 
 Runtime fails when actual model output violates the resolved source interface, model-step identity is not preserved, or produced predictions cannot satisfy the target interface.
 
-## 11. Evolution
+## Evolution
 
 ### Compatible changes
 
@@ -287,7 +285,7 @@ Compatible changes include clarifications, diagnostics, and optional metadata th
 
 A new version or family is required for temporal shifts, non-identical timing compatibility, score aggregation/splitting, adapter-owned thresholds, reinterpretation of model traces, or scientific repair.
 
-## 12. Examples
+## Examples
 
 ### Non-normative TEM–Arena-style composition
 

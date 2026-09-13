@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Configuration identities and provenance
-
 This page defines how configuration contributes to scientific and operational identity, and how semantic provenance is separated from diagnostic provenance.
 
 General identity categories and equality invariants are defined by [Framework identity](../../framework/identity.md). General provenance separation is defined by [Framework provenance](../../framework/provenance.md). The rules below are configuration-specific specializations of those framework contracts.

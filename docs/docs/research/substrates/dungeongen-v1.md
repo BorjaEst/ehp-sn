@@ -6,8 +6,6 @@ capability_status: specified
 api_stability: provisional
 ---
 
-# DungeonGen v1
-
 ## Normative summary
 
 `dungeongen/v1` defines reusable, procedurally generated irregular raster topologies for downstream task-corpus construction.

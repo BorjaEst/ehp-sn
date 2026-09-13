@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Simple directed graph v1
-
 ## Normative summary
 
 `simple-digraph/v1` defines a producer-agnostic, consumer-agnostic logical record schema for a simple directed graph: a dense public node domain and a directed edge relation over it.

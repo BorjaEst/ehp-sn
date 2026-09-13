@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Evaluation interface
-
 The Python evaluation interface evaluates one compatible checkpoint under one named regime declared by an experiment.
 
 A successful call returns only after an immutable evaluation artifact containing the declared outputs has been committed.

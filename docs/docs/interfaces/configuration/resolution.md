@@ -6,8 +6,6 @@ capability_status: partial
 api_stability: provisional
 ---
 
-# Configuration resolution
-
 Resolution transforms frontend inputs into a finalized scientific definition, effective request, BOUND resource records, and immutable execution plan.
 
 This document is the orchestration home in the ownership chain:

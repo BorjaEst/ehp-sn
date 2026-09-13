@@ -8,9 +8,7 @@ adapter_role: input
 contract: RelationalSequenceAdapter
 ---
 
-# Observation-relation sequence to sensory-relation sequence adapter v1
-
-## 1. Purpose and scope
+## Purpose and scope
 
 `RelationalSequenceAdapter` transforms an ordered task sequence of categorical observations and incoming relations into an aligned model-input sequence of categorical sensory and relation identities.
 
@@ -35,9 +33,9 @@ It does not own task episode semantics, revisit truth, physical position, model 
 
 `v1` represents one task episode/segment per adapted sequence. Step `0` is the sequence start. Packed multiple-episode sequences require another contract or explicit higher-level batching semantics.
 
-## 2. Interface contract
+## Interface contract
 
-### 2.1 Source interface
+### Source interface
 
 A compatible source declares:
 
@@ -56,7 +54,7 @@ No ordinary scientific relation is required at step `0`.
 
 Targets, revisit truth, physical positions, complete topology, and privileged/oracle channels are outside the source interface.
 
-### 2.2 Target interface
+### Target interface
 
 A compatible target declares:
 
@@ -73,7 +71,7 @@ A compatible target declares:
 
 If the model owns trainable sensory/relation embeddings, the adapter outputs IDs rather than embeddings.
 
-## 3. Transformation semantics
+## Transformation semantics
 
 For source steps:
 
@@ -115,9 +113,9 @@ sequence_mask[u] = false    for T <= u < S
 
 The resolved step correspondence is derived once and may be reused by a compatible output adapter.
 
-## 4. Configuration and derivation
+## Configuration and derivation
 
-### 4.1 Authored configuration
+### Authored configuration
 
 The adapter may author only:
 
@@ -130,7 +128,7 @@ These mappings are required only when endpoint declarations do not determine the
 
 There is no authored step count, sequence capacity, temporal offset, reset placement, padding count, or embedding dimension.
 
-### 4.2 Endpoint-owned values
+### Endpoint-owned values
 
 | Value                                   | Authority                    |
 | --------------------------------------- | ---------------------------- |
@@ -144,7 +142,7 @@ There is no authored step count, sequence capacity, temporal offset, reset place
 | target reset/init representation        | target model-input interface |
 | target mask requirement                 | target model-input interface |
 
-### 4.3 Derived values
+### Derived values
 
 Successful resolution derives:
 
@@ -160,7 +158,7 @@ Successful resolution derives:
 | `reset_mapping`           | source sequence start → target reset/init representation |
 | `sequence_mask`           | represented versus padding model steps when required     |
 
-## 5. Compatibility and resolution
+## Compatibility and resolution
 
 Resolution succeeds only when:
 
@@ -176,7 +174,7 @@ Resolution succeeds only when:
 
 Successful resolution records adapter identity/version, authored mappings, derived step correspondence, reset mapping, padding state, and compatibility evidence.
 
-## 6. Runtime behavior
+## Runtime behavior
 
 At runtime the adapter:
 
@@ -189,7 +187,7 @@ At runtime the adapter:
 7. emits the derived sequence mask when required;
 8. produces exactly the resolved model-input representation.
 
-## 7. Information and semantic boundaries
+## Information and semantic boundaries
 
 The adapter may consume only public observation identities, ordinary relation identities, sequence-start semantics, and declared step structure.
 
@@ -197,7 +195,7 @@ It must not consume targets, revisit truth, physical positions, full topology, o
 
 It does not infer structural state, create TEM-like latent variables, perform memory retrieval, or construct trainable embeddings unless the target interface itself declares embedded vectors as its native input.
 
-## 8. Invariants and validation
+## Invariants and validation
 
 ### Interface invariants
 
@@ -269,7 +267,7 @@ Runtime performs only the transformation established during resolution.
 
 Produced model input conforms exactly to the resolved target interface.
 
-## 9. Identity and reproducibility
+## Identity and reproducibility
 
 Identity-bearing adapter semantics include contract identity/version and authored observation/relation mappings when required.
 
@@ -277,7 +275,7 @@ Endpoint-owned facts and derived step/reset/padding state are recorded for repro
 
 Runtime execution concerns are not adapter semantic identity.
 
-## 10. Failure semantics
+## Failure semantics
 
 ### Resolution failures
 
@@ -287,7 +285,7 @@ Resolution fails for missing sequence roles, incompatible relation alignment, un
 
 Runtime fails when actual task data violates the resolved source interface or the produced model input cannot satisfy the resolved target interface.
 
-## 11. Evolution
+## Evolution
 
 ### Compatible changes
 
@@ -297,7 +295,7 @@ Compatible changes include clarifications, diagnostics, and optional metadata th
 
 A new version or family is required for temporal shifts, multiple episode starts inside one adapted sequence, lossy observation/relation mappings, different reset semantics, scientific feature inference, or use of future context.
 
-## 12. Examples
+## Examples
 
 ### Non-normative Arena–TEM-style composition
 

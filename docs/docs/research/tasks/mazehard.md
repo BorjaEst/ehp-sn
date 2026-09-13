@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# MazeHard v1
-
 ## Normative summary
 
 `maze-hard/v1` defines a fully observed static shortest-route prediction task over finite raster maze topologies.
@@ -21,20 +19,20 @@ It does not own Maze-ND source extraction, topology generation, generic artifact
 
 A conforming MazeHard corpus also satisfies the generic `DataArtifact` and `TaskCorpus` contracts.
 
-## 1. Purpose and scientific claim
+## Purpose and scientific claim
 
-### 1.1 Computational objective
+### Computational objective
 
 Given an explicitly presented raster maze together with a start position and goal position, predict a path-labelled output grid representing one stored optimal route from start to goal.
 
 The canonical reference Maze-Hard profile described by the research manuscript uses a `30 × 30` grid flattened to `900` positions for the HRM interface.
 The task semantics remain the same under another explicitly named compatible corpus profile, but such a profile must not be confused with direct reproduction of the reference 30 × 30 benchmark.
 
-### 1.2 Scientific question
+### Scientific question
 
 MazeHard tests whether a model can perform global spatial reasoning over a fully observed static problem whose correct route may depend on long-range connectivity rather than local visual structure.
 
-### 1.3 Intended comparisons
+### Intended comparisons
 
 MazeHard supports comparisons across:
 
@@ -44,7 +42,7 @@ MazeHard supports comparisons across:
 - model deliberation mechanisms;
 - exact-route versus structural-route evaluation.
 
-### 1.4 Non-claims
+### Non-claims
 
 MazeHard does not test:
 
@@ -53,9 +51,9 @@ MazeHard does not test:
 - semantic waypoint composition;
 - memory-conditioned planning.
 
-## 2. Scope and ownership
+## Scope and ownership
 
-### 2.1 Task-owned semantics
+### Task-owned semantics
 
 MazeHard defines:
 
@@ -69,7 +67,7 @@ MazeHard defines:
 - route targets;
 - task-specific metrics and invariants.
 
-### 2.2 Excluded semantics
+### Excluded semantics
 
 MazeHard does not define:
 
@@ -81,18 +79,20 @@ MazeHard does not define:
 
 A faithful reproduction of source Maze-Hard problem rows is a separate corpus-import protocol and must not be represented as Maze-ND topology semantics.
 
-### 2.3 Authoritative dependencies
+### Authoritative dependencies
 
-| Concern                            | Authoritative specification                     |
-| ---------------------------------- | ----------------------------------------------- |
-| Generic generated-data contract    | `data-artifacts`                                |
-| Generic task-corpus contract       | `corpora`                                       |
-| Raster maze topology               | `raster-topology/v1`                            |
-| Maze-ND source topology production | `maze-nd/v1` when used                          |
-| Task semantics                     | this document                                   |
-| Model encoding                     | applicable `InputAdapter`/`OutputAdapter`, § 14 |
+| Concern                            | Authoritative specification               |
+| ---------------------------------- | ----------------------------------------- |
+| Generic generated-data contract    | `data-artifacts`                          |
+| Generic task-corpus contract       | `corpora`                                 |
+| Raster maze topology               | `raster-topology/v1`                      |
+| Maze-ND source topology production | `maze-nd/v1` when used                    |
+| Task semantics                     | this document                             |
+| Model encoding                     | applicable `InputAdapter`/`OutputAdapter` |
 
-## 3. Conceptual model
+The model-encoding boundary is defined in § "Model IO specification boundary".
+
+## Conceptual model
 
 MazeHard defines one fully observed spatial shortest-route problem over a decoded raster environment.
 Let
@@ -138,9 +138,9 @@ $$
 
 The task target is a spatial labeling that identifies one deterministic reference optimal route $R^*$ while preserving the visible maze, start, and goal semantics.
 
-## 4. Information regime
+## Information regime
 
-### 4.1 Public information
+### Public information
 
 The model is given the complete task-visible maze problem:
 
@@ -149,11 +149,11 @@ The model is given the complete task-visible maze problem:
 - the unique goal position;
 - natural-domain or padding masks required to interpret the representation.
 
-### 4.2 Target information
+### Target information
 
-The task provides canonical shortest-route truth according to the ambiguity policy in Section 8.
+The task provides canonical shortest-route truth according to the ambiguity policy in § "Oracle and target semantics".
 
-### 4.3 Privileged information
+### Privileged information
 
 Oracle-only or diagnostic information may include:
 
@@ -164,7 +164,7 @@ Oracle-only or diagnostic information may include:
 
 These are not public problem inputs unless explicitly promoted by another task version.
 
-### 4.4 Withheld information
+### Withheld information
 
 The model is not given:
 
@@ -173,13 +173,13 @@ The model is not given:
 - oracle distances;
 - solution path or optimal support as input.
 
-### 4.5 Leakage constraints
+### Leakage constraints
 
 Any physical encoding must keep route truth distinct from input topology/start/goal information.
 
-## 5. Unit of record and shared task context
+## Unit of record and shared task context
 
-### 5.1 Unit of record
+### Unit of record
 
 One MazeHard record represents:
 
@@ -187,7 +187,7 @@ One MazeHard record represents:
 
 One topology may support many MazeHard records.
 
-### 5.2 Record discriminators
+### Record discriminators
 
 Task-semantic discriminators include:
 
@@ -199,14 +199,14 @@ Task-semantic discriminators include:
 - oracle protocol;
 - target representation protocol.
 
-### 5.3 Shared task context
+### Shared task context
 
 A corpus may deduplicate topology payload through a corpus-local environment table referenced by several problem records.
 Such deduplication is a corpus representation choice and does not alter the logical record unit.
 
-## 6. Parent roles and composition
+## Parent roles and composition
 
-### 6.1 Parent roles
+### Parent roles
 
 MazeHard depends on this parent role, the generic contract it must satisfy, and how the task uses it:
 
@@ -216,7 +216,7 @@ MazeHard depends on this parent role, the generic contract it must satisfy, and 
 
 MazeHard is not semantically restricted to Maze-ND, although Maze-ND is the intended source-topology family for source-derived maze experiments.
 
-### 6.2 Required capabilities
+### Required capabilities
 
 MazeHard v1 requires:
 
@@ -230,7 +230,7 @@ edge_cost_kind: unit
 
 A selected start and goal must lie in the same connected component.
 
-### 6.3 Parent exclusions
+### Parent exclusions
 
 MazeHard must not require the topology parent to provide:
 
@@ -242,7 +242,7 @@ MazeHard must not require the topology parent to provide:
 
 Maze-ND explicitly treats those as source problem-instance information rather than topology channels.
 
-### 6.4 Composition procedure
+### Composition procedure
 
 For each selected topology record:
 
@@ -252,9 +252,9 @@ For each selected topology record:
 4. compute canonical shortest-route truth;
 5. materialize public task input and target channels.
 
-## 7. Task generation
+## Task generation
 
-### 7.1 Start–goal generation
+### Start–goal generation
 
 A query-generation protocol must define deterministic selection of $g'_{\mathrm{start}}$ and $g'_{\mathrm{goal}}$ subject to:
 
@@ -265,25 +265,25 @@ A query-generation protocol must define deterministic selection of $g'_{\mathrm{
 
 The reference Maze-Hard corpus additionally applies its documented benchmark admission/filtering rules, including the reference 30 × 30 spatial extent and hard-instance selection used for reproduction.
 
-### 7.2 Query distribution
+### Query distribution
 
 Distance bands, topology reuse, record counts, and difficulty balancing belong to named corpus profiles unless they are required to preserve MazeHard v1 semantics.
 
-### 7.3 Retry and exhaustion
+### Retry and exhaustion
 
 When a protocol uses rejection to satisfy query constraints, attempts must be deterministic and record-addressable.
 An exhausted logical query fails explicitly.
 
-### 7.4 Source-reproduction profile
+### Source-reproduction profile
 
 A named source-reproduction corpus may reconstruct original source start/goal/solution problem rows through immutable Maze-ND source lineage or external source material.
 
 Such a profile must state explicitly that its query and reference solution are source-instance data.
 It must not redefine Maze-ND topology records to contain those fields.
 
-## 8. Oracle and target semantics
+## Oracle and target semantics
 
-### 8.1 Shortest-route truth
+### Shortest-route truth
 
 For decoded goal $g'_{\mathrm{goal}}$, define the shortest remaining physical cost
 
@@ -306,7 +306,7 @@ $$
 C^*=d^*(g'_{\mathrm{start}}).
 $$
 
-### 8.2 Canonical reference route
+### Canonical reference route
 
 MazeHard stores one reference optimal route per task record.
 Multiple optimal routes may exist, so the stored reference is canonical benchmark truth rather than the only mathematically valid optimum.
@@ -323,7 +323,7 @@ $$
 with $g_0'^*=g'_{\mathrm{start}}$, $g_{C^*}'^*=g'_{\mathrm{goal}}$, and every transition shortest-path optimal.
 A source-reproduction corpus may instead preserve the source dataset's designated optimal reference route when its provenance is exact.
 
-### 8.3 Canonical path-labelled target
+### Canonical path-labelled target
 
 Let
 
@@ -335,9 +335,9 @@ $$
 denote the semantic reference labeling.
 It preserves the visible maze classes and marks exactly the route cells selected by $R^*$ according to the declared endpoint-overlay convention.
 
-Concrete token IDs, flattening order, ignore-label integers, and model-native tensor layout belong to an adapter (§ 14) or named reproduction profile.
+Concrete token IDs, flattening order, ignore-label integers, and model-native tensor layout belong to an adapter (§ "Model IO specification boundary") or named reproduction profile.
 
-### 8.4 Alternative optimal-route validity
+### Alternative optimal-route validity
 
 A decoded prediction may describe an optimal route different from $R^*$.
 It is an any-valid-optimal solution when it begins at $g'_{\mathrm{start}}$, ends at $g'_{\mathrm{goal}}$, follows only transitions in $E'_{\mathrm{spatial}}$, and has cost $C^*$.
@@ -345,13 +345,13 @@ It is an any-valid-optimal solution when it begins at $g'_{\mathrm{start}}$, end
 Such a prediction is structurally optimal but fails exact reference-grid equality if its path cells differ from the stored target.
 This distinction is intentional and must be reported rather than collapsed.
 
-### 8.5 Oracle correctness
+### Oracle correctness
 
 Validation must independently verify that $R^*$ is a valid route of cost $C^*$ and that the stored path-labelled target encodes exactly the declared reference route under the applicable semantic representation convention.
 
-## 9. Logical corpus contract
+## Logical corpus contract
 
-### 9.1 Record fields
+### Record fields
 
 One record contains or resolves at least these fields, split across two tables by concern.
 
@@ -381,7 +381,7 @@ The following table gives each field's visibility, role, and meaning:
 
 The public environment resource must resolve traversability over the same natural domain.
 
-### 9.2 Storage representation and reference profile
+### Storage representation and reference profile
 
 MazeHard task semantics are expressed over the natural raster domain.
 The canonical reference reproduction profile is a `30 × 30` maze represented as `900` flattened spatial positions, matching the benchmark interface described in the research manuscript.
@@ -389,20 +389,20 @@ The canonical reference reproduction profile is a `30 × 30` maze represented as
 A separately named corpus may use another raster extent only if it preserves the same task meaning and clearly declares that results are not direct Maze-Hard reference-reproduction results.
 Flattening order, token IDs, embeddings, and model-native tensor layout remain adapter/profile concerns.
 
-### 9.3 Padding
+### Padding
 
 When heterogeneous natural extents are represented in a common storage canvas, padding must be distinct from blocked maze positions and excluded from task metrics.
 
-## 10. Split and sampling semantics
+## Split and sampling semantics
 
-### 10.1 Parent split use
+### Parent split use
 
 When a topology parent has intrinsic splits, MazeHard preserves same-split derivation under the generic corpus contract.
 
 Maze-ND v1 has no intrinsic topology train/validation/test split; source-row split labels are lineage, not topology splits.
 A MazeHard corpus using Maze-ND must therefore define its own topology/query split policy.
 
-### 10.2 Environment-level split grouping and novelty
+### Environment-level split grouping and novelty
 
 For benchmark corpora that generate several queries from one maze environment, all records derived from the same environment must belong to the same split.
 This matches the environment-level split architecture used by the research evaluation and prevents shared topology from crossing train/validation/test boundaries.
@@ -413,12 +413,12 @@ A named MazeHard corpus must additionally state whether novelty applies to:
 - start–goal pair within an environment;
 - original source problem row for source-reproduction corpora.
 
-### 10.3 Sampling
+### Sampling
 
 Sampling policies must not silently bias the benchmark through topology duplication or start–goal multiplicity.
 Any balancing over path length or difficulty must be explicit.
 
-## 11. Determinism and task identity inputs
+## Determinism and task identity inputs
 
 MazeHard-specific semantic identity inputs include:
 
@@ -433,7 +433,7 @@ MazeHard-specific semantic identity inputs include:
 
 Generation must be stable under worker count and serialization order.
 
-## 12. Validation and invariants
+## Validation and invariants
 
 ### MH-COMP-001 — Topology capability
 
@@ -476,9 +476,9 @@ All records derived from the same maze environment belong to one and only one co
 
 Every record satisfies the corpus's declared topology/query novelty and parent-use policy.
 
-## 13. Metrics and evaluation semantics
+## Metrics and evaluation semantics
 
-### 13.1 Primary metric: exact solution accuracy
+### Primary metric: exact solution accuracy
 
 The primary MazeHard metric is exact reference-grid accuracy: a record is correct only when every supervised output position equals the stored reference target $y^*$.
 This matches the benchmark result used for direct HRM/MazeHard comparison.
@@ -493,24 +493,24 @@ A_{\mathrm{exact}}
 \mathbb{1}\!\left[\hat y_i = y_i^*\text{ at every supervised position}\right].
 $$
 
-### 13.2 Secondary metric: token accuracy
+### Secondary metric: token accuracy
 
 Token accuracy reports the fraction of supervised positions whose predicted label equals $y^*$.
 It is diagnostic because high token accuracy does not imply a complete correct route.
 
-### 13.3 Structural any-valid-optimal metric
+### Structural any-valid-optimal metric
 
 When a route can be decoded from the prediction, `any_valid_optimal_path_rate` may additionally report whether the prediction forms any connected traversable route of cost $C^*$, including an optimal route different from $R^*$.
 
 This metric answers a different question from exact reference-grid accuracy and must not silently replace the primary benchmark metric.
 
-### 13.4 Aggregation
+### Aggregation
 
 Exact accuracy is aggregated per record.
 Token accuracy is accumulated from total correct and supervised token counts.
 Structural route validity is aggregated per decoded record.
 
-## 14. Model IO specification boundary
+## Model IO specification boundary
 
 MazeHard defines semantic topology visibility, start, goal, the stored optimal reference target, exact-reference scoring, and optional structural optimal-route validation.
 
@@ -533,7 +533,7 @@ Model-specific loss weighting belongs to the experiment's training protocol, not
 
 The resolved model IO specification — the configured `InputAdapter`/`OutputAdapter` pair reconciling this task and model — must not change which maze information is public or redefine a non-shortest route as correct.
 
-## 15. Open issues
+## Open issues
 
 - The first reference-reproduction corpus must freeze the exact 30 × 30 source/admission profile and source-solution reconstruction needed for direct HRM/Maze-Hard comparison.
 

@@ -8,9 +8,7 @@ adapter_role: input
 contract: RasterSequenceAdapter
 ---
 
-# Raster categorical to sequence adapter v1
-
-## 1. Purpose and scope
+## Purpose and scope
 
 `RasterSequenceAdapter` transforms a complete categorical field over a finite rectangular task-domain position space into a categorical model-input sequence.
 
@@ -34,9 +32,9 @@ It does not own task scientific semantics, task targets, oracle logic, model arc
 
 `v1` consumes an already categorical task field. Combining separate scientific roles such as passability, start, and goal into one category is outside this adapter.
 
-## 2. Interface contract
+## Interface contract
 
-### 2.1 Source interface
+### Source interface
 
 A compatible source declares:
 
@@ -49,7 +47,7 @@ A compatible source declares:
 
 Every canonical source position is represented. `v1` has no independent source validity mask.
 
-### 2.2 Target interface
+### Target interface
 
 A compatible target declares:
 
@@ -63,7 +61,7 @@ A compatible target declares:
 
 If the model owns trainable embeddings and accepts categorical IDs, those embeddings remain model-internal.
 
-## 3. Transformation semantics
+## Transformation semantics
 
 Canonical task positions are enumerated:
 
@@ -104,15 +102,15 @@ sequence_mask[s] = false    for P <= s < S
 
 The resolved position-slot correspondence is derived once and may be reused by a compatible output adapter.
 
-## 4. Configuration and derivation
+## Configuration and derivation
 
-### 4.1 Authored configuration
+### Authored configuration
 
 The only `v1` authored semantic configuration is an explicit `category_mapping` when endpoint vocabulary identities do not determine the mapping uniquely.
 
 No position count, sequence capacity, ordering, padding count, embedding dimension, or mask extent is independently authored.
 
-### 4.2 Endpoint-owned values
+### Endpoint-owned values
 
 | Value                                              | Authority                    |
 | -------------------------------------------------- | ---------------------------- |
@@ -124,7 +122,7 @@ No position count, sequence capacity, ordering, padding count, embedding dimensi
 | target vocabulary                                  | target model-input interface |
 | target mask requirement                            | target model-input interface |
 
-### 4.3 Derived values
+### Derived values
 
 Successful resolution derives:
 
@@ -138,7 +136,7 @@ Successful resolution derives:
 | `category_mapping`  | identity or resolved authored injective mapping |
 | `sequence_mask`     | source-backed versus padding slots, if required |
 
-## 5. Compatibility and resolution
+## Compatibility and resolution
 
 Resolution succeeds only when:
 
@@ -152,7 +150,7 @@ Resolution succeeds only when:
 
 Successful resolution records the adapter identity/version, authored category mapping if any, derived position-slot correspondence, padding state, and compatibility evidence.
 
-## 6. Runtime behavior
+## Runtime behavior
 
 At runtime the adapter:
 
@@ -165,7 +163,7 @@ At runtime the adapter:
 
 Runtime execution does not discover new semantic compatibility rules.
 
-## 7. Information and semantic boundaries
+## Information and semantic boundaries
 
 The adapter may consume only the declared categorical source field and endpoint metadata required for representation.
 
@@ -173,7 +171,7 @@ It must not consume task targets, oracle data, privileged channels, task evaluat
 
 The adapter performs representation transformation only. It does not construct scientific categories from multiple task roles, infer topology, perform model embeddings, or add learned/scientific features.
 
-## 8. Invariants and validation
+## Invariants and validation
 
 ### Interface invariants
 
@@ -225,7 +223,7 @@ Runtime performs only the transformation established during resolution.
 
 Produced model input conforms exactly to the resolved target interface.
 
-## 9. Identity and reproducibility
+## Identity and reproducibility
 
 Identity-bearing adapter semantics include:
 
@@ -236,7 +234,7 @@ Endpoint-owned facts and derived correspondence/padding state are recorded for r
 
 Runtime device, workers, caches, and equivalent execution concerns are not adapter semantic identity.
 
-## 10. Failure semantics
+## Failure semantics
 
 ### Resolution failures
 
@@ -248,7 +246,7 @@ Runtime fails if actual task data violates the resolved source interface or if p
 
 A failure decidable from interfaces/configuration must not be deferred to scientific execution.
 
-## 11. Evolution
+## Evolution
 
 ### Compatible changes
 
@@ -258,7 +256,7 @@ Compatible changes include non-normative clarifications, diagnostics, and option
 
 A new version or separate adapter family is required to change canonical position-slot ordering, permit lossy categorical mapping, introduce source validity masking, construct categories from multiple scientific fields, or change padding meaning.
 
-## 12. Examples
+## Examples
 
 ### Non-normative MazeHard–HRM-style composition
 

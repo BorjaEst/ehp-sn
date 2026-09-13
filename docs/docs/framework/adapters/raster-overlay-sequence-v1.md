@@ -8,9 +8,7 @@ adapter_role: input
 contract: RasterOverlaySequenceAdapter
 ---
 
-# Raster multi-channel overlay to sequence adapter v1
-
-## 1. Purpose and scope
+## Purpose and scope
 
 `RasterOverlaySequenceAdapter` transforms several simultaneous declared categorical or binary channels over one finite rectangular task-domain position space into one categorical model-input sequence.
 
@@ -36,9 +34,9 @@ It does not own task scientific semantics, task targets, oracle logic, model arc
 
 This is the generalization `raster-sequence-v1.md` §1 explicitly excludes: "Combining separate scientific roles such as passability, start, and goal into one category is outside this adapter." `RasterOverlaySequenceAdapter` is that combination, made generic and information-preserving rather than task-specific.
 
-## 2. Interface contract
+## Interface contract
 
-### 2.1 Source interface
+### Source interface
 
 A compatible source declares:
 
@@ -54,7 +52,7 @@ Every canonical source position is represented by every declared channel. `v1` h
 
 Targets, oracle data, privileged channels, and any channel not declared public by the source task-data interface are outside the source interface.
 
-### 2.2 Target interface
+### Target interface
 
 A compatible target declares:
 
@@ -68,7 +66,7 @@ A compatible target declares:
 
 Identical to `raster-sequence-v1.md` §2.2 — this adapter targets the same class of model-input sequence interface; only the source side differs.
 
-## 3. Transformation semantics
+## Transformation semantics
 
 Canonical task positions are enumerated `p ∈ {0, ..., P-1}`. As in `raster-sequence-v1`, the position-slot correspondence is the identity:
 
@@ -102,15 +100,15 @@ For fixed-capacity targets with `S > P`, slots `P .. S-1` are representation-onl
 
 When the target requires a sequence mask, it is derived identically to `raster-sequence-v1.md` §3.
 
-## 4. Configuration and derivation
+## Configuration and derivation
 
-### 4.1 Authored configuration
+### Authored configuration
 
 The only `v1` authored semantic configuration is the explicit `channel_combination_mapping`, when the declared channel vocabularies do not determine a combination uniquely. This is a genuine representational choice — how to combine `N` independent, task-owned categorical distinctions into one representational slot — that neither endpoint alone determines, analogous to `raster-sequence-v1.md`'s single-channel `category_mapping` but over a channel tuple rather than one channel.
 
 No position count, sequence capacity, ordering, padding count, channel count, channel vocabulary, embedding dimension, or mask extent is independently authored. In particular, `channel_count` and each `channel_vocabulary[i]` are endpoint-owned (declared by the source task-data interface); the adapter does not decide how many channels exist or what any one channel's values mean.
 
-### 4.2 Endpoint-owned values
+### Endpoint-owned values
 
 | Value                                              | Authority                    |
 | -------------------------------------------------- | ---------------------------- |
@@ -123,7 +121,7 @@ No position count, sequence capacity, ordering, padding count, channel count, ch
 | target vocabulary                                  | target model-input interface |
 | target mask requirement                            | target model-input interface |
 
-### 4.3 Derived values
+### Derived values
 
 Successful resolution derives:
 
@@ -137,7 +135,7 @@ Successful resolution derives:
 | `channel_combination_mapping` | identity-implied or resolved authored injective mapping |
 | `sequence_mask`               | source-backed versus padding slots, if required         |
 
-## 5. Compatibility and resolution
+## Compatibility and resolution
 
 Resolution succeeds only when:
 
@@ -151,7 +149,7 @@ Resolution succeeds only when:
 
 Successful resolution records the adapter identity/version, authored combination mapping if any, derived position-slot correspondence, padding state, and compatibility evidence.
 
-## 6. Runtime behavior
+## Runtime behavior
 
 At runtime the adapter:
 
@@ -164,7 +162,7 @@ At runtime the adapter:
 
 Runtime execution does not discover new semantic compatibility rules.
 
-## 7. Information and semantic boundaries
+## Information and semantic boundaries
 
 The adapter may consume only the declared public categorical/binary channels and endpoint metadata required for representation.
 
@@ -172,7 +170,7 @@ It must not consume task targets, oracle data, privileged channels, task evaluat
 
 The adapter performs representation transformation only. It does not construct new scientific categories beyond the declared channel tuple, infer topology, perform model embeddings, or add learned/scientific features. Combining `N` declared channels into one representational slot is representation-only exactly because the combination is total and injective (§3) — no channel's distinction is created, inferred, or discarded.
 
-## 8. Invariants and validation
+## Invariants and validation
 
 ### Interface invariants
 
@@ -224,7 +222,7 @@ Runtime performs only the transformation established during resolution.
 
 Produced model input conforms exactly to the resolved target interface.
 
-## 9. Identity and reproducibility
+## Identity and reproducibility
 
 Identity-bearing adapter semantics include:
 
@@ -235,7 +233,7 @@ Endpoint-owned facts and derived correspondence/padding state are recorded for r
 
 Runtime device, workers, caches, and equivalent execution concerns are not adapter semantic identity.
 
-## 10. Failure semantics
+## Failure semantics
 
 ### Resolution failures
 
@@ -247,7 +245,7 @@ Runtime fails if actual task data violates the resolved source interface or if p
 
 A failure decidable from interfaces/configuration must not be deferred to scientific execution.
 
-## 11. Evolution
+## Evolution
 
 ### Compatible changes
 
@@ -257,7 +255,7 @@ Compatible changes include non-normative clarifications, diagnostics, and option
 
 A new version or separate adapter family is required to change canonical position-slot ordering, permit lossy channel combination, introduce source validity masking, infer a channel not declared by the source, or change padding meaning.
 
-## 12. Examples
+## Examples
 
 ### Non-normative Routebind–HRM-style composition
 

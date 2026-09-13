@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Training interface
-
 The Python training interface resolves, plans, validates, and executes one training invocation from an experiment definition.
 
 Training consumes one exact resolved experiment and task-corpus artifact. A successful call returns only after a committed training-run artifact exists.

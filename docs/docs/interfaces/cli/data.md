@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# `ehp-sn data`
-
 Generate, validate, and inspect immutable substrate artifacts.
 
 ## Overview

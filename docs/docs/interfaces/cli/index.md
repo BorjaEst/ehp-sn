@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# `ehp-sn` CLI
-
 The `ehp-sn` command-line interface exposes the EHP-SN research lifecycle through a small set of top-level commands.
 
 ```text

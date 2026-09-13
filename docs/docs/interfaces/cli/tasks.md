@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# `ehp-sn tasks`
-
 Build, validate, and inspect immutable processed task corpora.
 
 ## Overview

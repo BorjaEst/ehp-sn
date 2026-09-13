@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# Corpora
-
 A task corpus is an immutable, self-contained collection of task-specific records derived from one or more exact parent data artifacts.
 
 Task corpora are produced by `ehp-sn tasks` and consumed by training, evaluation, validation, inspection, and declared analyses.
