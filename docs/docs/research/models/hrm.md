@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# HRM
-
 ## Normative summary
 
 HRM is the Hierarchical Reasoning Model used in EHP-SN as a latent recurrent reasoning core.
@@ -28,9 +26,10 @@ supervised ACT halt/continue control
 
 The EHP-SN HRM realization includes RoPE positional encoding and a schema-slot workspace.
 
-HRM owns the hierarchical recurrent computation and its native reasoning state. Task-specific problem encoding and task-specific prediction decoding remain binding-owned.
+HRM owns the hierarchical recurrent computation and its native reasoning state.
+Task-specific problem encoding and task-specific prediction decoding are owned by the experiment's model IO specification.
 
-## 1. Model definition
+## Model definition
 
 Core model variables are:
 
@@ -60,7 +59,7 @@ This is a hierarchy of recurrent computation, not a requirement that `z_H` or `z
 
 HRM performs latent reasoning and does not expose textual chain-of-thought as part of its interface.
 
-## 2. Architecture
+## Architecture
 
 ```text
 native slot sequence
@@ -100,17 +99,18 @@ RoPE is part of the HRM architecture and must not be performed by a task adapter
 
 ### Schema workspace
 
-Schema slots are model-native working representations used by downstream bindings/decoders.
+Schema slots are model-native working representations used by downstream model IO specifications and decoders.
 
 A task may determine what information is encoded into the input slots, but it does not assign intrinsic symbolic meaning to the latent schema slots.
 
-## 3. Native interface
+## Native interface
 
 ### Inputs
 
 HRM consumes an ordered sequence of model-native slots.
 
-Each slot contains a representation in the model input feature domain. The binding is responsible for constructing those slot values from task data.
+Each slot contains a representation in the model input feature domain.
+The experiment's model IO specification is responsible for constructing those slot values from task data.
 
 The model interface declares:
 
@@ -136,11 +136,12 @@ HRM's stable native outputs are:
 
 `z_H` and `z_L` are optional model traces.
 
-HRM itself does not define a task-specific answer vocabulary or task-specific decoder. A binding may attach a decoder to `theta_summary`, `schema_slots`, or another explicitly supported native representation.
+HRM itself does not define a task-specific answer vocabulary or task-specific decoder.
+An experiment's model IO specification may attach a decoder to `theta_summary`, `schema_slots`, or another explicitly supported native representation.
 
 `halt_logits` are not reinforcement-learning Q-values.
 
-## 4. State and computation
+## State and computation
 
 HRM state contains:
 
@@ -163,7 +164,7 @@ One reasoning cycle:
 
 The H/L schedule, RoPE, workspace update, and ACT control are model-owned and must not be reproduced by a binding.
 
-## 5. Model parameters
+## Model parameters
 
 Model-owned parameters include:
 
@@ -181,7 +182,7 @@ Model-owned parameters include:
 
 Task decoder dimensions, task label mappings, corpus choice, optimizer, learning rate, training duration, batch size, device, and output paths are outside HRM.
 
-## 6. Observables
+## Observables
 
 Stable model-native observables are:
 
@@ -197,7 +198,7 @@ Optional diagnostic traces may expose:
 
 Each observable must define its cycle timing.
 
-## 7. Conformance
+## Conformance
 
 A conforming HRM implementation must satisfy:
 
@@ -208,25 +209,25 @@ A conforming HRM implementation must satisfy:
 - the stable model endpoint is `theta_summary` / `schema_slots`, not a task-specific prediction vocabulary;
 - `halt_logits` have supervised ACT-style semantics;
 - independent problems do not inherit undeclared recurrent state;
-- task bindings do not implement model-owned recurrence or ACT control.
+- model IO specifications do not implement model-owned recurrence or ACT control.
 
-## 8. Boundaries and related specifications
+## Boundaries and related specifications
 
-Bindings own:
+Model IO specifications own:
 
 - task-to-HRM slot construction;
 - padding and task-category mapping;
 - any task-specific decoder from HRM native representations to task predictions.
 
-Bindings must not perform RoPE, model-owned embeddings, H/L recurrence, schema-workspace updates, or ACT control.
+Model IO specifications must not perform RoPE, model-owned embeddings, H/L recurrence, schema-workspace updates, or ACT control.
 
 Experiments own training/evaluation protocols and objective composition.
 
 Relevant neighboring documents include:
 
 - HRM-rl;
-- MazeHard–HRM binding;
-- Routebind–HRM binding;
+- MazeHard–HRM model IO specification;
+- Routebind–HRM model IO specification;
 - HRM reproduction experiments.
 
 ## References

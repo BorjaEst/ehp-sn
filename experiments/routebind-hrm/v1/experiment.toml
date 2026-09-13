@@ -50,19 +50,15 @@ config = "config/models/hrm/routebind-baseline.toml"
 
 
 # ---------------------------------------------------------------------------
-# Binding
+# Model IO
 # ---------------------------------------------------------------------------
 
-[binding]
-joint = "config/bindings/routebind-hrm/joint.toml"
-
-
-[binding.input]
+[model_io.input]
 adapter = "adapter:raster-overlay-sequence/v1"
 config  = "config/bindings/raster-overlay-sequence/routebind.toml"
 
 
-[binding.output]
+[model_io.output]
 adapter = "adapter:raster-field-prediction/v1"
 config  = "config/bindings/raster-field-prediction/routebind.toml"
 

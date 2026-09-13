@@ -510,7 +510,7 @@ Exact accuracy is aggregated per record.
 Token accuracy is accumulated from total correct and supervised token counts.
 Structural route validity is aggregated per decoded record.
 
-## 14. Binding boundary
+## 14. Model IO specification boundary
 
 MazeHard defines semantic topology visibility, start, goal, the stored optimal reference target, exact-reference scoring, and optional structural optimal-route validation.
 
@@ -531,7 +531,7 @@ An `OutputAdapter` may define:
 
 Model-specific loss weighting belongs to the experiment's training protocol, not to either adapter.
 
-The resolved binding — the task, the model, and this configured `InputAdapter`/`OutputAdapter` pair — must not change which maze information is public or redefine a non-shortest route as correct.
+The resolved model IO specification — the configured `InputAdapter`/`OutputAdapter` pair reconciling this task and model — must not change which maze information is public or redefine a non-shortest route as correct.
 
 ## 15. Open issues
 

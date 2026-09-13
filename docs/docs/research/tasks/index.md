@@ -14,7 +14,7 @@ A task defines a scientific problem.
 It owns public information, targets, privileged or oracle-only truth, task-case or episode semantics, task-specific validity, and task-level scoring.
 It does not own model architecture, task-to-model encoding, generic data-artifact mechanics, or substrate generation.
 
-The framework-level task/model/binding ownership boundary remains authoritative.
+The framework-level task/model/model-IO ownership boundary remains authoritative.
 Task corpora additionally conform to the generic generated-data and corpus contracts.
 
 ## Task-document contract
@@ -53,7 +53,7 @@ Task documents use the following common structure:
 11. Determinism and task identity inputs
 12. Validation and invariants
 13. Metrics and evaluation semantics
-14. Binding boundary
+14. Model IO specification boundary
 15. Open issues
 
 A subsection that does not apply may be omitted or replaced by a precise non-applicability statement.
@@ -170,13 +170,13 @@ Prospect
 
 Routebind and Prospect should use matched oracle semantics so that their principal difference is the source of environment-specific spatial information rather than a different definition of correctness.
 
-## Task, adapter, and binding boundary
+## Task, adapter, and model IO boundary
 
 A task defines a task-data interface and a prediction interface (`docs/docs/framework/adapters/index.md`).
 An `InputAdapter` maps the task-data interface to one model's model-input interface; an
 `OutputAdapter` maps that model's model-output interface back to the task's prediction interface.
 The task, the model, and one configured `InputAdapter`/`OutputAdapter` pair together form the
-resolved binding.
+resolved model IO specification.
 
 `InputAdapter`s may own:
 
@@ -198,7 +198,7 @@ A value already determined by the task's or model's own interface is not indepen
 in adapter configuration; it is read from that interface or derived from it
 (`docs/invariants.md` `ADAPT-003`).
 
-The resolved binding must not change:
+The resolved model IO specification must not change:
 
 - which information is public or withheld;
 - target meaning;

@@ -44,19 +44,15 @@ config = "config/models/tem/reference.toml"
 
 
 # ---------------------------------------------------------------------------
-# Binding
+# Model IO
 # ---------------------------------------------------------------------------
 
-[binding]
-joint = "config/bindings/arena-tem/joint.toml"
-
-
-[binding.input]
+[model_io.input]
 adapter = "adapter:relational-sequence/v1"
 config  = "config/bindings/relational-sequence/arena.toml"
 
 
-[binding.output]
+[model_io.output]
 adapter = "adapter:observation-prediction/v1"
 config  = "config/bindings/observation-prediction/arena-tem.toml"
 

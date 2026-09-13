@@ -27,7 +27,7 @@ It should not reproduce complete framework or research contracts.
 `packages/ehp-sn/README.md` should:
 
 - explain reusable framework responsibilities;
-- explain Task / Model / Binding / Experiment / Request / Artifact concepts;
+- explain Task / Model / ModelIOSpec / Experiment / Request / Artifact concepts;
 - explain configuration/resource-binding at a high level;
 - explain public Python and CLI equivalence;
 - avoid concrete research semantics except as examples;
@@ -38,13 +38,13 @@ It should not reproduce complete framework or research contracts.
 `packages/ehp-research/README.md` should:
 
 - explain reusable scientific ownership;
-- summarize the current substrate/task/model/binding/experiment catalogue;
+- summarize the current substrate/task/model/model-IO/experiment catalogue;
 - explain the dependency on `ehp_sn`;
 - explain registration/discovery;
 - keep substrate descriptions aligned with current research specifications;
 - document how to run the package's tests.
 
-It must not present concrete experiments or Bindings as package-owned; those belong to `experiments/`.
+It must not present concrete experiments or model IO specifications as package-owned; those belong to `experiments/`.
 
 ## Documentation README
 

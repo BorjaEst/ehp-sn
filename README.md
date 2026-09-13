@@ -45,7 +45,7 @@ EHP-SN is developed specification-first. READMEs provide orientation and example
 
 Its responsibilities include:
 
-- generic Task, Model, Adapter, Binding, Experiment, and request contracts;
+- generic Task, Model, Adapter, ModelIOSpec, Experiment, and request contracts;
 - resource requirements and configuration resolution;
 - training, evaluation, analysis, and reporting orchestration;
 - generated-data and task-corpus contracts;
@@ -66,7 +66,7 @@ It includes:
 - TEM, HRM, and related reusable model families;
 - objectives, controllers, metrics, and analyses.
 
-Concrete experiments and concrete task-model Bindings are not packaged in `ehp_research`; they
+Concrete experiments and concrete model IO specifications are not packaged in `ehp_research`; they
 belong to repository-level `experiments/` (see `docs/invariants.md` ARCH-005/006).
 
 See [`packages/ehp-research/README.md`](packages/ehp-research/README.md).
@@ -175,7 +175,7 @@ flowchart TB
     end
 
     subgraph Experiments["experiments/"]
-        compositions["Concrete experiment compositions and Bindings"]
+        compositions["Concrete experiment compositions and model IO specifications"]
     end
 
     Research -->|depends on| Framework
@@ -184,7 +184,7 @@ flowchart TB
 
 The framework defines reusable contracts and lifecycle mechanics, the research package provides
 reusable scientific building blocks, and repository-level `experiments/` selects and composes
-those blocks into concrete experiments and Bindings.
+those blocks into concrete experiments and model IO specifications.
 
 Semantic ownership is documented in [`docs/authority.md`](docs/authority.md).
 

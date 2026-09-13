@@ -6,8 +6,6 @@ capability_status: planned
 api_stability: provisional
 ---
 
-# HRM-rl
-
 ## Normative summary
 
 HRM-rl is HRM with reinforcement-learned deliberation control.
@@ -26,7 +24,7 @@ HRM-rl owns the PFC+STR model architecture and the native semantics of its Q-val
 
 Reward design, policy sampling, TD targets, discounting, optimizer configuration, and warm-up schedules are outside the model.
 
-## 1. Model definition
+## Model definition
 
 HRM-rl keeps the HRM reasoning variables:
 
@@ -55,7 +53,7 @@ The Q and state values are interpreted under the resolved deliberation-control r
 
 The model defines the estimator roles and architecture; it does not define one fixed reward function, discount factor, or TD algorithm.
 
-## 2. Architecture
+## Architecture
 
 ### PFC reasoning core
 
@@ -109,7 +107,7 @@ HRM-rl uses the HRM native slot interface:
 | `reset`                   | starts a new problem                                  |
 | resumable reasoning state | H/L/workspace state for the same deliberation lineage |
 
-The binding constructs the native slot sequence. The controller may pass back resumable reasoning state after `continue`.
+The model IO specification constructs the native slot sequence. The controller may pass back resumable reasoning state after `continue`.
 
 ### Outputs
 
@@ -122,7 +120,7 @@ HRM-rl's stable native outputs are:
 | `q_values`      | ordered estimates for `halt`, `continue` |
 | `state_value`   | scalar STR critic estimate               |
 
-Task-specific answer prediction is binding-owned and decoded from supported HRM-rl native representations.
+Task-specific answer prediction is owned by the model IO specification and decoded from supported HRM-rl native representations.
 
 The action axis of `q_values` is fixed and must not depend on implementation ordering.
 
@@ -209,7 +207,7 @@ A conforming HRM-rl implementation must satisfy:
 
 ## 8. Boundaries and related specifications
 
-Bindings own:
+Model IO specifications own:
 
 - task-to-model slot construction;
 - task-specific decoders from `theta_summary`, `schema_slots`, or other explicitly supported native representations.
@@ -230,11 +228,11 @@ The RL objective/training protocol owns:
 - warm-up;
 - optimizer policy.
 
-Experiments compose these elements with tasks, bindings, corpora, and training/evaluation protocols.
+Experiments compose these elements with tasks, model IO specifications, corpora, and training/evaluation protocols.
 
 Relevant neighboring documents include:
 
 - HRM;
 - HRM-rl deliberation controller;
 - RL objective specification;
-- MazeHard/Routebind bindings and experiments.
+- MazeHard/Routebind model IO specifications and experiments.

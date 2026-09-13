@@ -20,7 +20,7 @@ task corpus = task-specific cases, episodes, inputs, and targets
 ```
 
 Concrete substrate specifications define domain semantics.
-Generic artifact identity, manifests, resources, lifecycle, validation mechanics, publication, and common I/O remain owned by the framework specifications.
+Generic artifact identity, manifests, resources, lifecycle, validation mechanics, publication, and common IO remain owned by the framework specifications.
 
 ## Documentation boundary
 

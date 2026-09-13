@@ -18,7 +18,7 @@ ehp_research → ehp_sn
 ```
 
 Concrete scientific substrates, tasks, and models belong to `ehp_research`.
-Concrete experiment compositions and concrete task-model Bindings belong to repository-level `experiments/`, not to `ehp_research` or `ehp_sn` (`docs/invariants.md` ARCH-005/006).
+Concrete experiment compositions and concrete model IO specifications belong to repository-level `experiments/`, not to `ehp_research` or `ehp_sn` (`docs/invariants.md` ARCH-005/006).
 
 This README provides the framework mental model and entry points.
 Exact semantics live in the framework and interface specifications under `docs/docs/`.
@@ -43,7 +43,7 @@ Exact semantics live in the framework and interface specifications under `docs/d
 The framework provides reusable semantics and services for:
 
 - component references and compatibility;
-- Task, Model, Adapter, and Binding contracts;
+- Task, Model, Adapter, and ModelIOSpec contracts;
 - experiment and protocol composition;
 - execution requests and immutable plans;
 - resource requirements and configuration resolution;
@@ -102,14 +102,15 @@ An Adapter transforms between a task's interfaces and a model's interfaces:
 An adapter must be expressible entirely in terms of its declared source interface, target interface, and resolved configuration — it must not branch on concrete task or model identity.
 This is what makes `ehp_sn` the right owner for a generic adapter implementation, distinct from any one task or model.
 
-### Binding
+### ModelIOSpec
 
-A Binding is the resolved, validated connection of one task and one model, formed by one configured `InputAdapter` and one configured `OutputAdapter`.
+A `ModelIOSpec` reconciles the declared interfaces of one selected task and one selected model, formed by one configured `InputAdapter` and one configured `OutputAdapter`.
 
-A Binding is not an independently implemented component; it is assembled by an experiment from the task, the model, and their configured adapters.
+The task and the model are selected by the experiment, not by the `ModelIOSpec`.
+A `ModelIOSpec` is not an independently implemented component; it is assembled by an experiment from the task, the model, and their configured adapters (see `docs/invariants.md` `MIO-001`).
 
-Bindings do not redefine task truth or model architecture.
-Adapters composing a binding do not perform oracle repair or task scoring, and do not introduce privileged information.
+A model IO specification does not redefine task truth or model architecture.
+Adapters composing it do not perform oracle repair or task scoring, and do not introduce privileged information.
 
 ### Experiment
 

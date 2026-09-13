@@ -10,10 +10,10 @@ Tasks define scientific problems.
 
 ## Task ownership
 
-TASK-001 defines what a task owns; BIND-001 bounds bindings and defines what tasks do not own.
+TASK-001 defines what a task owns; MIO-001 bounds the model IO specification and defines what tasks do not own.
 Consult those invariants rather than re-enumerating their contents here.
 
-When code or a specification under these paths starts doing something a binding should do instead — such as adapting task output to a model-native representation, or altering any of the properties BIND-001 requires a binding to preserve — that is a BIND-001 boundary violation, not a task detail; stop and route the concern to where bindings are defined rather than absorbing it here.
+When code or a specification under these paths starts doing something a model IO specification should do instead — such as adapting task output to a model-native representation, or altering any of the properties MIO-001 requires the model IO specification to preserve — that is an MIO-001 boundary violation, not a task detail; stop and route the concern to where the model IO specification is defined rather than absorbing it here.
 
 If code or a specification under these paths starts implementing generic corpus index mechanics, split-inheritance rules, lineage-relation mechanics, or validation/loading orchestration that does not depend on this task's scientific problem meaning, that is drifting into framework territory; stop and route it to `docs/docs/framework/corpora.md` § "Framework and research ownership".
 

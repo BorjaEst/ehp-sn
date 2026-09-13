@@ -18,7 +18,7 @@ Arena consumes one raster-topology record and one compatible ObsField record.
 It generates an initial state and movement trajectory, resolves the observation encountered at every visited position, and materializes a self-contained replay episode containing the semantic information required for prediction and evaluation.
 
 Arena owns episode generation, task-level action semantics, temporal alignment of observations and actions, revisit truth, public replay information, observation targets, and Arena-specific task metrics.
-Model-specific prediction pathways and latent-state diagnostics belong to the applicable binding/model evaluation contract.
+Model-specific prediction pathways and latent-state diagnostics belong to the applicable model IO specification/model evaluation contract.
 It does not own topology generation, observation-field generation, generic artifact or corpus mechanics, model architecture, model-native recurrent-state representation, or experiment policy.
 
 A conforming Arena corpus also satisfies the generic `DataArtifact` and `TaskCorpus` contracts.
@@ -43,7 +43,7 @@ The task target at step $t$ is the experienced observation $o_t$.
 Arena does not prescribe the internal computational pathway by which a model predicts or reconstructs that observation.
 
 In the reference Arena–TEM evaluation, the same replay supports several model-specific prediction pathways with different access to the current sensory observation, including posterior, sensory-recall, and structural-prior/path-integration predictions.
-Those pathway-specific information restrictions and metrics are properties of the Arena–TEM binding/model evaluation, not different Arena corpus records.
+Those pathway-specific information restrictions and metrics are properties of the Arena–TEM model IO specification and model evaluation, not different Arena corpus records.
 
 ### 1.2 Scientific question
 
@@ -204,7 +204,7 @@ $$
 The corpus channel `observation` materializes this target sequence.
 
 The fact that $o_t$ is present in the replay does not imply that every model-specific prediction pathway may use it directly.
-A binding/model evaluation may construct a restricted prediction pathway, such as the structural-prior/path-integration pathway, in which the current observation is deliberately withheld from that particular prediction.
+A model IO specification/model evaluation may construct a restricted prediction pathway, such as the structural-prior/path-integration pathway, in which the current observation is deliberately withheld from that particular prediction.
 
 `is_revisit[t]` is task evaluation truth used for metric stratification and is not a sensory observation input.
 
@@ -231,7 +231,7 @@ Arena withholds from the ordinary replay interface:
 ### 4.5 Pathway-specific restrictions
 
 Arena defines the replay sequence and task truth, not model-internal prediction pathways.
-A task–model binding or evaluation regime may restrict which public replay quantities a particular prediction pathway may consume, provided that the restriction does not change the underlying episode, target observation, or revisit truth.
+A model IO specification or evaluation regime may restrict which public replay quantities a particular prediction pathway may consume, provided that the restriction does not change the underlying episode, target observation, or revisit truth.
 
 ## 5. Unit of record and shared task context
 
@@ -241,7 +241,7 @@ One Arena record represents:
 
 > one complete replay episode over one composed topology–ObsField environment.
 
-Batching several episodes is a physical or binding concern and does not change the logical record unit.
+Batching several episodes is a physical or model-IO concern and does not change the logical record unit.
 
 ### 5.2 Record discriminators
 
@@ -377,7 +377,7 @@ and an action sequence aligned so that, for $t>0$, `action[t]` is the action pro
 `action[0]` is the declared initialization action or sentinel.
 
 The action convention is part of Arena v1 task semantics.
-A binding may shift or re-encode the sequence for a model-native recurrent API, but must preserve the same transition alignment.
+A model IO specification may shift or re-encode the sequence for a model-native recurrent API, but must preserve the same transition alignment.
 
 ### 7.5 Revisit truth
 
@@ -412,7 +412,7 @@ $$
 
 Observation prediction is evaluated against $o_t$.
 The task does not prescribe the internal pathway used to produce a compatible prediction.
-Pathway-specific outputs and diagnostics belong to the applicable binding/model evaluation contract.
+Pathway-specific outputs and diagnostics belong to the applicable model IO specification/model evaluation contract.
 
 ## 9. Logical corpus contract
 
@@ -544,7 +544,7 @@ For every step $t>0$, $a_t$ corresponds exactly to the declared transition from 
 ### AR-REC-004 — Spatial-privilege exclusion
 
 Decoded physical identity, topology geometry, movement-valid structure, future replay content, and revisit truth are not ordinary public Arena inputs.
-Current $o_t$ is part of the replay; any pathway-specific restriction on using it is binding/model-evaluation semantics.
+Current $o_t$ is part of the replay; any pathway-specific restriction on using it is model-IO/model-evaluation semantics.
 
 ### AR-REC-005 — Vocabulary validity
 
@@ -582,7 +582,7 @@ Task-level supporting quantities include:
 - `correct_revisit`, `count_revisit`;
 - first-visit accuracy when useful diagnostically.
 
-Model/binding-specific Arena–TEM evaluation may additionally report the pathway metrics `A_post`, `A_rec^rev`, and `A_PI^rev`.
+Arena–TEM evaluation over a given model IO specification may additionally report the pathway metrics `A_post`, `A_rec^rev`, and `A_PI^rev`.
 These are not generic Arena task channels because they refer to particular TEM inference/retrieval pathways.
 
 ### 13.3 Aggregation
@@ -594,7 +594,7 @@ Count-based sufficient statistics are summed across batches or distributed worke
 Higher `A_obs^rev` supports the behavioral claim that the evaluated system can recover environment-specific sensory–spatial information at previously experienced locations.
 It does not by itself identify which internal pathway or representation produced that recovery.
 
-## 14. Binding boundary
+## 14. Model IO specification boundary
 
 Arena defines the replay sequence $(o_t,a_t)$, episode boundaries, decoded trajectory truth used for validation, observation targets, and revisit truth.
 
@@ -611,8 +611,8 @@ An `OutputAdapter` may define:
 
 Recurrent unrolling and state reset belong to the experiment's training protocol, not to either adapter.
 
-For the Arena–TEM binding, posterior and sensory-recall pathways may use the current encoded observation according to the TEM model contract, while the structural-prior/path-integration pathway must not use the current observation.
-The resolved binding must not expose decoded topology or privileged spatial identity beyond the Arena task contract.
+For the Arena–TEM model IO specification, posterior and sensory-recall pathways may use the current encoded observation according to the TEM model contract, while the structural-prior/path-integration pathway must not use the current observation.
+The resolved model IO specification must not expose decoded topology or privileged spatial identity beyond the Arena task contract.
 
 ## 15. Open issues
 

@@ -50,7 +50,7 @@ Its source is a model-output interface declared by a model. Its target is a task
 
 An output adapter may perform deterministic representational operations such as domain correspondence, reshaping, removal of representation-only outputs, categorical translation, score-axis reindexing, or task-domain reconstruction when required by the declared target interface.
 
-Selection of which declared model output role an experiment uses is a binding/experiment choice, not an adapter-owned scientific decision. The selected role must already satisfy the source requirements of the chosen output adapter.
+Selection of which declared model output role an experiment uses is a model-IO/experiment choice, not an adapter-owned scientific decision. The selected role must already satisfy the source requirements of the chosen output adapter.
 
 An output adapter must not perform task-level scoring, oracle-assisted repair, scientific validity correction, calibration, threshold tuning, or any transformation that changes the scientific meaning of the model result.
 
@@ -65,7 +65,7 @@ An output adapter must not perform task-level scoring, oracle-assisted repair, s
 | Source-to-target representation transformation     | Adapter                            |
 | Adapter-specific compatibility constraints         | Adapter                            |
 | Genuine adapter transformation choices             | Adapter                            |
-| Task/model/adapter and model-output-role selection | Experiment / binding composition   |
+| Task/model/adapter and model-output-role selection | Experiment / model IO selection    |
 | Objectives, metrics, traces, scientific protocols  | Their respective scientific owners |
 | Device, workers, caching, execution policy         | Request / runtime                  |
 
@@ -171,7 +171,7 @@ Any incompatibility decidable from endpoint interfaces and adapter configuration
 
 Input-side resolution may establish composition facts that an output adapter later validates and reuses, such as position-slot or task-step/model-step correspondence. Such facts are derived once and must not be independently re-authored in the reverse direction.
 
-The complete representation and lifecycle of a task-model binding are defined by the framework [Binding](../components/binding.md) component; this document defines only the adapter contribution to that composition.
+The complete representation and lifecycle of a model IO specification are defined by the framework [ModelIOSpec](../components/model-io.md) component; this document defines only the adapter contribution to that composition.
 
 ## Adapter specifications
 

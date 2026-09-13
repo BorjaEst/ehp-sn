@@ -19,8 +19,7 @@ A resolved experiment composition selects and combines:
 
 - a task;
 - a model;
-- a concrete Binding (task + model + configured adapters);
-- adapters;
+- a concrete `ModelIOSpec` (its configured adapters);
 - objectives;
 - controllers;
 - metrics;
@@ -33,7 +32,7 @@ A resolved experiment composition selects and combines:
 ## Resolution lifecycle
 
 The framework owns the resolution mechanism.
-Resolution conceptually proceeds from an experiment reference through a workspace experiment catalogue to the experiment definition, which carries component references resolved against the installed component registry, and finally to a resolved `ExperimentDefinition` and constructed concrete Binding.
+Resolution conceptually proceeds from an experiment reference through a workspace experiment catalogue to the experiment definition, which carries component references resolved against the installed component registry, and finally to a resolved `ExperimentDefinition` and a constructed concrete `ModelIOSpec`.
 
 The resolution mechanism is framework-owned; the repository owns the concrete experiment definition.
 
@@ -68,7 +67,7 @@ experiments/<name>/vN/
 
 ## Resolution and construction
 
-`ehp_sn` owns workspace experiment discovery, schema validation, reusable-component resolution, Binding construction, and `resolve_experiment()`, which returns a validated `ExperimentDefinition`.
+`ehp_sn` owns workspace experiment discovery, schema validation, reusable-component resolution, `ModelIOSpec` construction, and `resolve_experiment()`, which returns a validated `ExperimentDefinition`.
 Resolution proceeds along this lifecycle:
 
 ```text
@@ -84,7 +83,7 @@ resolve configured generic adapters
     ↓
 resolve parameter configuration
     ↓
-construct/validate Binding
+construct/validate ModelIOSpec
     ↓
 construct/validate ExperimentDefinition
 ```
@@ -92,9 +91,9 @@ construct/validate ExperimentDefinition
 It stops there.
 Resource binding, `TrainingRequest`, `EvaluationRequest`, `ExecutionPlan`, and actual execution remain downstream.
 
-The concrete Binding is embedded in the experiment declaration and is not an independently registered or discoverable research component (`ARCH-006`).
-There is no separately discoverable `binding:<experiment>/vN` installed component.
-A resolved Binding may carry an internal/scoped identity for provenance, but that identity is subordinate to the experiment.
+The concrete `ModelIOSpec` is embedded in the experiment declaration and is not an independently registered or discoverable research component (`ARCH-006`).
+There is no separately discoverable installed component that represents it.
+A resolved `ModelIOSpec` may carry an internal/scoped identity for provenance, but that identity is subordinate to the experiment.
 
 ## Parameter composition backend
 
@@ -121,11 +120,11 @@ ref = "experiment:<name>/vN"
 task  = "task:<task>/vN"
 model = "model:<model>/vN"
 
-[binding.input]
+[model_io.input]
 adapter = "adapter:<adapter>/vN"
 # adapter-specific configuration
 
-[binding.output]
+[model_io.output]
 adapter = "adapter:<adapter>/vN"
 # adapter-specific configuration
 
@@ -143,7 +142,7 @@ adapter = "adapter:<adapter>/vN"
 ```
 
 The declaration references declared interfaces and reusable components by canonical reference; it must not redefine their semantics.
-The concrete Binding is embedded in the declaration and is not an independently registered or discoverable component (`ARCH-006`).
+The concrete `ModelIOSpec` is embedded in the declaration and is not an independently registered or discoverable component (`ARCH-006`).
 The exhaustive `v1` field catalogue for each endpoint is specified in the following subsection, "Full declaration field catalogue (v1)"; per-endpoint configuration sets that belong to a referenced contract (for example the exhaustive per-adapter `config` field set) remain owned by that contract and are referenced, not reproduced.
 
 ### Full declaration field catalogue (v1)
@@ -167,21 +166,21 @@ The top of the declaration holds four scalar keys.
 `ref` is the `ExperimentRef` identifying the concrete experiment, of the form `experiment:<name>/vN`.
 `task` and `model` are canonical component references to the task and model the experiment selects, of the forms `task:<task>/vN` and `model:<model>/vN`; they are resolved through the installed component registry during resolution.
 
-#### `[binding.input]` and `[binding.output]`
+#### `[model_io.input]` and `[model_io.output]`
 
-A concrete Binding embeds one configured `InputAdapter` and one configured `OutputAdapter` in the declaration (`ARCH-006`; `BIND-001`).
+A concrete `ModelIOSpec` embeds one configured `InputAdapter` and one configured `OutputAdapter` in the declaration (`ARCH-006`; `MIO-001`).
 
 ```toml
-[binding.input]
+[model_io.input]
 adapter = "adapter:<kind>/v1"
 
-[binding.input.config]
+[model_io.input.config]
 # adapter-owned transformation choices only
 
-[binding.output]
+[model_io.output]
 adapter = "adapter:<kind>/v1"
 
-[binding.output.config]
+[model_io.output.config]
 # adapter-owned transformation choices only
 ```
 
@@ -197,7 +196,7 @@ This experiment schema does not invent per-adapter formats and does not re-list 
 
 #### Optional `[controller]`
 
-A declaration may include an optional `[controller]` table that **selects by reference** a reusable deliberation controller orthogonal to the Binding.
+A declaration may include an optional `[controller]` table that **selects by reference** a reusable deliberation controller orthogonal to the model IO specification.
 
 ```toml
 # candidate shape (selection by reference; spec-pending)
@@ -210,7 +209,7 @@ ref = "controller:<controller>/vN"
 
 `ref` is a canonical controller reference; `config` carries selection/configuration by reference.
 The controller is a specification-pending reusable research building block whose canonical contract does not yet exist; this experiment schema must not invent that contract (`ARCH-014`).
-The `[controller]` endpoint appears when an experiment selects a deliberation controller orthogonal to the Binding, as evidenced by the authored declarations; its framework shape — controller orthogonality relative to the Binding — remains an open framework-review point and is not over-specified here.
+The `[controller]` endpoint appears when an experiment selects a deliberation controller orthogonal to the model IO specification, as evidenced by the authored declarations; its framework shape — controller orthogonality relative to the model IO specification — remains an open framework-review point and is not over-specified here.
 
 #### `[objective]`
 
@@ -234,7 +233,7 @@ NAME = "task:<task>/vN#<metric-id>"
 ```
 
 Each entry references a task-owned metric ID under the selected task.
-Metrics are taken from the task specification and are **not** redefined here (`BIND-001`); the experiment selects named metrics, it does not define their meaning.
+Metrics are taken from the task specification and are **not** redefined here (`MIO-001`); the experiment selects named metrics, it does not define their meaning.
 
 #### `[corpus]`
 
@@ -264,9 +263,9 @@ The `[resources]` table declares resource requirements, shaped by the resource-r
 Requirement declarations follow the resource-requirements field catalog: requirement reference, resource kind, accepted schema IDs, cardinality, definition resource category and reference, request policy, optional package-owned compatibility validator, and description.
 Resource categories (`fixed`, `default`, `none`) and request policies (`forbidden`, `allowed`, `required`) are owned by the resource-requirements contract and are not redefined here.
 
-#### Binding boundary
+#### Model IO specification boundary
 
-Across `[binding.input]` and `[binding.output]`, the composition must not change public-versus-withheld information, task truth, target meaning, split meaning, or metric meaning (`BIND-001`).
+Across `[model_io.input]` and `[model_io.output]`, the composition must not change public-versus-withheld information, task truth, target meaning, split meaning, or metric meaning (`MIO-001`).
 Neither adapter may add privileged information or perform task-level scoring (`ADAPT-002`).
 
 ## Deferred specification

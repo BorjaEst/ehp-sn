@@ -46,7 +46,7 @@ The selected model-output role must declare:
 | `prediction_kind`   | exactly `continuous scores`                                                                               |
 | `value_range`       | immutable declared bounded numeric range (for example `[0, 1]`) every emitted value lies within           |
 
-The selected model-output role is supplied by binding/experiment composition; this adapter does not decide which scientific output role, or which of several continuous channels, should be used.
+The selected model-output role is supplied by model-IO/experiment composition; this adapter does not decide which scientific output role, or which of several continuous channels, should be used.
 
 ### 2.2 Target interface
 
@@ -97,7 +97,7 @@ No aggregation, splitting, rescaling, clipping, or thresholding is performed.
 ### 4.1 Authored configuration
 
 `v1` has no adapter-owned semantic configuration.
-The spatial correspondence and value range are endpoint-owned or reused from a compatible input adapter's resolution; the selected continuous model-output role is binding/experiment configuration, not adapter-owned configuration.
+The spatial correspondence and value range are endpoint-owned or reused from a compatible input adapter's resolution; the selected continuous model-output role is model-IO/experiment configuration, not adapter-owned configuration.
 
 No slot ordering, target position count, value transformation, thresholds, or oracle correction is authored here.
 
@@ -115,12 +115,12 @@ No slot ordering, target position count, value transformation, thresholds, or or
 
 Successful resolution validates/reuses:
 
-| Value              | Meaning                                          |
-| ------------------ | ------------------------------------------------ |
-| `position_to_slot` | explicit correspondence from binding composition |
-| `slot_to_position` | inverse correspondence                           |
-| `mapped_slots`     | model slots with task-position identity          |
-| `ignored_slots`    | representation-only model slots                  |
+| Value              | Meaning                                 |
+| ------------------ | --------------------------------------- |
+| `position_to_slot` | explicit correspondence from model IO   |
+| `slot_to_position` | inverse correspondence                  |
+| `mapped_slots`     | model slots with task-position identity |
+| `ignored_slots`    | representation-only model slots         |
 
 The spatial correspondence is not independently authored by this output adapter.
 
@@ -213,7 +213,7 @@ Produced predictions conform exactly to the resolved task-prediction interface.
 
 Identity-bearing adapter semantics are limited to contract identity/version — `v1` has no authored configuration to record beyond it.
 
-The selected model-output role contributes to binding/experiment identity, not to adapter-owned configuration identity.
+The selected model-output role contributes to model-IO/experiment identity, not to adapter-owned configuration identity.
 
 Endpoint-owned properties and derived spatial correspondence are recorded for reproducibility but are not independently authored adapter identity inputs.
 

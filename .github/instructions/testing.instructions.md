@@ -253,7 +253,7 @@ experiments/
       plan.md
       tests/
         test_definition.py
-        test_binding.py
+        test_model_io.py
         test_figures.py
         test_protocols.py
 
@@ -265,7 +265,7 @@ experiments/
     v1/
       tests/
         test_definition.py
-        test_binding.py
+        test_model_io.py
         test_reasoning_figure.py
         test_evaluation_protocol.py
 
@@ -311,7 +311,7 @@ planning
 generic figures
 generic Python interfaces
 generic CLI behavior
-generic task/model/binding abstractions
+generic task/model/model-IO abstractions
 resource requirements
 identity/provenance/digest behavior
 ```
@@ -435,7 +435,7 @@ Allowed subjects:
 
 ```text
 resolved experiment definition
-concrete task-model binding
+concrete model IO specifications
 experiment-owned adapter configuration
 experiment-specific objective composition
 experiment-specific protocol composition

@@ -40,7 +40,7 @@ ehp_research
     reusable scientific definitions
 
 experiments/
-    concrete scientific compositions and Bindings
+    concrete scientific compositions and model IO specifications
 ```
 
 Dependency direction:
@@ -124,11 +124,11 @@ An explicitly admitted experiment-local figure specification may define scientif
 READMEs, design notes, the decisions register, and agent instructions have procedural or explanatory roles and define no domain contracts.
 
 ```text
-Binding abstraction
-    normative semantics → docs/docs/framework/ (components/binding.md)
+ModelIOSpec abstraction
+    normative semantics → docs/docs/framework/ (components/model-io.md)
     implementation abstraction → ehp_sn
 
-Concrete Binding
+Concrete ModelIOSpec
     declaration → experiments/<experiment>/vN/experiment.toml
     embedded in the declaration, not independently registered or discovered (ARCH-006)
 
@@ -150,11 +150,11 @@ That root is admitted only for figure semantics whose scientific meaning depends
 It does not make `README.md`, `design/`, or other experiment-local Markdown normative, and it does not establish filesystem-based runtime discovery.
 Figure discovery remains governed by framework component/provider contracts.
 
-A Binding is one task, one model, one configured `InputAdapter`, and one configured `OutputAdapter`, defined in `components/binding.md`.
-The concrete Binding is embedded in the experiment declaration and is not independently registered or discovered (`ARCH-006`).
+A `ModelIOSpec` reconciles the declared interfaces of one task and one model through one configured `InputAdapter` and one configured `OutputAdapter`, defined in `components/model-io.md`.
+The concrete `ModelIOSpec` is embedded in the experiment declaration and is not independently registered or discovered (`ARCH-006`).
 
-There is no `ehp_research.experiments` and no `ehp_research.bindings`.
-Concrete experiments and concrete task-model Bindings belong to repository-level `experiments/`.
+There is no `ehp_research.experiments` and no `ehp_research.model_io`.
+Concrete experiments and concrete model IO specifications belong to repository-level `experiments/`.
 
 ### Publication boundary
 
@@ -230,7 +230,7 @@ Two further dimensions exist but are not per-document frontmatter fields, becaus
 | Dimension                | Values                                                              | Subject                                                                                                                       | Canonical home                                                                                                                            |
 | ------------------------ | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `component_maturity`     | `planned` → `specified` → `implemented` → `validated` → `reference` | one component as a whole — specification, implementation, and validation evidence together, which may span multiple documents | catalogue tables, e.g. `docs/docs/research/substrates/index.md`, `docs/docs/research/tasks/index.md`, `docs/docs/interfaces/cli/index.md` |
-| `compatibility_maturity` | `declared` → `implemented` → `validated` → `reference`              | one task–model(–binding) pair's compatibility                                                                                 | `docs/docs/framework/compatibility.md`                                                                                                    |
+| `compatibility_maturity` | `declared` → `implemented` → `validated` → `reference`              | one task–model pair's compatibility                                                                                           | `docs/docs/framework/compatibility.md`                                                                                                    |
 
 `capability_status` and `component_maturity` describe related but distinct things at different granularity and evidentiary bar: `capability_status` is a document's own three-level self-declaration; `component_maturity` is a coarser-grained, potentially externally verified five-level rollup shown in a catalogue.
 Neither substitutes for the other.

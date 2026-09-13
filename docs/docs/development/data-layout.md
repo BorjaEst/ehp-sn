@@ -64,7 +64,7 @@ A committed release is complete, immutable, validated, and reusable.
 
 ## `interim/`
 
-`data/interim/` contains committed reusable derived state that crosses execution boundaries: model-derived execution state produced from a resolved model, binding, and acquisition context. It is neither upstream material, task-neutral substrate, nor task-corpus data.
+`data/interim/` contains committed reusable derived state that crosses execution boundaries: model-derived execution state produced from a resolved model, model IO specification, and acquisition context. It is neither upstream material, task-neutral substrate, nor task-corpus data.
 
 Despite the directory name, `interim` does not mean "intermediate between `raw` and `processed`": an execution-state artifact may be produced after both.
 

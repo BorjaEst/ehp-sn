@@ -38,19 +38,15 @@ config = "config/models/hrm/mazehard-reference.toml"
 
 
 # ---------------------------------------------------------------------------
-# Binding
+# Model IO
 # ---------------------------------------------------------------------------
 
-[binding]
-joint = "config/bindings/mazehard-hrm/joint.toml"
-
-
-[binding.input]
+[model_io.input]
 adapter = "adapter:raster-sequence/v1"
 config  = "config/bindings/raster-sequence/mazehard.toml"
 
 
-[binding.output]
+[model_io.output]
 adapter = "adapter:raster-prediction/v1"
 config  = "config/bindings/raster-prediction/mazehard.toml"
 

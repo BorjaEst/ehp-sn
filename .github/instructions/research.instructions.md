@@ -10,7 +10,7 @@ applyTo: "packages/ehp-research/**, docs/docs/research/**"
 - Reusable scientific building blocks only: substrates, tasks, models, objectives, controllers,
   metrics, analyses, configuration, registration (`ARCH-004`).
 - No `experiments/` under `ehp_research` (`ARCH-005`).
-- No concrete task-model `bindings/` under `ehp_research` (`ARCH-006`).
+- No concrete `ModelIOSpec` under `ehp_research` (`ARCH-006`).
 - Tasks stay independent of concrete models (`ARCH-009`); models stay independent of concrete
   tasks (`ARCH-010`).
 - Concrete substrate producers belong here and consume framework-owned logical contracts

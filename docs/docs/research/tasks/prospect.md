@@ -144,7 +144,7 @@ $$
 
 which is privileged environment truth and is not a Prospect model input.
 
-A binding converts the benchmark-level query and memory role into model-facing representations.
+A model IO specification converts the benchmark-level query and memory role into model-facing representations.
 Prospect constrains the information available to that conversion but does not prescribe the model-native encodings.
 
 ### 3.2 Composed environment
@@ -181,7 +181,7 @@ At the benchmark/task level, Prospect provides:
 - the technical output-slot validity mask required to interpret the fixed spatial output domain, when applicable.
 
 The decoded task variables are not necessarily supplied directly to the model.
-A binding must derive the model-facing start and sensory goal representations without exposing additional privileged environment structure.
+A model IO specification must derive the model-facing start and sensory goal representations without exposing additional privileged environment structure.
 
 ### 4.2 Target information
 
@@ -211,7 +211,7 @@ The model is not directly given:
 
 ### 4.5 Goal-cue semantics
 
-Prospect v1 exposes the semantic goal identity $o_{\mathrm{goal}}$, or a binding-defined sensory encoding derived from it.
+Prospect v1 exposes the semantic goal identity $o_{\mathrm{goal}}$, or a model-IO-defined sensory encoding derived from it.
 It does not expose $C_{\mathrm{goal}}$, `goal_flag`, or any equivalent physical goal-location support.
 The evaluated system must recover any goal-location binding required for routing from the permitted acquired-memory and query representations.
 
@@ -264,12 +264,12 @@ Records refer to these through corpus-local identifiers.
 
 Prospect depends on these parent roles, the generic contract each must satisfy, and how the task uses it:
 
-| Role                     | Required | Required contract                                  | Task use                                                 |
-| ------------------------ | -------: | -------------------------------------------------- | -------------------------------------------------------- |
-| `topology`               |      yes | `raster-topology/v1`                               | oracle physical structure and memory compatibility       |
-| `observation_field`      |      yes | `categorical-field/v1`                             | oracle observation placement and memory compatibility    |
-| `semantic_graph_source`  |      yes | `simple-digraph/v1`                                | source of hidden semantic law                            |
-| `acquired_memory_source` |      yes | producer/binding-defined qualified memory resource | source bytes/state copied into corpus-local memory table |
+| Role                     | Required | Required contract                         | Task use                                                 |
+| ------------------------ | -------: | ----------------------------------------- | -------------------------------------------------------- |
+| `topology`               |      yes | `raster-topology/v1`                      | oracle physical structure and memory compatibility       |
+| `observation_field`      |      yes | `categorical-field/v1`                    | oracle observation placement and memory compatibility    |
+| `semantic_graph_source`  |      yes | `simple-digraph/v1`                       | source of hidden semantic law                            |
+| `acquired_memory_source` |      yes | producer/model-IO-defined memory resource | source bytes/state copied into corpus-local memory table |
 
 ### 6.2 Spatial compatibility
 
@@ -300,7 +300,7 @@ Every Prospect record must resolve an acquired-memory entry compatible with the 
 | Coordinates             | compatible ambient-domain and position convention                       |
 | Acquisition             | exact acquisition protocol and qualifying experience identity           |
 | Producer                | supported checkpoint/model producer identity where required             |
-| Memory schema           | supported by the consuming Prospect binding                             |
+| Memory schema           | supported by the consuming Prospect model IO specification              |
 
 A cardinality match, equal tensor shape, or common topology family is insufficient evidence of memory compatibility.
 
@@ -321,7 +321,7 @@ Reject a candidate if:
 
 - topology and ObsField are incompatible;
 - memory does not match the exact composed environment;
-- memory schema is unsupported by the declared producing/consuming binding contract;
+- memory schema is unsupported by the declared producing/consuming model IO specification contract;
 - qualification evidence required by the corpus profile is absent;
 - acquisition leakage constraints fail;
 - no valid semantic-spatial query exists.
@@ -510,27 +510,27 @@ The following table gives each field's shape and requiredness:
 
 The following table gives each field's visibility, role, and meaning:
 
-| Field                 | Visibility | Role              | Meaning                                                              |
-| --------------------- | ---------- | ----------------- | -------------------------------------------------------------------- |
-| `record_id`           | metadata   | identifier        | Prospect query identity                                              |
-| `environment_id`      | metadata   | identifier        | exact composed environment                                           |
-| `memory_entry_id`     | metadata   | input reference   | corpus-local acquired-memory entry                                   |
-| `start_position`      | public     | task query        | $g'_{\mathrm{start}}$; binding source for the model's start cue      |
-| `goal_observation_id` | public     | task query        | $o_{\mathrm{goal}}$; binding source for the model's sensory goal cue |
-| `target_trajectory`   | target     | primary target    | $f_{\mathrm{traj}}^*$                                                |
-| `target_waypoint`     | target     | structural target | $f_{\mathrm{wp}}^*$                                                  |
-| `optimal_cost`        | privileged | oracle metadata   | $C^*$                                                                |
-| `spatial_mask`        | technical  | mask              | valid output slots only                                              |
+| Field                 | Visibility | Role              | Meaning                                                       |
+| --------------------- | ---------- | ----------------- | ------------------------------------------------------------- |
+| `record_id`           | metadata   | identifier        | Prospect query identity                                       |
+| `environment_id`      | metadata   | identifier        | exact composed environment                                    |
+| `memory_entry_id`     | metadata   | input reference   | corpus-local acquired-memory entry                            |
+| `start_position`      | public     | task query        | $g'_{\mathrm{start}}$; model IO source for the start cue      |
+| `goal_observation_id` | public     | task query        | $o_{\mathrm{goal}}$; model IO source for the sensory goal cue |
+| `target_trajectory`   | target     | primary target    | $f_{\mathrm{traj}}^*$                                         |
+| `target_waypoint`     | target     | structural target | $f_{\mathrm{wp}}^*$                                           |
+| `optimal_cost`        | privileged | oracle metadata   | $C^*$                                                         |
+| `spatial_mask`        | technical  | mask              | valid output slots only                                       |
 
 `memory_entry_id` is storage metadata; the semantic input is the resolved corpus-local acquired-memory content.
-The public query fields define $q'$ and must be encoded by a binding without exposing decoded topology or physical goal support.
+The public query fields define $q'$ and must be encoded by a model IO specification without exposing decoded topology or physical goal support.
 
 ### 9.2 Corpus-local memory resource
 
 Each memory entry must resolve entirely within the committed Prospect corpus and identify:
 
 - local memory entry ID;
-- memory schema/reference required by the binding;
+- memory schema/reference required by the model IO specification;
 - source acquisition/provenance identity;
 - exact compatible composed environment identity;
 - integrity-protected serialized memory payload or equivalent local representation.
@@ -683,14 +683,14 @@ Prospect-specific diagnostics may include controlled memory perturbations such a
 - zeroing or ablating the memory representation;
 - comparing performance across acquisition coverage levels.
 
-These diagnostics require experiment/binding support and do not alter task ground truth.
+These diagnostics require experiment/model-IO support and do not alter task ground truth.
 
 ### 13.5 Interpretation
 
 A performance advantage over an appropriate memory ablation, together with matched Routebind controls, supports causal reliance on acquired environment-specific memory.
 Performance alone does not establish which internal memory features carry the required topology or observation bindings.
 
-## 14. Binding boundary
+## 14. Model IO specification boundary
 
 Prospect defines the abstract `acquired_environment_memory` input role and its compatibility semantics, not a universal memory tensor schema.
 
@@ -707,7 +707,7 @@ A Prospect `OutputAdapter` may define:
 
 Recurrent deliberation belongs to the experiment's training protocol, not to either adapter.
 
-The resolved binding must not expose privileged topology/observation fields that Prospect v1 withholds.
+The resolved model IO specification must not expose privileged topology/observation fields that Prospect v1 withholds.
 
 ## 15. Open issues
 

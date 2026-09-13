@@ -45,7 +45,7 @@ The selected model-output role must declare:
 | `prediction_kind`   | categorical labels or categorical scores                                                                  |
 | `source_vocabulary` | immutable identity and finite categorical domain                                                          |
 
-The selected model-output role is supplied by binding/experiment composition; this adapter does not decide which scientific output role should be used.
+The selected model-output role is supplied by model-IO/experiment composition; this adapter does not decide which scientific output role should be used.
 
 ### 2.2 Target interface
 
@@ -107,7 +107,7 @@ Score-to-label conversion occurs only when the target prediction interface expli
 
 The only adapter-owned semantic configuration is an explicit `category_mapping` when endpoint declarations do not determine one uniquely.
 
-Model-output-role selection is binding/experiment configuration, not adapter-owned configuration.
+Model-output-role selection is model-IO/experiment configuration, not adapter-owned configuration.
 
 No slot ordering, target position count, temporal/spatial layout, thresholds, or oracle correction is authored here.
 
@@ -126,13 +126,13 @@ No slot ordering, target position count, temporal/spatial layout, thresholds, or
 
 Successful resolution validates/reuses:
 
-| Value              | Meaning                                          |
-| ------------------ | ------------------------------------------------ |
-| `position_to_slot` | explicit correspondence from binding composition |
-| `slot_to_position` | inverse correspondence                           |
-| `mapped_slots`     | model slots with task-position identity          |
-| `ignored_slots`    | representation-only model slots                  |
-| `category_mapping` | resolved label mapping or score-axis bijection   |
+| Value              | Meaning                                        |
+| ------------------ | ---------------------------------------------- |
+| `position_to_slot` | explicit correspondence from model IO          |
+| `slot_to_position` | inverse correspondence                         |
+| `mapped_slots`     | model slots with task-position identity        |
+| `ignored_slots`    | representation-only model slots                |
+| `category_mapping` | resolved label mapping or score-axis bijection |
 
 The spatial correspondence is not independently authored by this output adapter.
 
@@ -230,7 +230,7 @@ Produced predictions conform exactly to the resolved task-prediction interface.
 
 Identity-bearing adapter semantics include contract identity/version and authored category mapping when required.
 
-The selected model-output role contributes to binding/experiment identity, not to adapter-owned configuration identity.
+The selected model-output role contributes to model-IO/experiment identity, not to adapter-owned configuration identity.
 
 Endpoint-owned properties and derived spatial correspondence are recorded for reproducibility but are not independently authored adapter identity inputs.
 

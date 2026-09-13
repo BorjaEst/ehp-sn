@@ -20,13 +20,9 @@ A canonical reference has the form:
 
 Where:
 
-- `kind` identifies the component or resource category (`task`, `model`, `input-adapter`, `output-adapter`, `binding`, `experiment`, `substrate`, `artifact`, `requirement`, `analysis`);
+- `kind` identifies the component or resource category (`task`, `model`, `input-adapter`, `output-adapter`, `experiment`, `substrate`, `artifact`, `requirement`, `analysis`);
 - `name` is a unique identifier within the kind namespace and may contain internal path separators (for example, a release coordinate such as `arena-corpus/default`);
-- `v<N>` is the specification version for component kinds (`task`, `model`, `input-adapter`, `output-adapter`, `binding`, `experiment`, `substrate`, `analysis`), or the release number for release-coordinate kinds (`artifact`, `requirement`) whose targets are substrates or task corpora.
-
-A `binding` reference denotes a resolved composition — one task, one model, and their configured
-`input-adapter`/`output-adapter` pair — rather than an independently specified component; see
-[Adapters](adapters/index.md).
+- `v<N>` is the specification version for component kinds (`task`, `model`, `input-adapter`, `output-adapter`, `experiment`, `substrate`, `analysis`), or the release number for release-coordinate kinds (`artifact`, `requirement`) whose targets are substrates or task corpora.
 
 A `substrate` reference (`substrate:<name>/vN`) denotes a registered scientific substrate producer definition
 — the generic, producer-neutral capability that can emit a normalized contract (such as `raster-topology/v1` or `categorical-field/v1`).
@@ -42,7 +38,6 @@ task:arena/v1
 model:tem/v1
 input-adapter:RelationalSequenceAdapter
 output-adapter:ObservationPredictionAdapter
-binding:arena-tem/v1
 experiment:arena-tem/v1
 substrate:obsfield/v1
 artifact:arena-corpus/default/v1

@@ -100,7 +100,7 @@ structural transition
 g_t
 ```
 
-The task or binding must not provide `g_t` directly.
+The task or model IO specification must not provide `g_t` directly.
 
 ### Conjunctive pathway
 
@@ -135,7 +135,7 @@ At the first valid step after reset, no ordinary relation from a preceding task 
 The stable task-facing model output is the declared sensory-prediction role.
 
 TEM may declare one or more named sensory-prediction roles, each with its own temporal meaning and prediction scope.
-A binding selects among the declared roles and maps the selected role to the task-prediction interface; a binding must not construct new sensory-prediction roles or define how TEM computes a role (`ADAPT-002`; see §8).
+A model IO specification selects among the declared roles and maps the selected role to the task-prediction interface; a model IO specification must not construct new sensory-prediction roles or define how TEM computes a role (`ADAPT-002`; see §8).
 The semantics of each declared role — what it is conditioned on and when it is emitted — are model-owned and belong to this specification, not to the experiment.
 
 The following are model-native observables rather than task predictions:
@@ -157,7 +157,7 @@ The candidate set exercised by the Arena–TEM exemplar is:
 - a **sensory-recall**-style role emitted from content retrieved from associative memory keyed by structural state.
 
 These are candidate names for model-owned roles.
-Their exact conditioning, timing, and vocabulary must be finalized as part of this model specification before they are relied on as stable TEM semantics; until then a binding or experiment must not treat the candidate split as established TEM authority (see experiment `design/` notes for the working interpretation).
+their exact conditioning, timing, and vocabulary must be finalized as part of this model specification before they are relied on as stable TEM semantics; until then a model IO specification or experiment must not treat the candidate split as established TEM authority (see experiment `design/` notes for the working interpretation).
 
 ## 4. State and computation
 
@@ -191,7 +191,7 @@ A model step follows the adopted TEM inference schedule:
 8. retain recurrent state for the next valid step.
 
 The precise read/inference/write equations are implementation-level details only to the extent that alternative implementations preserve this adopted TEM computation.
-A binding must never own or reorder these operations.
+A model IO specification must never own or reorder these operations.
 
 ## 5. Model parameters
 
@@ -236,7 +236,7 @@ A conforming TEM implementation must satisfy:
 
 ## 8. Boundaries and related specifications
 
-Bindings own transformation between task semantics and the TEM native interface.
+Model IO specifications own transformation between task semantics and the TEM native interface.
 
 They may map task categorical identities to the model's declared categorical domains and preserve sequence/reset alignment.
 They must not implement TEM embeddings, structural-state updates, conjunctive computation, memory retrieval, or memory updates.
@@ -246,7 +246,7 @@ Experiments own training/evaluation composition, objective weighting, resource s
 Relevant neighboring documents include:
 
 - Arena task specification;
-- Arena–TEM binding;
+- Arena–TEM model IO specification;
 - TEM experiments and analyses.
 
 ## References

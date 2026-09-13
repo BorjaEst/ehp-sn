@@ -9,7 +9,7 @@ applyTo: "experiments/**"
 
 `experiments/<experiment>/vN/` owns the concrete scientific composition as a **declaration** (`experiment.toml`) over reusable component specifications:
 
-- concrete Binding selection/configuration for the selected task–model pair;
+- concrete `ModelIOSpec` selection/configuration for the selected task–model pair;
 - the concrete `ExperimentDefinition` it instantiates;
 - adapter selection and configuration;
 - protocol composition (training, evaluation, analysis);

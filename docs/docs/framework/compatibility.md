@@ -12,8 +12,8 @@ This document defines component compatibility declarations, support levels, and 
 
 ## Support levels
 
-A resolved binding — one task, one model, and their configured `InputAdapter`/`OutputAdapter`
-pair (`docs/docs/framework/adapters/index.md`) — declares exact supported task–model combinations:
+A resolved `ModelIOSpec` — the configured `InputAdapter`/`OutputAdapter` pair reconciling one task
+and one model (`docs/docs/framework/adapters/index.md`) — declares exact supported task–model combinations:
 
 ```yaml
 task: task:routebind/v1
@@ -33,11 +33,11 @@ No declaration means the combination is unavailable for framework use. It does n
 
 ## Compatibility maturity
 
-`compatibility_maturity` describes one task–model(–binding) pair's compatibility, distinct from either component's own document or capability maturity. Per-interface-transition compatibility (task-data interface, model-input interface, model-output interface, prediction interface, and the adapters between them) is defined in [Adapters](adapters/index.md); this document covers only the resulting per-pair declaration:
+`compatibility_maturity` describes one task–model pair's compatibility, distinct from either component's own document or capability maturity. Per-interface-transition compatibility (task-data interface, model-input interface, model-output interface, prediction interface, and the adapters between them) is defined in [Adapters](adapters/index.md); this document covers only the resulting per-pair declaration:
 
 | `compatibility_maturity` | Meaning                                              |
 | ------------------------ | ---------------------------------------------------- |
-| `declared`               | Support is asserted by the resolved binding          |
+| `declared`               | Support is asserted by the resolved `ModelIOSpec`    |
 | `implemented`            | Construction and basic execution exist               |
 | `validated`              | Conformance and scientific validation evidence exist |
 | `reference`              | Used in a reference reproduction                     |

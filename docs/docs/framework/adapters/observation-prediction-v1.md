@@ -49,7 +49,7 @@ The selected model-output role must declare:
 
 Latent structural state, conjunctive state, recurrent state, memory diagnostics, and traces are not prediction roles unless the model explicitly declares them as such.
 
-The selected source role is supplied by binding/experiment composition.
+The selected source role is supplied by model-IO/experiment composition.
 
 ### 2.2 Target interface
 
@@ -113,7 +113,7 @@ Score-to-label conversion occurs only when the target explicitly declares a cano
 
 The only adapter-owned semantic configuration is an explicit `category_mapping` when endpoint declarations do not determine one uniquely.
 
-The selected model prediction role is binding/experiment configuration, not adapter-owned configuration.
+The selected model prediction role is model-IO/experiment configuration, not adapter-owned configuration.
 
 There is no authored temporal offset, task/model sequence length, threshold, calibration rule, revisit-conditioned decision, or oracle correction.
 
@@ -134,13 +134,13 @@ There is no authored temporal offset, task/model sequence length, threshold, cal
 
 Successful resolution validates/reuses:
 
-| Value                     | Meaning                                          |
-| ------------------------- | ------------------------------------------------ |
-| `task_step_to_model_step` | explicit correspondence from binding composition |
-| `model_step_to_task_step` | inverse correspondence                           |
-| `mapped_model_steps`      | model steps with task-prediction identity        |
-| `ignored_model_steps`     | representation-only steps                        |
-| `category_mapping`        | resolved label mapping or score-axis bijection   |
+| Value                     | Meaning                                        |
+| ------------------------- | ---------------------------------------------- |
+| `task_step_to_model_step` | explicit correspondence from model IO          |
+| `model_step_to_task_step` | inverse correspondence                         |
+| `mapped_model_steps`      | model steps with task-prediction identity      |
+| `ignored_model_steps`     | representation-only steps                      |
+| `category_mapping`        | resolved label mapping or score-axis bijection |
 
 No temporal alignment is independently authored by this output adapter.
 
@@ -261,7 +261,7 @@ Produced task predictions conform exactly to the resolved target interface.
 
 Identity-bearing adapter semantics include contract identity/version and authored category mapping when required.
 
-The selected model-output role contributes to binding/experiment identity, not adapter-owned configuration identity.
+The selected model-output role contributes to model-IO/experiment identity, not adapter-owned configuration identity.
 
 Endpoint-owned prediction/timing semantics and derived step correspondence are recorded for reproducibility but are not independently authored adapter identity inputs.
 
@@ -291,7 +291,7 @@ A new version or family is required for temporal shifts, non-identical timing co
 
 ### Non-normative TEM–Arena-style composition
 
-Assume binding/experiment composition selects a declared TEM-like sensory-prediction role whose:
+Assume model-IO/experiment composition selects a declared TEM-like sensory-prediction role whose:
 
 ```text
 prediction_timing = current_step

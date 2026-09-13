@@ -46,7 +46,7 @@ The framework owns reusable contracts and services.
 
 The research package owns reusable scientific building blocks.
 
-Repository-level `experiments/` owns concrete experiment compositions and Bindings (ARCH-005/006).
+Repository-level `experiments/` owns concrete experiment compositions and model IO specifications (ARCH-005/006).
 
 ## Data lifecycle
 

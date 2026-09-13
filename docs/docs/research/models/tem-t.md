@@ -95,7 +95,7 @@ For the current prediction step:
 - current-step sensory information must not become retrievable through memory before a prediction role that is intended to test recall from prior experience;
 - after the current-step computation, the experience may be inserted into memory for subsequent steps according to the adopted TEM-t schedule.
 
-These temporal rules are part of the model rather than the binding.
+These temporal rules are part of the model rather than the model IO specification.
 
 ## 3. Native interface
 
@@ -198,7 +198,7 @@ A conforming TEM-t implementation must satisfy:
 
 ## 8. Boundaries and related specifications
 
-Bindings translate task semantics into the native sensory/relation sequence interface and map the declared sensory prediction back into task prediction semantics.
+Model IO specifications translate task semantics into the native sensory/relation sequence interface and map the declared sensory prediction back into task prediction semantics.
 
 They must not construct relational state, attention memory, or associative retrieval.
 
@@ -207,7 +207,7 @@ Experiments own training/evaluation protocols and resource selection.
 Relevant neighboring documents include:
 
 - TEM;
-- sequence adapters/bindings;
+- sequence adapters and model IO specifications;
 - TEM-t experiments and analyses.
 
 ## References

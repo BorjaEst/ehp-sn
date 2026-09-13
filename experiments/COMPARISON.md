@@ -13,6 +13,6 @@
 | Protocols         | supervised replay           | supervised replay           | supervised CE + halting          | hybrid: supervised + RL          |
 | Resources         | arena corpus (dg/obsfield)  | arena corpus                | mazehard corpus (maze-nd)        | mazehard corpus (maze-nd)        |
 | Evaluation        | A_obs^rev + 3 pathways      | revisit metrics + its split | exact-solution + token + any-opt | same + halt/value diagnostics    |
-| CLI UX            | ref-by-name; binding hidden | identical                   | identical + show needs decoder   | identical; RL invisible          |
+| CLI UX            | ref-by-name; IO hidden      | identical                   | identical + show needs decoder   | identical; RL invisible          |
 | Python UX         | resolve + train             | same                        | same                             | same, hides controller           |
 | Variation point   | baseline                    | model substitutability      | raster + decoder + 2nd objective | controller + RL objective        |

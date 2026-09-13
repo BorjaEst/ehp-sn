@@ -69,7 +69,7 @@ The model document is authoritative from the earliest model-native input through
 
 Model-owned embeddings, recurrence, memory, attention, workspace updates, and intrinsic control remain inside this boundary.
 
-The generic `InputAdapter`/`OutputAdapter` contract and the task/model/adapter responsibility boundary are defined in [Adapters](../../framework/adapters/index.md); this section specializes that boundary for where a model begins and ends. Task ownership is defined in [Research tasks](../tasks/index.md) § "Task, adapter, and binding boundary".
+The generic `InputAdapter`/`OutputAdapter` contract and the task/model/adapter responsibility boundary are defined in [Adapters](../../framework/adapters/index.md); this section specializes that boundary for where a model begins and ends. Task ownership is defined in [Research tasks](../tasks/index.md) § "Task, adapter, and model IO boundary".
 
 ## Document structure
 
@@ -97,7 +97,7 @@ Sections should remain concise. Do not add material merely to fill the structure
 - Do not repeat generic framework rules unless a model-specific consequence must be stated.
 - Do not include training recipes, reproduction settings, benchmark results, or runtime policy.
 - Expose only observables that are stable and scientifically meaningful.
-- Put task-specific encodings and decoders in bindings rather than model documents.
+- Put task-specific encodings and decoders in the experiment's model IO specification rather than in model documents.
 
 ## Naming
 

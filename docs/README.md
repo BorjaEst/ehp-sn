@@ -87,7 +87,7 @@ docs/docs/
 The semantic owner of a concept is authoritative, not the directory depth.
 
 Use [`authority.md`](authority.md) when ownership is unclear.
-Concrete experiments and their Bindings are declared under `experiments/<experiment>/vN/experiment.toml`, instantiating the framework specification (see [`docs/docs/framework/components/experiment.md`](docs/framework/components/experiment.md)).
+Concrete experiments and their model IO specifications are declared under `experiments/<experiment>/vN/experiment.toml`, instantiating the framework specification (see [`docs/docs/framework/components/experiment.md`](docs/framework/components/experiment.md)).
 
 ## Specification-first workflow
 

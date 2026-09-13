@@ -19,8 +19,8 @@ ehp_research → ehp_sn
 
 The package owns reusable scientific/domain semantics.
 Generic artifact, configuration, resource, request, execution, identity, and lifecycle mechanics remain framework responsibilities.
-Concrete experiments and concrete task-model Bindings do **not** belong to `ehp_research`; they belong to repository-level `experiments/` (`docs/invariants.md` ARCH-005/006).
-Bindings are resolved compositions of generic `ehp_sn` adapters assembled by an experiment definition, not independent package artifacts.
+Concrete experiments and concrete model IO specifications do **not** belong to `ehp_research`; they belong to repository-level `experiments/` (`docs/invariants.md` ARCH-005/006).
+Model IO specifications are resolved compositions of generic `ehp_sn` adapters assembled by an experiment definition, not independent package artifacts.
 
 This README provides package orientation and a catalogue overview.
 Exact scientific semantics and component status live in the corresponding research specifications.
@@ -62,7 +62,7 @@ model
 adapter
     task ↔ model representation transformation (ehp_sn, when generic)
 
-binding
+model-io
     resolved task+model+adapter composition (assembled by the experiment)
 
 experiment
@@ -136,9 +136,9 @@ Typical families include:
 - HRM;
 - related integrated EHP models.
 
-A binding is the resolved, validated connection of one task and one model, formed by one configured `InputAdapter` and one configured `OutputAdapter`.
-The generic adapter contracts live in `ehp_sn`; a concrete resolved binding is assembled by an experiment and belongs to that experiment under repository-level `experiments/` (`ARCH-006`).
-`ehp_research` does not own a package-level `bindings/` directory.
+A `ModelIOSpec` reconciles the declared interfaces of one selected task and one selected model, formed by one configured `InputAdapter` and one configured `OutputAdapter`.
+The generic adapter contracts live in `ehp_sn`; a concrete resolved model IO specification is assembled by an experiment and belongs to that experiment under repository-level `experiments/` (`ARCH-006`).
+`ehp_research` does not own a package-level `model_io/` directory.
 
 Exact model, adapter, binding, compatibility, and maturity information belongs in the corresponding research and framework specifications rather than this README.
 
@@ -184,7 +184,7 @@ ehp_research/
 └── configuration/
 ```
 
-There is deliberately no `experiments/` and no `bindings/` under `ehp_research` (`ARCH-005`/`ARCH-006`).
+There is deliberately no `experiments/` and no `model_io/` under `ehp_research` (`ARCH-005`/`ARCH-006`).
 
 This is a responsibility map rather than a guarantee that every directory already exists or that the physical package layout is fixed.
 

@@ -50,14 +50,15 @@ No layer redefines the other's semantics.
 
 ...
 
-## Adapter versus Binding
+## Adapter versus model IO specification
 
 An **Adapter** is a reusable transformation primitive (for example a sequence adapter, a slot adapter, a categorical adapter, a mask adapter, a field decoder).
 It is expressible entirely in terms of its declared source interface, target interface, and resolved configuration.
 Generic adapters belong to `ehp_sn`.
 
-A **Binding** is the concrete integration of a selected task, model, and configured adapters.
-The experiment-specific _choice and configuration_ of those adapters is the binding and belongs under `experiments/<experiment>/vN/`.
+A **`ModelIOSpec`** declares how the experiment's selected task and model interfaces are reconciled by configured adapters.
+It selects neither the task nor the model; the experiment does that.
+The experiment-specific _choice and configuration_ of those adapters belongs under `experiments/<experiment>/vN/`.
 
 Wrong: `ehp_sn.adapters.arena_tem` (an experiment-specific adapter in the framework).
 Right: `ehp_sn.adapters.sequence`, `ehp_sn.adapters.slots`, `ehp_sn.adapters.categorical`; the experiment selects and configures them.
@@ -82,7 +83,7 @@ Arena prediction representation
 
 The generic adapters belong to `ehp_sn`.
 The experience-specific choice and configuration of those adapters — how Arena observations map to TEM `sensory_id` values, how Arena actions map to `relation_id` values, which TEM output role is interpreted as an Arena prediction — is declared in `experiments/arena-tem/v1/experiment.toml`.
-Such binding semantics are scientific and may exist only for this selected composition; that is legitimate experiment-local declaration content (`experiments/arena-tem/v1/`), not framework or `ehp_research` content.
+Such model IO semantics are scientific and may exist only for this selected composition; that is legitimate experiment-local declaration content (`experiments/arena-tem/v1/`), not framework or `ehp_research` content.
 
 ## Placement algorithm
 
@@ -111,5 +112,5 @@ A committed `TaskCorpus` is self-contained for its declared normal consumers (`D
 
 ## Why this matters during migration
 
-Existing files may reflect an older architecture (for example package-owned `experiments/` or `bindings/` scaffolds, or documentation that assigns experiment families to `ehp_research`).
+Existing files may reflect an older architecture (for example package-owned `experiments/` or model IO scaffolds, or documentation that assigns experiment families to `ehp_research`).
 Under `ARCH-015`, existing historical placement is not precedent: when the target architecture is established, conflicting normative material is realigned in place and obsolete competing semantics are removed rather than preserved.

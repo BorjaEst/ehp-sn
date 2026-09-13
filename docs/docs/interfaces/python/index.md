@@ -143,7 +143,7 @@ ehp_sn
 ehp_research
     concrete experiments
     substrates and tasks
-    models; resolved task-model bindings
+    models; resolved model IO specifications
     metrics and analyses
 ```
 

@@ -24,7 +24,7 @@ experiment = resolve_experiment(ref)
 
 The experiment itself is owned by the repository-level `experiments/<experiment>/vN/` declaration and its concrete composition.
 The generic Python interface takes a canonical reference and resolves it; it does not import a concrete package-owned factory such as `ehp_research.experiments.arena_tem`.
-There is no `ehp_research.experiments` or `ehp_research.bindings` (`ARCH-005`/`ARCH-006`).
+There is no `ehp_research.experiments` or `ehp_research.model_io` (`ARCH-005`/`ARCH-006`).
 
 > `resolve_experiment()` is a documented target.
 > The discovery and resolution contract is specified in [the framework experiment specification](../../framework/components/experiment.md):
@@ -92,7 +92,7 @@ The canonical record includes all identity-affecting scientific fields, includin
 
 An experiment owns:
 
-- canonical experiment, task, model, and binding references;
+- canonical experiment, task, model, and model IO specification references;
 - substrate or task-corpus requirements where applicable;
 - training protocol;
 - named evaluation regimes;

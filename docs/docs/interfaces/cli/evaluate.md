@@ -77,7 +77,7 @@ ehp-sn evaluate show EXPERIMENT [--format text|json]
 
 The command reports:
 
-- experiment, task, model, and binding references;
+- experiment, task, model, and model IO specification references;
 - declared regime names and purposes;
 - default data or split for each regime;
 - primary and secondary metrics;
@@ -201,7 +201,7 @@ Validation checks:
 - experiment and regime validity;
 - checkpoint readability, metadata, and model-family compatibility;
 - data existence, schema, and split availability;
-- task–model binding compatibility;
+- model IO compatibility;
 - metric, validity-rule, and trace availability;
 - runtime device and precision support;
 - output writability and conflicts.

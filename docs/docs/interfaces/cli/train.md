@@ -42,7 +42,7 @@ ehp-sn train list [--format text|json]
 
 ### Outputs
 
-The command reports each experiment reference, task, model, binding, training-protocol maturity, and short description.
+The command reports each experiment reference, task, model, model IO specification, training-protocol maturity, and short description.
 
 ### Example
 
@@ -75,7 +75,7 @@ ehp-sn train show EXPERIMENT [--format text|json]
 
 The command reports:
 
-- resolved experiment, task, model, and binding references;
+- resolved experiment, task, model, and model IO specification references;
 - training protocol and maturity;
 - required task data;
 - declared objectives and checkpoint-selection policy;
@@ -153,7 +153,7 @@ Evaluation and analysis use direct runtime options until a concrete workflow dem
 
 ### Behavior
 
-The command resolves the experiment and component references, composes the training protocol and configuration, resolves the intended task-data and checkpoint identities, derives role-specific seeds, checks task–model–binding compatibility, determines the run destination, and reports reproducibility or conflict warnings. It does not require all referenced resources to be readable and does not instantiate the complete model and data runtime; resource availability belongs to `train validate --level resources`.
+The command resolves the experiment and component references, composes the training protocol and configuration, resolves the intended task-data and checkpoint identities, derives role-specific seeds, checks model IO compatibility, determines the run destination, and reports reproducibility or conflict warnings. It does not require all referenced resources to be readable and does not instantiate the complete model and data runtime; resource availability belongs to `train validate --level resources`.
 
 `--resume` and `--init-from` are mutually exclusive. Resume continues the same logical lineage. Only fields classified as resume-compatible by the training protocol may change. Scientific composition, task-data identity, model structure, optimizer family, and completed-step history must not be silently changed. Initialization starts a new lineage and loads only parameter groups permitted by the model contract.
 

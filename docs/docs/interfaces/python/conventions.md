@@ -38,7 +38,6 @@ TaskRef
 ModelRef
 InputAdapterRef
 OutputAdapterRef
-BindingRef
 ```
 
 Each type has one canonical versioned string form and a parsing capability:
@@ -198,14 +197,14 @@ Capability queries must be available through the result or artifact metadata so 
 
 ## Identity categories
 
-| Identity                | Python representation                           | Used for                                                        |
-| ----------------------- | ----------------------------------------------- | --------------------------------------------------------------- |
-| Experiment identity     | `ExperimentRef` plus resolved experiment digest | Scientific definition comparison and compatibility              |
-| Request identity        | Resolved request identity                       | Invocation comparison and plan construction                     |
-| Plan identity           | `ExecutionPlan.id`                              | Validation binding and stale-plan detection                     |
-| Execution provenance    | Result and manifest provenance                  | Reproducibility, runtime record, and audit                      |
-| Artifact identity       | `ArtifactRef`                                   | Durable selection, downstream inputs, and destination conflicts |
-| Artifact fingerprint    | Manifest artifact fingerprint                   | Integrity and byte/content-level verification                   |
+| Identity             | Python representation                           | Used for                                                        |
+| -------------------- | ----------------------------------------------- | --------------------------------------------------------------- |
+| Experiment identity  | `ExperimentRef` plus resolved experiment digest | Scientific definition comparison and compatibility              |
+| Request identity     | Resolved request identity                       | Invocation comparison and plan construction                     |
+| Plan identity        | `ExecutionPlan.id`                              | Validation binding and stale-plan detection                     |
+| Execution provenance | Result and manifest provenance                  | Reproducibility, runtime record, and audit                      |
+| Artifact identity    | `ArtifactRef`                                   | Durable selection, downstream inputs, and destination conflicts |
+| Artifact fingerprint | Manifest artifact fingerprint                   | Integrity and byte/content-level verification                   |
 
 Equal experiments do not imply equal results. Scientific equivalence does not imply byte-identical artifacts. Runtime configuration is not part of experiment identity, but runtime and environment provenance remain part of reproducibility records.
 

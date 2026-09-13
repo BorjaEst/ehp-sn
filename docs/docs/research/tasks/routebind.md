@@ -61,7 +61,7 @@ Routebind does not define:
 - topology or ObsField generation;
 - Dagflow graph-generation distributions;
 - model architecture or deliberation controller;
-- binding-specific tensors, tokenization, or losses;
+- model-IO-specific tensors, tokenization, or losses;
 - generic manifests, fingerprints, or publication mechanics;
 - CLI or repository implementation details.
 
@@ -230,7 +230,7 @@ The model must infer the reusable semantic law from route supervision across cor
 
 ### 4.5 Leakage constraints
 
-The corpus or binding must not expose:
+The corpus or model IO specification must not expose:
 
 - semantic adjacency;
 - canonical semantic waypoint sequence;
@@ -685,7 +685,7 @@ A ratio of 1 denotes physical optimality under the Routebind semantic constraint
 
 ### 13.3 Representational metrics
 
-For field-producing bindings, recommended metrics include support-balanced error, trajectory-field error, waypoint-field error, and multi-label first-action metrics.
+For field-producing model IO specifications, recommended metrics include support-balanced error, trajectory-field error, waypoint-field error, and multi-label first-action metrics.
 
 These are representational diagnostics unless a concrete experiment identifies one as a primary outcome.
 
@@ -694,7 +694,7 @@ These are representational diagnostics unless a concrete experiment identifies o
 A low field error does not by itself establish a valid semantic-spatial route.
 Behavioral structural validity and optimality must remain separately reported.
 
-## 14. Binding boundary
+## 14. Model IO specification boundary
 
 Routebind defines public spatial/observation information, hidden semantic-law semantics, targets, and validity.
 
@@ -710,7 +710,7 @@ An `OutputAdapter` may define:
 
 Multi-label loss construction and model-native recurrent deliberation belong to the experiment's training protocol, not to either adapter.
 
-The resolved binding must not expose the hidden graph/binding or change the product-state correctness relation.
+The resolved model IO specification must not expose the hidden graph/binding or change the product-state correctness relation.
 
 ## 15. Open issues
 
