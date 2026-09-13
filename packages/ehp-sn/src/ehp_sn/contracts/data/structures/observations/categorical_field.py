@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ehp_sn.contracts.data.structures.domains import hexagonal_grid, rectangular_grid
+from ehp_sn.contracts.data.structures import domains
 
 from . import _core
 
@@ -12,17 +12,15 @@ V1 = f"{SCHEMA_REF}/v1"
 
 @dataclass(frozen=True)
 class CategoricalField(_core.Observations):
+    """A categorical observation field defined over an ambient domain.
+
+    Domain geometry is composed, not inherited: the field *is* a member of the
+    observations family and *has* an ambient domain drawn from the registered
+    domain alternatives. Domain kinds are not encoded as field subclasses.
+    """
+
     record_id: str
-
-
-@dataclass(frozen=True)
-class RectangularField(CategoricalField):
-    domain: rectangular_grid.RectangularDomain
-
-
-@dataclass(frozen=True)
-class HexagonalField(CategoricalField):
-    domain: hexagonal_grid.HexagonalDomain
+    domain: domains.Domain
 
 
 @dataclass(frozen=True)
@@ -37,6 +35,4 @@ __all__ = [
     "V1",
     "Artifact",
     "CategoricalField",
-    "RectangularField",
-    "HexagonalField",
 ]

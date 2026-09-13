@@ -12,6 +12,8 @@ V1 = f"{SCHEMA_REF}/v1"
 class RectangularDomain(_core.Domain):
     """A `rectangular-grid/v1` ambient-domain declaration."""
 
+    height: int
+    width: int
     coordinate_system: str = "row-column"
     coordinate_structure: str = "rectangular-lattice"
     shape: str = "rectangle"
@@ -27,8 +29,4 @@ class RectangularDomain(_core.Domain):
         return divmod(position_id, self.width)
 
 
-@dataclass(frozen=True)
-class Artifact: ...
-
-
-__all__ = ["Artifact", "SCHEMA_REF", "V1", "RectangularDomain"]
+__all__ = ["SCHEMA_REF", "V1", "RectangularDomain"]

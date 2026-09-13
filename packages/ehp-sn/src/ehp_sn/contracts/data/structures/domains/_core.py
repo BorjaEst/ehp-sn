@@ -1,5 +1,6 @@
-import abc
-import dataclasses
+from __future__ import annotations
+
+from dataclasses import dataclass
 
 ROLE = "domains"
 
@@ -8,17 +9,16 @@ class AmbientDomainError(ValueError):
     pass
 
 
-@dataclasses.dataclass(frozen=True)
-class Domain(abc.ABC):
-    """Abstract base class for ambient-domain declarations."""
+@dataclass(frozen=True)
+class Domain:
+    """Internal family root for ambient-domain contracts.
 
-    height: int
-    width: int
-
-    @property
-    @abc.abstractmethod
-    def position_count(self) -> int:
-        """Number of canonical positions in the domain."""
+    It deliberately declares no domain payload. What, if anything, every
+    registered domain schema shares is decided by the domain-contract slice,
+    once the rectangular and hexagonal declarations have actually been
+    compared. A payload-free root also keeps the concrete declarations free to
+    choose their own schema-specific shape parameters.
+    """
 
 
 __all__ = ["AmbientDomainError", "Domain", "ROLE"]

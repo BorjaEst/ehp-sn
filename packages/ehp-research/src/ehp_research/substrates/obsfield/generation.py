@@ -13,10 +13,13 @@ from .planning import random_state_seed, record_id
 class BuildResult(substrates.BuildResult): ...
 
 
-def generate(config: Configuration) -> BuildResult:
+def generate(
+    config: Configuration,
+) -> BuildResult:
     """Materialize every requested realization of the declared field."""
     records = tuple(
-        _realize(config, realization_index) for realization_index in _realization_indexes(config)
+        _realize(config, realization_index)  #
+        for realization_index in _realization_indexes(config)  #
     )
     return BuildResult(
         artifact=categorical_field.Artifact(records=records),
@@ -24,14 +27,19 @@ def generate(config: Configuration) -> BuildResult:
     )
 
 
-def _realization_indexes(config: Configuration) -> range:
+def _realization_indexes(
+    config: Configuration,
+) -> range:
     """Realization indexes requested by this configuration."""
     return range(config.realization_count)
 
 
-def _realize(config: Configuration, realization_index: int) -> categorical_field.RectangularField:
+def _realize(
+    config: Configuration,
+    realization_index: int,
+) -> categorical_field.CategoricalField:
     """The `obsfield/v1` generation protocol, for one realization index."""
-    return categorical_field.RectangularField(
+    return categorical_field.CategoricalField(
         vocabulary=config.vocabulary,
         observation_id=_assign(config, realization_index),
         record_id=record_id(config, realization_index),
@@ -39,7 +47,10 @@ def _realize(config: Configuration, realization_index: int) -> categorical_field
     )
 
 
-def _assign(config: Configuration, realization_index: int) -> tuple[int, ...]:
+def _assign(
+    config: Configuration,
+    realization_index: int,
+) -> tuple[int, ...]:
     """One observation per canonical position, in canonical position order."""
     return _draw(
         cardinality=config.vocabulary.cardinality,
@@ -48,7 +59,12 @@ def _assign(config: Configuration, realization_index: int) -> tuple[int, ...]:
     )
 
 
-def _draw(*, cardinality: int, position_count: int, random_state: int) -> tuple[int, ...]:
+def _draw(
+    *,
+    cardinality: int,
+    position_count: int,
+    random_state: int,
+) -> tuple[int, ...]:
     """Draw `position_count` categorical labels from a record-local random state."""
     ...
 
