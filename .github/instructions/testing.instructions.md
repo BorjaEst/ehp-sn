@@ -380,7 +380,7 @@ Allowed subjects:
 
 ```text
 substrates/dagflow
-substrates/dungeongen
+substrates/dungeon
 substrates/maze_nd
 substrates/obsfield
 

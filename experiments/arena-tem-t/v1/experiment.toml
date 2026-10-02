@@ -7,8 +7,8 @@ ref    = "experiment:arena-tem-t/v1"
 # ---------------------------------------------------------------------------
 
 [substrates.topology]
-producer = "substrate:dungeongen/v1"
-config   = "config/data/dungeongen/arena-random-30x30.toml"
+producer = "substrate:dungeon/v1"
+config   = "config/data/dungeon/arena-random-30x30.toml"
 
 
 [substrates.observation_field]
@@ -26,7 +26,7 @@ config = "config/tasks/arena/default.toml"
 
 
 [task.corpora.main]
-config = "config/tasks/arena/dungeongen-random-30x30-t250.toml"
+config = "config/tasks/arena/dungeon-random-30x30-t250.toml"
 
 
 [task.corpora.main.parents]

@@ -7,8 +7,8 @@ ref    = "experiment:routebind-hrm/v1"
 # ---------------------------------------------------------------------------
 
 [substrates.topology]
-producer = "substrate:dungeongen/v1"
-config   = "config/data/dungeongen/routebind-dungeon30.toml"
+producer = "substrate:dungeon/v1"
+config   = "config/data/dungeon/routebind-dungeon30.toml"
 
 
 [substrates.observation_field]
