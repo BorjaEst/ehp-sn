@@ -1,0 +1,13 @@
+[source]
+contract = "external-snapshot/v1"
+resolver = "huggingface"
+
+[location]
+repository = "flaitenberger/maze_hard_augmented"
+revision   = "b1f344fb8d63eea8b602f5bd5ffdd8e146b6595f"
+
+[selection]
+include = ["train.jsonl.gz", "test.jsonl.gz"]
+
+[integrity]
+fingerprint = "sha256:b9efcf3b47a8f535d3e36f96656e71f0deb5d059bce380a4fcb5fafe65d827fe"

@@ -1,0 +1,13 @@
+[substrate]
+variant = "general"
+
+[resources.generator]
+ref = "resource:dungeongen/classic-medium/v1"
+
+[generation]
+seed           = 0
+record_count   = 12000
+attempt_budget = 100
+
+[records]
+duplicate_policy = "reject-exact"
