@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 from ehp_sn import components, tasks
+from ehp_sn.artifacts import ArtifactRef
 from ehp_sn.contracts.data.datasets.sequences import sequence_dataset
-from ehp_sn.contracts.data.structures import observations, topology
 from ehp_sn.contracts.data.structures.observations import categorical_field
 from ehp_sn.contracts.data.structures.topology import raster_topology
+from ehp_sn.requirements import ONE, ContractCategory, Requirement
 
 from . import configuration, generation, inspection, planning, validation
+
+#: Consumer-local roles. Arena owns these; the contracts it requires do not.
+TOPOLOGY_ROLE = "topology"
+OBSERVATION_ROLE = "observation"
 
 _DESCRIPTION = (
     "Sequential spatial replay task: "
@@ -15,12 +20,17 @@ _DESCRIPTION = (
 )
 
 
-class Definition(tasks.Definition):
+class Definition(
+    tasks.Definition[
+        configuration.Configuration,
+        sequence_dataset.Artifact,
+    ]
+):
     def resolve_configuration(
         self,
         *,
-        document: tasks.LoadedConfiguration,
-    ) -> tasks.Configuration:
+        document: tasks.BoundProducerConfiguration,
+    ) -> configuration.Configuration:
         return configuration.resolve(
             document=document,
         )
@@ -28,25 +38,25 @@ class Definition(tasks.Definition):
     def plan(
         self,
         *,
-        config: tasks.Configuration,
-        sources: tasks.ResolvedSources,
+        config: configuration.Configuration,
+        dependencies: tasks.ResolvedDependencies,
     ) -> tasks.PlanningDeclaration:
         return planning.create(
             config=config,
-            topology=sources.require(topology.ROLE),
-            observation=sources.require(observations.ROLE),
+            topology=dependencies.require(TOPOLOGY_ROLE, ArtifactRef).value,
+            observation=dependencies.require(OBSERVATION_ROLE, ArtifactRef).value,
         )
 
     def build(
         self,
         *,
-        config: tasks.Configuration,
-        sources: tasks.ResolvedSources,
-    ) -> tasks.BuildResult:
+        config: configuration.Configuration,
+        dependencies: tasks.ResolvedDependencies,
+    ) -> tasks.BuildResult[sequence_dataset.Artifact]:
         return generation.generate(
             config=config,
-            topology=sources.require(topology.ROLE),
-            observation=sources.require(observations.ROLE),
+            topology=dependencies.require(TOPOLOGY_ROLE, ArtifactRef).value,
+            observation=dependencies.require(OBSERVATION_ROLE, ArtifactRef).value,
         )
 
     def validate(
@@ -84,9 +94,19 @@ class Definition(tasks.Definition):
 DEFINITION = Definition(
     ref=components.ComponentRef(kind="task", name="arena", version=1),
     description=_DESCRIPTION,
-    sources={
-        topology.ROLE: raster_topology.V1,
-        observations.ROLE: categorical_field.V1,
+    requirements={
+        TOPOLOGY_ROLE: Requirement(
+            role=TOPOLOGY_ROLE,
+            contract=raster_topology.V1,
+            category=ContractCategory.CONTENT,
+            cardinality=ONE,
+        ),
+        OBSERVATION_ROLE: Requirement(
+            role=OBSERVATION_ROLE,
+            contract=categorical_field.V1,
+            category=ContractCategory.CONTENT,
+            cardinality=ONE,
+        ),
     },
     contract=sequence_dataset.V1,
 )

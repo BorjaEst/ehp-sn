@@ -1,21 +1,16 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
-from ehp_sn import tasks
+from ehp_sn import substrates
+from ehp_sn.contracts.acquisition.maze_examples import MazeExamples
 
 from .configuration import Configuration
-
-
-@dataclass(frozen=True)
-class BuildResult(tasks.BuildResult): ...
 
 
 def generate(
     config: Configuration,
     *,
-    topology: tasks.ResolvedSource,
-) -> BuildResult: ...
+    examples: MazeExamples,
+) -> substrates.BuildResult[object]: ...
 
 
-__all__ = ["generate", "BuildResult"]
+__all__ = ["generate"]

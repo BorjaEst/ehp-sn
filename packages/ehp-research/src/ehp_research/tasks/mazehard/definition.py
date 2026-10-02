@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 from ehp_sn import components, tasks
+from ehp_sn.contracts.acquisition import maze_examples
 from ehp_sn.contracts.data.datasets.records import sample_dataset
-from ehp_sn.contracts.data.structures import topology
-from ehp_sn.contracts.data.structures.topology import raster_topology
+from ehp_sn.requirements import ONE, ContractCategory, Requirement
 
 from . import configuration, generation, inspection, planning, validation
+
+#: Consumer-local role for the authoritative benchmark examples.
+EXAMPLES_ROLE = "examples"
 
 _DESCRIPTION = (
     "Maze-hard task: "
@@ -14,12 +17,17 @@ _DESCRIPTION = (
 )
 
 
-class Definition(tasks.Definition):
+class Definition(
+    tasks.Definition[
+        configuration.Configuration,
+        sample_dataset.Artifact,
+    ]
+):
     def resolve_configuration(
         self,
         *,
-        document: tasks.LoadedConfiguration,
-    ) -> tasks.Configuration:
+        document: tasks.BoundProducerConfiguration,
+    ) -> configuration.Configuration:
         return configuration.resolve(
             document=document,
         )
@@ -27,23 +35,23 @@ class Definition(tasks.Definition):
     def plan(
         self,
         *,
-        config: tasks.Configuration,
-        sources: tasks.ResolvedSources,
+        config: configuration.Configuration,
+        dependencies: tasks.ResolvedDependencies,
     ) -> tasks.PlanningDeclaration:
         return planning.create(
             config=config,
-            topology=sources.require(topology.ROLE),
+            examples=dependencies.require(EXAMPLES_ROLE, maze_examples.MazeExamples).value,
         )
 
     def build(
         self,
         *,
-        config: tasks.Configuration,
-        sources: tasks.ResolvedSources,
-    ) -> tasks.BuildResult:
+        config: configuration.Configuration,
+        dependencies: tasks.ResolvedDependencies,
+    ) -> tasks.BuildResult[sample_dataset.Artifact]:
         return generation.generate(
             config=config,
-            topology=sources.require(topology.ROLE),
+            examples=dependencies.require(EXAMPLES_ROLE, maze_examples.MazeExamples).value,
         )
 
     def validate(
@@ -81,8 +89,13 @@ class Definition(tasks.Definition):
 DEFINITION = Definition(
     ref=components.ComponentRef(kind="task", name="maze-hard", version=1),
     description=_DESCRIPTION,
-    sources={
-        topology.ROLE: raster_topology.V1,
+    requirements={
+        EXAMPLES_ROLE: Requirement(
+            role=EXAMPLES_ROLE,
+            contract=maze_examples.V1,
+            category=ContractCategory.ACQUISITION,
+            cardinality=ONE,
+        ),
     },
     contract=sample_dataset.V1,
 )

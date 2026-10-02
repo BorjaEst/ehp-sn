@@ -1,13 +1,19 @@
 from __future__ import annotations
 
-from ehp_sn import components, execution, tasks
+from ehp_sn import components, tasks
+from ehp_sn.artifacts import ArtifactRef
 from ehp_sn.contracts.data.datasets.records import sample_dataset
-from ehp_sn.contracts.data.structures import observations, relations, topology
 from ehp_sn.contracts.data.structures.observations import categorical_field
 from ehp_sn.contracts.data.structures.relations import simple_digraph
 from ehp_sn.contracts.data.structures.topology import raster_topology
+from ehp_sn.requirements import ONE, ContractCategory, Requirement
 
-from . import configuration, generation, inspection, planning, state, validation
+from . import configuration, generation, inspection, planning, validation
+
+#: Consumer-local roles. Prospect owns these; the contracts do not.
+TOPOLOGY_ROLE = "topology"
+OBSERVATION_ROLE = "observation"
+RELATIONS_ROLE = "relations"
 
 _DESCRIPTION = (
     "Memory-conditioned spatial-semantic prospective routing task: "
@@ -17,12 +23,17 @@ _DESCRIPTION = (
 )
 
 
-class Definition(tasks.Definition):
+class Definition(
+    tasks.Definition[
+        configuration.Configuration,
+        sample_dataset.Artifact,
+    ]
+):
     def resolve_configuration(
         self,
         *,
-        document: tasks.LoadedConfiguration,
-    ) -> tasks.Configuration:
+        document: tasks.BoundProducerConfiguration,
+    ) -> configuration.Configuration:
         return configuration.resolve(
             document=document,
         )
@@ -30,36 +41,27 @@ class Definition(tasks.Definition):
     def plan(
         self,
         *,
-        config: tasks.Configuration,
-        sources: tasks.ResolvedSources,
+        config: configuration.Configuration,
+        dependencies: tasks.ResolvedDependencies,
     ) -> tasks.PlanningDeclaration:
         return planning.create(
             config=config,
-            topology=sources.require(topology.ROLE),
-            observation=sources.require(observations.ROLE),
-            relations=sources.require(relations.ROLE),
+            topology=dependencies.require(TOPOLOGY_ROLE, ArtifactRef).value,
+            observation=dependencies.require(OBSERVATION_ROLE, ArtifactRef).value,
+            relations=dependencies.require(RELATIONS_ROLE, ArtifactRef).value,
         )
 
     def build(
         self,
         *,
-        config: tasks.Configuration,
-        sources: tasks.ResolvedSources,
-    ) -> tasks.BuildResult:
+        config: configuration.Configuration,
+        dependencies: tasks.ResolvedDependencies,
+    ) -> tasks.BuildResult[sample_dataset.Artifact]:
         return generation.generate(
             config=config,
-            topology=sources.require(topology.ROLE),
-            observation=sources.require(observations.ROLE),
-            relations=sources.require(relations.ROLE),
-        )
-
-    def state_requirements(
-        self,
-        *,
-        artifact: sample_dataset.Artifact,
-    ) -> tuple[execution.StateRequirement, ...]:
-        return state.requirements(
-            artifact=artifact,
+            topology=dependencies.require(TOPOLOGY_ROLE, ArtifactRef).value,
+            observation=dependencies.require(OBSERVATION_ROLE, ArtifactRef).value,
+            relations=dependencies.require(RELATIONS_ROLE, ArtifactRef).value,
         )
 
     def validate(
@@ -97,12 +99,26 @@ class Definition(tasks.Definition):
 DEFINITION = Definition(
     ref=components.ComponentRef(kind="task", name="prospect", version=1),
     description=_DESCRIPTION,
-    sources={
-        topology.ROLE: raster_topology.V1,
-        observations.ROLE: categorical_field.V1,
-        relations.ROLE: simple_digraph.V1,
+    requirements={
+        TOPOLOGY_ROLE: Requirement(
+            role=TOPOLOGY_ROLE,
+            contract=raster_topology.V1,
+            category=ContractCategory.CONTENT,
+            cardinality=ONE,
+        ),
+        OBSERVATION_ROLE: Requirement(
+            role=OBSERVATION_ROLE,
+            contract=categorical_field.V1,
+            category=ContractCategory.CONTENT,
+            cardinality=ONE,
+        ),
+        RELATIONS_ROLE: Requirement(
+            role=RELATIONS_ROLE,
+            contract=simple_digraph.V1,
+            category=ContractCategory.CONTENT,
+            cardinality=ONE,
+        ),
     },
-    states={state.ROLE: state.CONTRACT},
     contract=sample_dataset.V1,
 )
 

@@ -1,23 +1,19 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
-from ehp_sn import tasks
+from ehp_sn import artifacts
+from ehp_sn.contracts.data.datasets.records import sample_dataset
+from ehp_sn.core import BuildResult
 
 from .configuration import Configuration
-
-
-@dataclass(frozen=True)
-class BuildResult(tasks.BuildResult): ...
 
 
 def generate(
     config: Configuration,
     *,
-    topology: tasks.ResolvedSource,
-    observation: tasks.ResolvedSource,
-    semantic_graph_source: tasks.ResolvedSource,
-) -> BuildResult: ...
+    topology: artifacts.ArtifactRef,
+    observation: artifacts.ArtifactRef,
+    relations: artifacts.ArtifactRef,
+) -> BuildResult[sample_dataset.Artifact]: ...
 
 
-__all__ = ["generate", "BuildResult"]
+__all__ = ["generate"]

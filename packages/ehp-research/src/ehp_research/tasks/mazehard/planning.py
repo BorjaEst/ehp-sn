@@ -1,21 +1,16 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
-from ehp_sn import tasks
+from ehp_sn import planning
+from ehp_sn.contracts.acquisition.maze_examples import MazeExamples
 
 from .configuration import Configuration
-
-
-@dataclass(frozen=True)
-class PlanningDeclaration(tasks.PlanningDeclaration): ...
 
 
 def create(
     config: Configuration,
     *,
-    topology: tasks.ResolvedSource,
-) -> PlanningDeclaration: ...
+    examples: MazeExamples,
+) -> planning.PlanningDeclaration: ...
 
 
-__all__ = ["create", "PlanningDeclaration"]
+__all__ = ["create"]
