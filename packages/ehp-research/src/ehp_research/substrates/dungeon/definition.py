@@ -1,20 +1,27 @@
 from __future__ import annotations
 
 from ehp_sn import components, substrates
-from ehp_sn.contracts.acquisition import maze_examples
+from ehp_sn.contracts.capabilities import raster_generator
 from ehp_sn.contracts.data.structures.topology import raster_topology
-from ehp_sn.requirements import ONE, ContractCategory, Requirement
+from ehp_sn.requirements import (
+    ONE,
+    CapabilityFields,
+    ContractCategory,
+    RequestPolicy,
+    Requirement,
+    ResourceCategory,
+)
 
 from . import configuration, generation, inspection, planning, validation
 
 _DESCRIPTION = (
-    "Reusable raster maze-topology substrate: "
-    "normalized raster topologies extracted from an authoritative external "
-    "source and conforming to raster-topology/v1."
+    "Reusable procedural irregular raster-topology substrate: "
+    "normalized raster topologies generated through the declared external "
+    "generator integration and conforming to raster-topology/v1."
 )
 
-#: The acquisition role this substrate declares for its authoritative source.
-AUTHORITATIVE_SOURCE_ROLE = "authoritative_source"
+#: The consumer-local capability role Dungeon declares for raster generation.
+GENERATOR_ROLE = "generator"
 
 
 class Definition(substrates.Definition[configuration.Configuration, raster_topology.Artifact]):
@@ -35,7 +42,7 @@ class Definition(substrates.Definition[configuration.Configuration, raster_topol
     ) -> substrates.PlanningDeclaration:
         return planning.create(
             config=config,
-            examples=dependencies.require(AUTHORITATIVE_SOURCE_ROLE, maze_examples.MazeExamples).value,
+            generator=dependencies.require(GENERATOR_ROLE, raster_generator.RasterGenerator).value,
         )
 
     def build(
@@ -46,7 +53,7 @@ class Definition(substrates.Definition[configuration.Configuration, raster_topol
     ) -> substrates.BuildResult[raster_topology.Artifact]:
         return generation.generate(
             config=config,
-            examples=dependencies.require(AUTHORITATIVE_SOURCE_ROLE, maze_examples.MazeExamples).value,
+            generator=dependencies.require(GENERATOR_ROLE, raster_generator.RasterGenerator).value,
         )
 
     def validate(
@@ -82,14 +89,18 @@ class Definition(substrates.Definition[configuration.Configuration, raster_topol
 
 
 DEFINITION = Definition(
-    ref=components.ComponentRef(kind="substrate", name="maze-nd", version=1),
+    ref=components.ComponentRef(kind="substrate", name="dungeon", version=1),
     description=_DESCRIPTION,
     requirements={
-        AUTHORITATIVE_SOURCE_ROLE: Requirement(
-            role=AUTHORITATIVE_SOURCE_ROLE,
-            contract=maze_examples.V1,
-            category=ContractCategory.ACQUISITION,
+        GENERATOR_ROLE: Requirement(
+            role=GENERATOR_ROLE,
+            contract=raster_generator.V1,
+            category=ContractCategory.CAPABILITY,
             cardinality=ONE,
+            capability=CapabilityFields(
+                resource_category=ResourceCategory.NONE,
+                request_policy=RequestPolicy.ALLOWED,
+            ),
         ),
     },
     contract=raster_topology.V1,

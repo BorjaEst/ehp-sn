@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+from ehp_sn.substrates import (
+    BuildResult,
+    InspectResult,
+    PlanningDeclaration,
+    SummaryResult,
+    ValidateResult,
+    ValidationLevel,
+)
+
 from .configuration import Configuration
 from .definition import DEFINITION
 from .figures import inspection_figure, summary_figure
-from .generation import BuildResult
-from .inspection import InspectResult, SummaryResult
-from .planning import PlanningDeclaration
-from .validation import ValidateResult, ValidationLevel
 
 __all__ = [
     "DEFINITION",

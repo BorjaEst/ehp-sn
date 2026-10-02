@@ -1,14 +1,21 @@
 from __future__ import annotations
 
-from ehp_sn.discovery import SubstrateRegistry, TaskRegistry
+from ehp_sn.discovery import ResourceRegistry, SubstrateRegistry, TaskRegistry
 
-from .substrates import dagflow, dungeongen, mazend, obsfield
+from .resources import dungeongen, flaitenberger
+from .substrates import dagflow, dungeon, mazend, obsfield
 from .tasks import arena, mazehard, prospect, routebind
+
+
+def register_resources(registry: ResourceRegistry) -> None:
+    """Register the resource declarations; never acquire or construct them."""
+    registry.register(dungeongen.DEFINITION)
+    registry.register(flaitenberger.DEFINITION)
 
 
 def register_substrates(registry: SubstrateRegistry) -> None:
     registry.register(dagflow.DEFINITION)
-    registry.register(dungeongen.DEFINITION)
+    registry.register(dungeon.DEFINITION)
     registry.register(mazend.DEFINITION)
     registry.register(obsfield.DEFINITION)
 
@@ -20,4 +27,4 @@ def register_tasks(registry: TaskRegistry) -> None:
     registry.register(routebind.DEFINITION)
 
 
-__all__ = ["register_substrates", "register_tasks"]
+__all__ = ["register_resources", "register_substrates", "register_tasks"]

@@ -11,12 +11,17 @@ _DESCRIPTION = (
 )
 
 
-class Definition(substrates.Definition):
+class Definition(
+    substrates.Definition[
+        configuration.Configuration,
+        simple_digraph.Artifact,
+    ]
+):
     def resolve_configuration(
         self,
         *,
-        document: substrates.LoadedConfiguration,
-    ) -> substrates.Configuration:
+        document: substrates.BoundProducerConfiguration,
+    ) -> configuration.Configuration:
         return configuration.resolve(
             document=document,
         )
@@ -24,7 +29,8 @@ class Definition(substrates.Definition):
     def plan(
         self,
         *,
-        config: substrates.Configuration,
+        config: configuration.Configuration,
+        dependencies: substrates.ResolvedDependencies,
     ) -> substrates.PlanningDeclaration:
         return planning.create(
             config=config,
@@ -33,8 +39,9 @@ class Definition(substrates.Definition):
     def build(
         self,
         *,
-        config: substrates.Configuration,
-    ) -> substrates.BuildResult:
+        config: configuration.Configuration,
+        dependencies: substrates.ResolvedDependencies,
+    ) -> substrates.BuildResult[simple_digraph.Artifact]:
         return generation.generate(
             config=config,
         )

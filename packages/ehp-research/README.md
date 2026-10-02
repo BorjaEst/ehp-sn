@@ -95,16 +95,20 @@ data/processed/
 
 Exact upstream artifacts and other reproducibility-relevant build choices are resolved through the framework configuration/resource-binding mechanism.
 
+### Resources
+
+TODO
+
 ### Substrates
 
 Current substrate specifications include:
 
-| Reference       | Purpose                                                          |
-| --------------- | ---------------------------------------------------------------- |
-| `dungeongen/v1` | Procedurally generated raster topology                           |
-| `maze-nd/v1`    | Normalized reusable raster topology from an external maze source |
-| `obsfield/v1`   | Independent persistent categorical observation fields            |
-| `dagflow/v1`    | Reusable directed graph structure                                |
+| Reference     | Purpose                                                          |
+| ------------- | ---------------------------------------------------------------- |
+| `dungeon/v1`  | Procedurally generated raster topology                           |
+| `maze-nd/v1`  | Normalized reusable raster topology from an external maze source |
+| `obsfield/v1` | Independent persistent categorical observation fields            |
+| `dagflow/v1`  | Reusable directed graph structure                                |
 
 Some producers may share a research-owned task-facing schema where several research components require the same domain representation.
 
