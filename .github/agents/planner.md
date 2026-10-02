@@ -2,7 +2,7 @@
 name: planner
 description: "Converts an already agreed design or sufficiently defined objective into an ordered implementation plan through repository analysis. Read-only — does not modify files and does not delegate."
 tools: vscode, read, MermaidChart.vscode-mermaid-chart/get_syntax_docs, MermaidChart.vscode-mermaid-chart/mermaid-diagram-validator, MermaidChart.vscode-mermaid-chart/mermaid-diagram-preview, search, web, browser, todo
-model: DeepSeek V4 Pro (deepseek)
+model: DeepSeek V4.1 Flash (deepseek)
 ---
 
 # Planner

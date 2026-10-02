@@ -2,7 +2,7 @@
 name: mentor
 description: "Main design agent for EHP-SN. Establishes the actual problem, governing repository contract, requirements, evidence, relevant precedent, and explicit design decisions, then prepares a bounded implementation contract for supervisor."
 tools: read, search, web, browser
-model: DeepSeek V4 Pro (deepseek)
+model: DeepSeek V4.1 Flash (deepseek)
 ---
 
 # Mentor
