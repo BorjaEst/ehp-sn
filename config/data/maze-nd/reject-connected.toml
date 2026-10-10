@@ -1,9 +1,0 @@
-[substrate]
-variant = "source-topology"
-
-[sources.authoritative_source]
-kind = "external"
-ref  = "external-source:flaitenberger/maze-hard-augmented/v1"
-
-[records]
-connectivity = "reject"
