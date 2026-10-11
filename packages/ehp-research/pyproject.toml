@@ -1,62 +1,63 @@
 [build-system]
-    requires      = ["setuptools>=68,<81", "wheel"]
-    build-backend = "setuptools.build_meta"
+requires      = ["setuptools>=68,<81", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
-    name = "ehp-research"
-    description = "Entorhinal-Hippocampal Circuit (EHP) Research library"
-    authors = [{ name = "Borja Esteban Sanchis" }]
-    license = { text = "GNU General Public License v3.0" }
-    classifiers = [
-        "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.12",
-        "Topic :: Scientific/Engineering :: Artificial Intelligence",
-        "Topic :: Scientific/Engineering :: Bio-Informatics",
-        "Topic :: Scientific/Engineering :: Neuroscience",
-    ]
-    keywords = [
-        "neuroscience",
-        "spatial navigation",
-        "hippocampus",
-        "entorhinal cortex",
-        "neural modeling",
-    ]
-    requires-python = ">=3.12"
-    dynamic = ["version", "readme"]
-    dependencies = [
-        "ehp-sn>=0.1.0",
-        "dungeongen==0.1.14",
-    ]
+name = "ehp-research"
+description = "Entorhinal-Hippocampal Circuit (EHP) Research library"
+authors = [{ name = "Borja Esteban Sanchis" }]
+license = { text = "GNU General Public License v3.0" }
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Neuroscience",
+]
+keywords = [
+    "neuroscience",
+    "spatial navigation",
+    "hippocampus",
+    "entorhinal cortex",
+    "neural modeling",
+]
+requires-python = ">=3.12"
+dynamic = ["version", "readme"]
+dependencies = [
+    "ehp-sn>=0.1.0",
+    "dungeongen==0.1.14",
+    "networkx~=3.6",
+    "numpy~=2.4",
+]
 
 [project.entry-points."ehp_sn.providers"]
-    ehp_research = "ehp_research.registration:register_components"
+ehp_research = "ehp_research.registration:register_components"
 
 [project.entry-points."ehp_sn.planning.providers"]
-    ehp_research = "ehp_research.registration:planning_composition_source"
+ehp_research = "ehp_research.registration:planning_composition_source"
 
 [project.entry-points."ehp_sn.execution.providers"]
-    ehp_research = "ehp_research.registration:execution_composition_source"
+ehp_research = "ehp_research.registration:execution_composition_source"
 
 [project.entry-points."ehp_sn.figures.providers"]
-    ehp_research = "ehp_research.figures.providers:figure_provider"
+ehp_research = "ehp_research.figures.providers:figure_provider"
 
 [project.urls]
-    "Homepage"      = "https://github.com/BorjaEst/ehp-sn"
-    "Bug Tracker"   = "https://github.com/BorjaEst/ehp-sn/issues"
-    "Documentation" = "https://ehp-sn.readthedocs.io"
+"Homepage"      = "https://github.com/BorjaEst/ehp-sn"
+"Bug Tracker"   = "https://github.com/BorjaEst/ehp-sn/issues"
+"Documentation" = "https://ehp-sn.readthedocs.io"
 
 [tool.setuptools]
-    package-dir = { "" = "src" }
+package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
-    where = ["src"]
+where = ["src"]
 
 [tool.setuptools.dynamic]
-    version = { file = "VERSION" }
-    readme  = { file = "README.md" }
+version = { file = "VERSION" }
+readme  = { file = "README.md" }
 
 [tool.setuptools.package-data]
-    ehp_research = ["py.typed", "**/*.yaml", "**/*.yml"]
-
+ehp_research = ["py.typed", "**/*.yaml", "**/*.yml"]
