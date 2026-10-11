@@ -1,0 +1,75 @@
+[execution]
+halt_action     = 0
+episode_horizon = 16
+
+[training]
+num_slots           = 8
+halt_disabled_steps = 5000
+
+[training.optimizer_supervised]
+lr           = 1.0e-4
+weight_decay = 1.0e-2
+betas        = [0.9, 0.98]
+
+[training.optimizer_rl]
+lr           = 1.0e-4
+weight_decay = 1.0e-2
+betas        = [0.9, 0.98]
+
+[training.optimizer_qv]
+lr           = 1.0e-4
+weight_decay = 1.0e-2
+betas        = [0.9, 0.98]
+
+[training.reward]
+success_reward         = 1.0
+continue_cost          = -0.01
+incorrect_halt_penalty = -1.0
+truncation_penalty     = -1.0
+
+[training.scheduler]
+warmup_steps = 0
+min_ratio    = 0.0
+
+[data]
+eval_batch_size    = 8
+num_workers        = 4
+prefetch_factor    = 2
+pin_memory         = true
+persistent_workers = true
+augment            = true
+seed               = 42
+
+[trainer]
+accelerator        = "gpu"
+strategy           = "ddp"
+devices            = 1
+num_nodes          = 1
+precision          = "16-mixed"
+max_steps          = 200000
+val_check_interval = 500
+log_every_n_steps  = 10
+seed               = 42
+
+[checkpointing]
+init_weights_groups = ["all"]
+diagnostic_level    = "standard"
+non_finite_policy   = "raise"
+
+[checkpointing.periodic]
+enabled             = true
+every_n_train_steps = 1000
+save_last           = true
+save_on_exception   = true
+
+[checkpointing.selection]
+enabled = false
+mode    = "max"
+
+[checkpointing.artifact]
+enabled      = false
+state_source = "best"
+
+[logging]
+save_dir  = "logs"
+log_graph = false

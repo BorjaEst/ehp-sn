@@ -1,0 +1,60 @@
+[regime]
+halt_disabled_steps = 0
+single_step         = false
+
+[training]
+num_slots         = 8
+gradient_clip_val = 1.0
+use_token_weights = false
+
+[training.optimizer]
+lr           = 1.0e-4
+weight_decay = 1.0e-2
+betas        = [0.9, 0.98]
+
+[training.scheduler]
+warmup_steps = 0
+min_ratio    = 0.0
+
+[data]
+eval_batch_size    = 8
+num_workers        = 4
+prefetch_factor    = 2
+pin_memory         = true
+persistent_workers = true
+augment            = true
+seed               = 42
+
+[trainer]
+accelerator        = "gpu"
+strategy           = "ddp"
+devices            = 1
+num_nodes          = 1
+precision          = "16-mixed"
+max_steps          = 200000
+val_check_interval = 500
+log_every_n_steps  = 10
+seed               = 42
+
+[checkpointing]
+init_weights_groups = ["all"]
+diagnostic_level    = "standard"
+non_finite_policy   = "raise"
+
+[checkpointing.periodic]
+enabled             = true
+every_n_train_steps = 1000
+save_last           = true
+save_on_exception   = true
+
+[checkpointing.selection]
+enabled = false
+mode    = "max"
+
+[checkpointing.artifact]
+enabled      = false
+state_source = "best"
+
+[logging]
+save_dir  = "logs"
+log_graph = false

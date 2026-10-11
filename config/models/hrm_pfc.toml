@@ -1,0 +1,9 @@
+[pfc]
+seq_length = "UNRESOLVED"
+
+[pfc.value_head]
+hidden_size = "UNRESOLVED"
+
+[pfc.cortex]
+embedding_dim = "UNRESOLVED"
+num_heads     = "UNRESOLVED"

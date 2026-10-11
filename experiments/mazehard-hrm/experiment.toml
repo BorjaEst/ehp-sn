@@ -1,0 +1,8 @@
+[experiment]
+name        = "mazehard-hrm"
+description = "Investigation of HRM deliberation learning on MazeHard mazes."
+
+[research]
+question     = "How does HRM learn to deliberate and halt on MazeHard mazes?"
+task         = "mazehard"
+model_family = "hrm-v1"

@@ -1,0 +1,8 @@
+[experiment]
+name        = "arena-tem-t"
+description = "Investigation of TEM v2 learning and generalization on Arena navigation tasks."
+
+[research]
+question     = "How does TEM v2 acquire and generalize environment-specific spatial representations?"
+task         = "arena"
+model_family = "tem-v2"

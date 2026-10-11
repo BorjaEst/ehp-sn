@@ -1,0 +1,8 @@
+[experiment]
+name        = "routebind-hrm"
+description = "Investigation of HRM route-binding learning on RouteBind navigation tasks."
+
+[research]
+question     = "How does HRM learn route-binding representations for navigation?"
+task         = "routebind"
+model_family = "hrm-v1"

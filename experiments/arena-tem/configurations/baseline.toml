@@ -1,0 +1,40 @@
+[configuration]
+name        = "baseline"
+description = "Baseline TEM training and evaluation on the default Arena corpus."
+
+[artifacts]
+training_corpus   = "data/processed/arena/default/v1"
+evaluation_corpus = "data/processed/arena/default/v1"
+
+[partitions]
+training   = "train"
+validation = "val"
+evaluation = "test"
+
+[model]
+definition    = "tem-v1"
+configuration = "../../../config/models/tem_attractor.toml"
+
+[adapter]
+action_count = 5
+
+[adapter.encoder]
+kind   = "two_hot"
+layout = "replicated"
+
+[adapter.decoder]
+kind            = "single_scale"
+prediction_freq = 0
+
+[controller]
+
+[objective]
+
+[training]
+configuration = "../../../config/training/replay_tbptt25.toml"
+
+[evaluation]
+configuration = "../../../config/evaluation/replay_memory_reset.toml"
+
+[tracking]
+run_name = "baseline"

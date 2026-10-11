@@ -1,0 +1,32 @@
+[configuration]
+name        = "baseline"
+description = "Baseline HRM v2 actor-critic training and evaluation on the default MazeHard corpus."
+
+[artifacts]
+training_corpus   = "data/processed/mazehard/default/v1"
+evaluation_corpus = "data/processed/mazehard/default/v1"
+
+[partitions]
+training   = "train"
+validation = "val"
+evaluation = "test"
+
+[model]
+definition    = "hrm-v2"
+configuration = "../../../config/models/hrm_pfc_str.toml"
+
+[adapter]
+vocab_size = "UNRESOLVED"
+
+[controller]
+
+[objective]
+
+[training]
+configuration = "../../../config/training/actor_critic.toml"
+
+[evaluation]
+configuration = "../../../config/evaluation/replay_metrics_only.toml"
+
+[tracking]
+run_name = "baseline"

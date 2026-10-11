@@ -1,0 +1,8 @@
+[experiment]
+name        = "mazehard-hrm-rl"
+description = "Investigation of HRM v2 reinforcement learning on MazeHard mazes."
+
+[research]
+question     = "How does HRM v2 learn deliberation and halting policies on MazeHard mazes through reinforcement learning?"
+task         = "mazehard"
+model_family = "hrm-v2"

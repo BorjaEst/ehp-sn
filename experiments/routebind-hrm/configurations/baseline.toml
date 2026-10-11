@@ -1,0 +1,37 @@
+[configuration]
+name        = "baseline"
+description = "Baseline HRM v1 training and evaluation on the default RouteBind corpus."
+
+[artifacts]
+training_corpus   = "data/processed/routebind/default/v1"
+evaluation_corpus = "data/processed/routebind/default/v1"
+
+[partitions]
+training   = "train"
+validation = "val"
+evaluation = "test"
+
+[model]
+definition    = "hrm-v1"
+configuration = "../../../config/models/hrm_pfc.toml"
+
+[adapter]
+grid_height = "UNRESOLVED"
+grid_width  = "UNRESOLVED"
+
+[controller]
+max_halt_steps   = "UNRESOLVED"
+exploration_prob = "UNRESOLVED"
+
+[task_evaluator]
+
+[scorer]
+
+[training]
+configuration = "../../../config/training/act_supervised.toml"
+
+[evaluation]
+configuration = "../../../config/evaluation/replay_metrics_only.toml"
+
+[tracking]
+run_name = "baseline"

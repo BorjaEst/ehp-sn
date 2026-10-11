@@ -1,0 +1,13 @@
+[evaluation]
+memory_reset = "per-episode"
+
+[runtime]
+device        = "auto"
+batch_size    = 1
+workers       = 0
+precision     = "32"
+deterministic = true
+
+[capture]
+enabled = true
+profile = "metrics_only"
