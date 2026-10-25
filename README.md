@@ -2428,7 +2428,7 @@ Performance-driven identifier encodings, storage layouts, and optimizations rema
 
 ---
 
-## 14. Open scientific and architectural questions
+## 14. Open scientific and architectural questions and pending verification
 
 The following questions affect completeness of the current architecture or concrete implementation decisions.
 
@@ -2441,45 +2441,11 @@ The following questions affect completeness of the current architecture or concr
 | FlatWorld | Supported topology families and generation parameters                                   | Concrete scientific task requirements                     |
 | ObsField  | Additional assignment protocols and their scientific constraints                        | Observation-generation research requirements              |
 
-### 14.2 Domain and position contract
+### 14.2 Position-interoperability implementation status
 
-The domain and position implementation conventions are established in Section 15.1. Remaining work concerns executable validation of the approved profile.
+The domain, position, vocabulary, spatial-graph, categorical observation-field, correspondence and artifact-package contracts are established by Section 15.1. The solution-selection investigation for their conformance verification is complete. Implementation, executable validation and reference-artifact conformance remain pending as described in Section 15.2 and its separate engineering verification plan; these are not unresolved architectural choices.
 
-| Pending verification        | Acceptance evidence                                                                              |
-| --------------------------- | ------------------------------------------------------------------------------------------------ |
-| UUID issuance and reuse     | New domains receive distinct UUIDv4 URNs; replay of an identified domain retains its ID          |
-| Domain identity consistency | Equal domain IDs with conflicting membership or addressing semantics are rejected                |
-| Family declarations         | JSON Schema and semantic validation for count-only, rectangular, hexagonal and irregular domains |
-| Coordinate reconstruction   | Deterministic row-major conversion and finite axial-cell reconstruction                          |
-| GraphML interoperability    | Graph type, node identity, edges and required metadata survive write/read                        |
-| Cross-domain relations      | Endpoint membership and task-required mapping properties are validated                           |
-
-### 14.3 Categorical observation contract
-
-ObsField's categorical schema and string observation identifiers are selected. Open work is confined to validation and broader scientific requirements beyond the initial categorical profile.
-
-| Pending verification or requirement    | Evidence required                                                                            |
-| -------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Parquet round trip                     | String field types, schema metadata, domain/vocabulary references and values survive loading |
-| Assignment conformance                 | Non-null values, unique positions, total domain coverage and vocabulary membership           |
-| Vocabulary consistency                 | Declarations with equal identity agree on observation membership and interpretation          |
-| Metadata consistency                   | Packaged resources and optional independent context agree on all duplicated references       |
-| Realization organization and retrieval | Representative corpus fixture and reproducibility checks                                     |
-| Structure-conditioned generation       | Generator inputs, scientific constraints and provenance                                      |
-
-### 14.4 Artifact packaging
-
-Data Package 2.0 with local relative resources is selected as the portable package descriptor. A versioned EHP resource-role and identity-reference convention is specified in Section 15.1.
-
-| Pending verification            | Acceptance evidence                                                                             |
-| ------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Descriptor conformance          | Data Package 2.0 descriptor and EHP metadata checks pass                                        |
-| Resource resolution             | Relative resources resolve within the package and reject unsafe paths                           |
-| Context equivalence             | A packaged artifact and an equivalent explicitly supplied context resolve the same declarations |
-| Realization identity/provenance | Required declarations and generation references remain recoverable                              |
-| Integrity                       | Declared resource hashes, when present, are correctly verified                                  |
-
-### 14.5 Task scientific requirements
+### 14.3 Task scientific requirements
 
 | Task      | Open requirement                                           | Evidence required                           |
 | --------- | ---------------------------------------------------------- | ------------------------------------------- |
@@ -2496,7 +2462,7 @@ Data Package 2.0 with local relative resources is selected as the portable packa
 | MazeHard  | Exact dataset revision, encodings, and partitions          | Dataset and reference code                  |
 | MazeHard  | Solution equivalence and correctness criteria              | Published benchmark evaluator               |
 
-### 14.6 Scientific model requirements
+### 14.4 Scientific model requirements
 
 | Model  | Open requirement                                                        | Evidence required                        |
 | ------ | ----------------------------------------------------------------------- | ---------------------------------------- |
@@ -2505,7 +2471,7 @@ Data Package 2.0 with local relative resources is selected as the portable packa
 | HRM    | Hierarchical recurrence, adaptive computation, halting, and training    | Publication and reference implementation |
 | HRM-RL | Scientific hypothesis, learning signals, and comparison conditions      | Experiment definition                    |
 
-### 14.7 Reusable computational mechanisms
+### 14.5 Reusable computational mechanisms
 
 The `ehp-sn` mechanism inventory depends on verifying:
 
@@ -2519,7 +2485,7 @@ The `ehp-sn` mechanism inventory depends on verifying:
 
 The evidence consists of reference equations, model code, and actual cross-model reuse requirements.
 
-### 14.8 Learning ownership and interfaces
+### 14.6 Learning ownership and interfaces
 
 The separation between model-specific and reusable learning mechanisms requires evidence from:
 
@@ -2533,7 +2499,7 @@ The separation between model-specific and reusable learning mechanisms requires 
 
 Concrete dataset and Environment Runtime interfaces must follow the scientific learning procedure.
 
-### 14.9 Model–task integration
+### 14.7 Model–task integration
 
 Outstanding integration requirements include:
 
@@ -2555,7 +2521,7 @@ The first identified integrations are:
 - MazeHard–HRM.
 - Prospective semantic–spatial reasoning tasks.
 
-### 14.10 Experimental reproducibility
+### 14.8 Experimental reproducibility
 
 Concrete experiment families must establish:
 
@@ -2570,7 +2536,7 @@ Concrete experiment families must establish:
 
 MLflow and PyTorch-native checkpoints provide the selected implementation foundations.
 
-### 14.11 Corpus-scale performance
+### 14.9 Corpus-scale performance
 
 Representative workloads are required before selecting performance-oriented optimizations.
 
@@ -2680,7 +2646,7 @@ The Arrow schema carries UTF-8-encoded metadata entries `domain_id`, `vocabulary
 
 For complete categorical fields, the set of `position_id` values equals the declared finite domain, and each domain position occurs exactly once. This includes positions that a separately supplied topology classifies as blocked. Row order is not part of scientific identity. Dictionary indices and model tensor indices are implementation encodings, not persistent observation identities.
 
-PyArrow Parquet serialization retains the logical string columns and required schema metadata under the tested supported writer/reader configuration (including Arrow schema storage). Other readers must be checked for metadata loss. A portable package or explicit consuming context supplies the authoritative domain and vocabulary declarations; required ID references embedded in the table must agree with them.
+PyArrow Parquet serialization must retain the logical string columns and required schema metadata under the supported writer/reader configuration (including Arrow schema storage); this behavior remains subject to conformance testing. Other readers must be checked for metadata loss. A portable package or explicit consuming context supplies the authoritative domain and vocabulary declarations; required ID references embedded in the table must agree with them.
 
 #### 15.1.5 Cross-domain position correspondence
 
@@ -2720,35 +2686,24 @@ Validation proceeds across the information boundaries:
 
 Arena composes spatial topology and a categorical ObsField, then applies its configured `grid4`/`grid6` movement requirements. RouteBind and Prospect compose the compatible spatial and observation information with their semantic state-graph requirements. For Prospect, the construction graph remains distinct from the spatial topology and subject to its task-defined information-visibility rules.
 
-The profile is **approved as the Section 15.1 implementation contract**. The conformance cases in Section 15.2 are **pending tests**, not verified implementation results. No GraphML/Parquet/Data Package fixture is claimed to have passed end-to-end, and representative EHP corpus performance remains unmeasured.
+The profile is **approved as the Section 15.1 implementation contract**. Implementation and conformance verification remain pending under Section 15.2. No GraphML/Parquet/Data Package fixture is claimed to have passed end-to-end, and representative EHP corpus performance remains unmeasured.
 
-### 15.2 Required verification
+### 15.2 Position-interoperability implementation status
 
-The resulting contract must demonstrate the following behaviors.
+**Specification status:** Approved (`position-interop/1.0`).  
+**Technical solution evaluation:** Completed.  
+**Implementation status:** Pending.  
+**Conformance status:** Not verified.
 
-| Verification case         | Acceptance condition                                                                                        |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Shared-domain composition | Independently persisted topology and observation field correctly identify corresponding positions           |
-| Domain mismatch           | Equal labels across unrelated domains do not establish direct correspondence                                |
-| Explicit mapping          | Different domains can be composed when their mapping satisfies task requirements                            |
-| GraphML round-trip        | Domain and position meaning, connectivity, and required metadata survive persistence                        |
-| Parquet round-trip        | Position identities, observations, and required declarations survive persistence                            |
-| Rectangular indexing      | Coordinate-to-index correspondence is reproducible under the declared convention                            |
-| Hexagonal indexing        | Axial coordinates and finite boundaries reconstruct the intended `grid6` domain                             |
-| Irregular domain          | Explicit ambient position membership remains recoverable                                                    |
-| Blocked locations         | ObsField assignments remain valid while topology limits traversable positions                               |
-| Count-only field          | Indexed observations remain usable without geometric declarations                                           |
-| Realization packaging     | Resources and their scientific metadata remain identifiable and independently loadable                      |
-| Invalid composition       | Missing, ambiguous, or scientifically incompatible correspondences are rejected                             |
-| Reproducible identity     | Reloading/replaying an identified domain preserves its ID, while independent issuance creates a distinct ID |
-| Metadata consistency      | Conflicting or lost mandatory domain/vocabulary references are detected in the relevant interchange mode    |
-| Vocabulary compatibility  | Field values resolve to the declared vocabulary; semantic graph use respects that identity                  |
+Section 15.1 defines the normative position-interoperability contract. Its architectural solution selection is complete; no additional architecture investigation is required for the approved contract.
 
-These cases are **planned conformance tests**; passing behavior has not been established by a complete cross-format EHP fixture.
+The evaluated implementation direction uses established JSON Schema, NetworkX and PyArrow capabilities, Data Package 2.0 packaging, and pytest-driven conformance tests. Frictionless descriptor validation is the preferred researched candidate, not yet an approved or verified tooling selection. Narrow EHP scientific consistency checks remain necessary where generic formats do not express the approved contract's semantics.
+
+Implementation work includes machine-readable declarations, reference artifacts, serialization round trips, scientific identity and reference validation, package/context resolution, negative tests and representative task integration. The executable conformance cases are maintained separately as an engineering verification plan. No successful end-to-end conformance execution is claimed.
 
 ### 15.3 Subsequent investigations
 
-Following approval of the position-interoperability profile, the conformance tests in Section 15.2 remain to be executed. The following additional investigations remain:
+The following scientific and architectural investigations remain:
 
 - Complete observation-vocabulary semantics and model-facing categorical encodings beyond the minimum interchange references.
 - Verify Arena's complete episode and dataset semantics.
