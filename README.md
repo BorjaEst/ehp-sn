@@ -389,29 +389,56 @@ Artifact access and persistence are distinct from scientific interpretation. Est
 
 EHP reuses scientific information and generation capabilities from independently maintained sources.
 
-External generators and published datasets provide information that EHP Research integrates according to the requirements of its scientific substrates and tasks. Generated or acquired information may be persisted and consumed independently of the procedures originally used to obtain it.
+External generators and published datasets provide information that EHP Research integrates according to the scientific requirements of its substrates and tasks. Generated or acquired information may be retained and consumed independently of the procedures originally used to obtain it.
 
-Established libraries provide resource acquisition, access, and serialization. EHP-specific implementations remain responsible for scientific interpretation and validation, using the applicable interoperability contracts.
+Established libraries provide resource acquisition, access, serialization, and persistence. Scientific interpretation, validation, and applicability remain the responsibility of the relevant EHP components and interoperability contracts.
 
 #### 4.1.1 Scientific artifacts and identity
 
-A scientific artifact is retained information that can be independently identified and interpreted. It may consist of a single resource or multiple associated resources.
+A scientific artifact is identifiable information that can be interpreted independently of its original production procedure. It may consist of an individual resource or multiple associated resources.
 
 Three concerns remain distinct:
 
-| Concern        | Meaning                                                                                       |
-| -------------- | --------------------------------------------------------------------------------------------- |
-| Location       | Where a resource can be accessed                                                              |
-| Identity       | Which scientific realization, dataset, or source revision is identified                       |
-| Interpretation | The representation, metadata, and scientific declarations required to understand its contents |
+| Concern        | Meaning                                                                                          |
+| -------------- | ------------------------------------------------------------------------------------------------ |
+| Location       | Where a resource can be accessed                                                                 |
+| Identity       | Which scientific realization, dataset, or source revision is identified                          |
+| Interpretation | The representation, metadata, and scientific declarations required to understand the information |
 
-Location does not establish identity. The same scientific information may exist at different locations, and the contents of a location may change.
+A resource location does not establish scientific identity. The same information may be available at different locations, while the contents at a particular location may change.
 
-External source identity and EHP realization identity are also distinct. Multiple realizations may originate from the same generator and revision while containing different scientific information.
+External source identity and EHP realization identity are also distinct. Multiple realizations may originate from the same generator and source revision while containing different scientific information.
+
+**Figure 4.1 — Scientific source, realization, and location relationships**
+
+```mermaid
+classDiagram
+    direction LR
+
+    class ExternalSource {
+        Source identity
+        Source revision
+    }
+
+    class ScientificRealization {
+        Realization identity
+        Scientific content
+        Interpretation context
+    }
+
+    class ResourceLocation {
+        Local path or remote location
+    }
+
+    ScientificRealization --> ExternalSource : may derive from
+    ScientificRealization --> ResourceLocation : may be available at
+```
+
+_Figure 4.1 represents conceptual relationships, not Python classes or mandatory software interfaces. A realization may depend on multiple source inputs, and its resources may be available at multiple locations. The diagram does not prescribe a universal artifact model._
 
 Scientific artifacts retain the identities and interpretation context required by their applicable contracts. Sections 11 and 15 define the authoritative position-interoperability representations, declarations, and resource-reference requirements.
 
-#### 4.1.2 Acquisition, generation, and consumption
+#### 4.1.2 Acquisition, generation, and independent consumption
 
 EHP distinguishes preparing scientific information from consuming information that is already available.
 
@@ -419,58 +446,98 @@ EHP distinguishes preparing scientific information from consuming information th
 
 **Consumption** resolves and reads existing information using its applicable representation and interpretation context.
 
-Scientific consumers do not need to execute the original generator when a compatible, independently interpretable realization is already available.
+Scientific consumers do not need to execute the original generator when an independently interpretable, compatible realization is already available.
 
 For example, Arena can consume a persisted spatial topology without invoking the procedural generator used by Dungeon. Similarly, MazeHard can consume a retained benchmark dataset without downloading it again.
 
-Consumption may involve local or remote I/O. Missing scientific information is not implicitly acquired or regenerated unless the applicable procedure explicitly authorizes that behavior.
+**Figure 4.2 — Scientific artifact preparation and independent consumption**
+
+```mermaid
+sequenceDiagram
+    participant E as Experiment
+    participant D as Dungeon
+    participant G as dungeonGen
+    participant F as Filesystem and Format Libraries
+    participant A as Arena
+
+    opt New topology required
+        E->>D: Configure generation
+        D->>G: Generate procedural layout
+        G-->>D: Source layout
+        D->>D: Interpret and validate topology
+        D->>F: Persist realization and declarations
+    end
+
+    E->>F: Read selected topology and declarations
+    F-->>E: Scientific information and context
+
+    E->>A: Construct task using topology and ObsField
+    A->>A: Validate scientific applicability
+    A-->>E: Task instance or validation error
+```
+
+_Figure 4.2 illustrates scientific responsibilities rather than prescribed Python methods. Existing topology artifacts may be consumed without executing the preparation sequence. Arena's observation-field generation and selection are omitted for clarity. Filesystem and format libraries represent established technical facilities, not a new EHP service._
+
+Consumption may involve local or remote I/O. Missing scientific information is not implicitly acquired from its original provider or regenerated unless the applicable procedure explicitly authorizes that behavior.
 
 External information does not necessarily require conversion. Existing representations may be consumed directly when they satisfy the scientific requirements. Otherwise, the responsible research component establishes the necessary interpretation or transformation.
 
 Substrates retain responsibility for their generated information. Tasks determine the scientific applicability of the information they consume. Experiments select and coordinate the required resources and preparation procedures.
 
-#### 4.1.3 Persistence and reproducibility
+#### 4.1.3 Persistence, provenance, and reproducibility
 
 Persistence enables scientific information to be reused across executions and investigations.
 
 Retained artifacts preserve their applicable scientific identities, declarations, and provenance independently of their storage locations.
 
-Provenance identifies relevant source information and production conditions, which may include:
+Four related concerns remain distinct:
 
-- External source and revision.
-- Input artifact identities.
-- Generation or transformation configuration.
-- Randomness conditions.
-- Applicable software revisions.
+| Concern         | Meaning                                                                                                       |
+| --------------- | ------------------------------------------------------------------------------------------------------------- |
+| Retention       | Preservation of selected scientific artifacts for subsequent consumption                                      |
+| Caching         | Reuse of previously accessed or computed information as an operational optimization                           |
+| Provenance      | Identification of an artifact's sources, inputs, transformations, and production conditions                   |
+| Reproducibility | Ability to repeat a scientific procedure under specified conditions and assess the equivalence of its results |
+
+Provenance may include external source revisions, input artifact identities, generation configurations, randomness conditions, transformation procedures, and applicable software revisions.
 
 These records support reproducibility but do not independently establish deterministic or scientifically equivalent reproduction.
 
-Caching is distinct from retention. A library cache may accelerate repeated access without guaranteeing long-term availability of the scientific information.
+Caching is distinct from retention. A library cache may accelerate repeated access without guaranteeing long-term availability.
 
-The necessary retention and reproduction conditions depend on the scientific procedure. Source-native information may be retained when required for conversion verification or reproducibility, but is not universally required alongside every derived realization.
+Source-native information may be retained when required for conversion verification or reproducibility, but is not universally required alongside every derived realization.
 
 Section 2 defines persistent data organization and provenance responsibilities. Section 10 establishes experiment-level reproducibility and recording requirements.
 
 #### 4.1.4 Established technologies and implementation boundaries
 
-EHP uses established libraries for scientific resource access and persistence.
+EHP uses established libraries for resource access and persistence.
 
-| Capability                         | Established foundation                                             | Architectural position                             |
-| ---------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------- |
-| Local resource access              | Python `pathlib` and standard I/O                                  | Initial filesystem foundation                      |
-| Local and remote filesystem access | [fsspec](https://filesystem-spec.readthedocs.io/)                  | Recommended when heterogeneous storage is required |
-| External dataset acquisition       | Provider-supported libraries, including Hugging Face Hub           | Selected by the applicable research integration    |
-| Graph serialization                | NetworkX and GraphML                                               | Selected scientific representation                 |
-| Tabular serialization              | PyArrow and Parquet                                                | Selected scientific representation                 |
-| Multi-resource packaging           | [Data Package 2.0](https://datapackage.org/standard/data-package/) | Selected for applicable portable artifacts         |
+| Capability                         | Established foundation                                             | Architectural position                                |
+| ---------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------- |
+| Local resource access              | Python `pathlib` and standard I/O                                  | Initial filesystem foundation                         |
+| Local and remote filesystem access | [fsspec](https://filesystem-spec.readthedocs.io/)                  | Recommended when heterogeneous storage is required    |
+| External dataset acquisition       | Provider-supported libraries, including Hugging Face Hub           | Selected by the applicable research integration       |
+| Graph serialization                | NetworkX and GraphML                                               | Selected scientific representation                    |
+| Tabular serialization              | PyArrow and Parquet                                                | Selected scientific representation                    |
+| Multi-resource packaging           | [Data Package 2.0](https://datapackage.org/standard/data-package/) | Selected for applicable portable scientific artifacts |
 
-These libraries provide technical capabilities without defining the scientific meaning of their contents.
+These libraries provide technical capabilities without defining the scientific meaning or applicability of their contents.
 
-`ehp-research` owns source-specific integration and the scientific interpretation of external information. Experiments coordinate resource selection and preparation. `ehp-sn` may provide independently reusable supporting mechanisms when demonstrated requirements justify functionality not adequately supplied by established libraries.
+Software responsibilities follow the established architecture:
 
-Reusable packages obtain required resources through explicit inputs or applicable distributed package resources rather than implicit repository-root paths.
+| Boundary              | Responsibility                                                                                     |
+| --------------------- | -------------------------------------------------------------------------------------------------- |
+| Established libraries | Resource access, acquisition, serialization, caching, and persistence                              |
+| `ehp-sn`              | Independently reusable supporting mechanisms when demonstrated requirements justify implementation |
+| `ehp-research`        | External-source integration, scientific interpretation, conversion, generation, and validation     |
+| `experiments/`        | Resource selection, preparation coordination, scientific composition, and experiment recording     |
 
-The `position-interop/1.0` profile retains its approved local relative resource-path convention for portable Data Packages. General storage capabilities do not modify that contract.
+Reusable packages receive required resources through explicit inputs or applicable distributed package resources rather than implicit repository-root paths.
+
+An external generator may be required by its research integration without becoming a necessary dependency of consumers of the resulting scientific information.
+
+The approved `position-interop/1.0` profile retains its local relative resource-path convention for portable Data Packages. General storage capabilities do not modify that normative contract.
 
 No universal EHP artifact manager, source registry, storage service, or mandatory artifact abstraction is required.
 
@@ -976,525 +1043,564 @@ The architectural requirement is that independent scientific components can exch
 
 ### 5.2 Substrates in EHP Research
 
-EHP Research identifies four scientific substrates or substrate candidates.
+`ehp-research` implements concrete scientific substrates that generate domain descriptions conforming to the shared data contracts introduced in Section 5.1.
 
-| Substrate | Scientific responsibility                           | Principal output       | Status     |
-| --------- | --------------------------------------------------- | ---------------------- | ---------- |
-| DagFlow   | Semantic state-graph generation                     | Directed acyclic graph | Identified |
-| Dungeon   | Spatial-topology generation from procedural layouts | Spatial graph          | Identified |
-| ObsField  | Indexed categorical observation assignment          | Observation field      | Identified |
-| FlatWorld | Independent spatial-topology generation             | Spatial graph          | Candidate  |
+Each substrate defines its own generation inputs, algorithms, scientific constraints, and validation requirements. Its output remains independently interpretable through the applicable contract, without requiring the consuming component to execute or depend on the generator.
 
-Each substrate defines its scientific behavior independently of its consumers.
+The current scientific substrates are:
+
+| Substrate | Scientific responsibility                                    | Output contract                     | Status     |
+| --------- | ------------------------------------------------------------ | ----------------------------------- | ---------- |
+| DagFlow   | Generate directed semantic-state graphs                      | DirectedSemanticGraph (provisional) | Identified |
+| Dungeon   | Generate spatial topology from procedural layouts            | SpatialTopology                     | Identified |
+| ObsField  | Generate categorical observation assignments                 | CategoricalObservationField         | Identified |
+| FlatWorld | Generate regular spatial topologies independently of Dungeon | SpatialTopology                     | Candidate  |
+
+The identified status establishes the scientific role of a substrate, not that its implementation or generation protocol is complete.
+
+Substrates may use shared supporting declarations such as IndexedDomain and ObservationVocabulary. They may also use other scientific resources during generation when their procedures require them.
+
+These are data dependencies, not dependencies on the implementations that produced those resources.
+
+**Figure 5.6 — Substrate generation and shared output contracts**
+
+```mermaid
+flowchart LR
+    subgraph Inputs["Scientific inputs"]
+        D["IndexedDomain"]
+        V["ObservationVocabulary"]
+        L["Procedural layout"]
+        P["Generation parameters"]
+    end
+
+    subgraph Producers["EHP Research substrates"]
+        Dungeon["Dungeon"]
+        ObsField["ObsField"]
+        DagFlow["DagFlow"]
+        FlatWorld["FlatWorld (candidate)"]
+    end
+
+    subgraph Outputs["Shared output contracts"]
+        T["SpatialTopology"]
+        O["CategoricalObservationField"]
+        S["DirectedSemanticGraph (provisional)"]
+    end
+
+    D --> Dungeon
+    L --> Dungeon
+    D --> ObsField
+    V --> ObsField
+    D --> FlatWorld
+    P --> DagFlow
+
+    Dungeon --> T
+    FlatWorld -.-> T
+    ObsField --> O
+    DagFlow --> S
+```
+
+_Figure 5.6 shows the principal generation relationships, not mandatory function signatures or a complete inventory of optional inputs. Generation parameters and randomness conditions are specific to each substrate. FlatWorld and the complete semantic-graph contract remain provisional._
+
+The following descriptions focus on each generator's scientific responsibility and the properties its implementation must establish beyond the shared contract.
 
 #### 5.2.1 DagFlow — Semantic state-graph generation
 
 **Scientific purpose**
 
-DagFlow generates abstract directed semantic-state graphs for prospective reasoning.
+DagFlow generates finite directed acyclic graphs representing admissible transitions between identifiable semantic states.
 
-These graphs represent admissible transitions between semantic states.
+These graphs provide controlled relational structures for scientific problems that require directed dependencies or prospective semantic transitions.
 
-A state can represent the semantic condition of an agent, including the consequences of satisfying prerequisites or acquiring relevant information.
+A semantic state may describe a condition, prerequisite, or stage in a scientific problem. For example, a state transition could represent progress from lacking a prerequisite to having satisfied it.
 
-For example, acquiring a key can permit semantic progress to a state in which a corresponding door may be unlocked.
+DagFlow establishes the generated graph structure. It does not determine how every scientific task interprets its vertices or what a model must predict.
 
-The consuming task determines the exact meaning of graph vertices and transitions.
+**Generation inputs**
 
-**Generation behavior**
+The identified generation parameters are:
 
-DagFlow generates finite directed acyclic graphs satisfying:
+| Parameter              | Scientific role                                  |
+| ---------------------- | ------------------------------------------------ |
+| Vertex count           | Controls the number of generated semantic states |
+| Extra-edge probability | Controls additional directed-edge generation     |
+| Random seed            | Provides a randomness input                      |
 
-- Identifiable vertices.
-- Directed transitions.
-- No self-loops.
-- No parallel edges.
-- Exactly one terminal vertex.
-- Terminal reachability from every vertex.
+These parameters identify the intended generation capability. Their exact interpretation depends on the generation algorithm, which remains to be specified and verified.
 
-The generation procedure is intended to be reproducible.
+In particular, the distribution used for constructing edges and any guaranteed reproducibility behavior are not yet established.
 
-Identified generation controls include:
+**Generated structure**
 
-| Parameter              | Meaning                                       |
-| ---------------------- | --------------------------------------------- |
-| Vertex count           | Number of graph vertices                      |
-| Extra-edge probability | Controls additional directed-edge generation  |
-| Random seed            | Randomness input for the generation procedure |
+DagFlow produces a directed graph:
 
-The exact sampling distributions, generation algorithm, and deterministic behavior require verification.
+$$
+D=(V,E)
+$$
 
-**Scientific representation**
+subject to the following scientific constraints:
 
-DagFlow uses NetworkX `DiGraph` in memory and GraphML for persistent interchange.
+- The graph is finite and directed.
+- Its vertices have identifiable states.
+- The graph is acyclic.
+- Self-loops and parallel edges are excluded.
+- Exactly one terminal vertex exists.
+- Every vertex has a directed path to that terminal vertex.
 
-| Concern               | Representation                              |
-| --------------------- | ------------------------------------------- |
-| Graph                 | NetworkX `DiGraph`                          |
-| Persistence           | GraphML                                     |
-| Vertex identity       | Persisted graph-node identifiers            |
-| Transitions           | Directed edges                              |
-| Scientific properties | Applicable graph, node, and edge attributes |
+**Figure 5.7 — Example DagFlow realization**
 
-NetworkX `DiGraph` prevents parallel edges but permits self-loops. DagFlow's DAG and terminal-state requirements remain additional scientific constraints.
+```mermaid
+flowchart LR
+    S0["s0"] --> S1["s1"]
+    S0 --> S2["s2"]
+    S1 --> S3["s3"]
+    S2 --> S3
+    S3 --> S4["s4 · terminal"]
+```
 
-The shared directed-graph representation can also be used by other scientifically applicable producers.
+_Figure 5.7 illustrates a valid structural example: five vertices, one terminal vertex, no cycles, and terminal reachability from every vertex. The labels identify abstract semantic states, not necessarily members of an observation vocabulary._
 
-**Semantic interpretation**
+The graph admits alternative paths toward the terminal. Multiple incoming edges indicate alternative admissible predecessors; they do not automatically mean that all predecessors must be satisfied.
 
-For Prospect, the semantic graph is:
+That distinction follows from the meaning of a directed transition relation. Conjunctive prerequisite semantics would require an additional explicit scientific definition.
+
+**Output and interoperability**
+
+DagFlow uses NetworkX `DiGraph` in memory and GraphML for persistence.
+
+Its output must preserve vertex identities, directed edges, and the scientific attributes required by its applicable interpretation.
+
+The shared DirectedSemanticGraph contract remains provisional. DagFlow can establish its own graph-family validity, but that alone does not settle the universal semantic identity requirements of the shared contract.
+
+For example, a consuming scientific problem may interpret graph vertices as observation identities:
 
 $$
 D_{\mathrm{obs}}=(Obs,E_{\mathrm{obs}})
 $$
 
-where:
+That correspondence is a consumer-specific interpretation until the shared semantic-graph contract establishes otherwise.
 
-- $Obs$ is the task-interpreted set of semantic observation identities.
-- $E_{\mathrm{obs}}$ is the admissible semantic-transition relation.
+DagFlow should not implicitly require all future consumers to treat its vertex identities as observation vocabulary members.
 
-An edge:
+**Scientific validation and testing**
 
-$$
-(o_i,o_j)\in E_{\mathrm{obs}}
-$$
+DagFlow must independently verify:
 
-means that $o_j$ is an admissible semantic successor of $o_i$.
+| Test area       | Required property                                                    |
+| --------------- | -------------------------------------------------------------------- |
+| Graph structure | Valid directed graph without unsupported parallel edges              |
+| Acyclicity      | No directed cycles                                                   |
+| Terminal state  | Exactly one vertex has no outgoing edges                             |
+| Reachability    | Every vertex can reach the terminal                                  |
+| Configuration   | Generated graph satisfies the applicable generation parameters       |
+| Reproducibility | Verified against the guarantees of the selected generation algorithm |
 
-Multiple incoming edges represent alternative admissible predecessors.
+The graph-family tests do not require RouteBind or Prospect.
 
-The task validates that graph vertices correspond to the observation vocabulary used in its composed environment.
+Conversely, those tasks should be able to consume independently constructed graph fixtures without executing DagFlow.
 
-DagFlow's general graph-generation responsibility does not require every consumer to use the same semantic interpretation.
-
-**Validation and consumers**
-
-DagFlow validates its generated graphs against its scientific generation constraints.
-
-Consuming tasks establish applicable semantic identities, vocabulary compatibility, and additional task-specific requirements.
-
-RouteBind and Prospect are the identified consumers.
+The outstanding scientific decisions concern the precise generation algorithm, semantic vertex identity, and the relationship between generated semantic states and externally declared observation identities.
 
 #### 5.2.2 Dungeon — Spatial-topology generation
 
 **Scientific purpose**
 
-Dungeon produces reusable spatial topology from procedural dungeon layouts.
+Dungeon generates reusable spatial topology from procedural dungeon or maze layouts.
 
-Its initial scientific scope is irregular two-dimensional environments.
+Its initial scientific scope is two-dimensional layouts containing traversable and blocked regions, including rooms, corridors, and passages.
 
-Dungeon converts procedural layout information into identifiable traversable positions and their spatial connections.
+Dungeon converts procedural geometry and connectivity into an identified spatial graph that can be interpreted independently of the original generator.
 
 **Generation inputs**
 
-Dungeon consumes procedural layouts and applicable generation or conversion configuration.
+Dungeon may use an externally produced procedural layout or invoke an applicable procedural generator, together with its generation and conversion configuration.
 
-Relevant source information includes:
+The identified initial external source is `dungeonGen`, described in Section 4.
 
-- Rooms.
-- Corridors.
-- Passages.
-- Walls and blocked regions.
-- Spatial connectivity.
+The integration must establish how the selected source's geometry and connectivity are translated into EHP's SpatialTopology representation. The exact source interface and conversion behavior remain to be verified.
 
-The initial external procedural source is `dungeonGen`, described in Section 4.
+Relevant generation information includes:
 
-Dungeon retains responsibility for interpreting the source layout and constructing EHP scientific topology.
+| Input                              | Use                                                       |
+| ---------------------------------- | --------------------------------------------------------- |
+| Procedural layout                  | Supplies the generated spatial arrangement                |
+| Domain declaration, when available | Establishes the intended position universe and addressing |
+| Traversability rules               | Determine which positions belong to the traversable graph |
+| Connectivity interpretation        | Determines spatial edges from the layout                  |
+| Conversion configuration           | Controls applicable source-to-topology interpretation     |
 
-**Scientific representation**
+Dungeon may use an existing IndexedDomain when the ambient position universe is known in advance.
 
-Let:
+If the position universe is determined by procedural generation, Dungeon may establish the resulting domain using the approved shared domain contract.
+
+In both cases, the resulting topology must accurately reference the domain it represents.
+
+**Generated structure**
+
+Dungeon produces a spatial topology:
 
 $$
-G'_{\mathrm{free}}
+T=(G'_{\mathrm{free}},E'_{\mathrm{spatial}})
 $$
 
-denote the set of traversable positions.
+where:
 
-Let:
+- $G'_{\mathrm{free}}$ is the set of traversable positions.
+- $E'_{\mathrm{spatial}}$ is the relation of admissible spatial connections.
+
+The traversable positions belong to the identified ambient domain $I$:
 
 $$
-E'_{\mathrm{spatial}}
-\subseteq
-G'_{\mathrm{free}}\times G'_{\mathrm{free}}
+G'_{\mathrm{free}}\subseteq I
 $$
 
-denote the admissible spatial transition relation.
+The ambient domain may include blocked positions that are absent from the topology graph.
 
-Dungeon produces a topology representing these positions and their connectivity.
+**Figure 5.8 — Procedural layout converted into topology**
 
-| Concern                | Representation                                                  |
-| ---------------------- | --------------------------------------------------------------- |
-| Spatial connectivity   | NetworkX `Graph` or `DiGraph`                                   |
-| Persistent interchange | GraphML                                                         |
-| Position identity      | Stable domain-scoped string identifiers                         |
-| Ambient domain         | Declared finite position set                                    |
-| Geometry               | Applicable spatial coordinates and attributes                   |
-| Realization metadata   | Scientific identity references and applicable artifact metadata |
+```mermaid
+flowchart LR
+    subgraph Layout["Illustrative 3 × 3 layout"]
+        direction TB
+        L0["0 · free"] --- L1["1 · free"]
+        L1 --- L2["2 · free"]
+        L3["3 · free"] --- L4["4 · blocked"]
+        L4 --- L5["5 · free"]
+        L6["6 · free"] --- L7["7 · free"]
+        L7 --- L8["8 · free"]
+    end
 
-The topology graph represents traversable positions.
+    C["Dungeon conversion"]
 
-The ambient domain may contain additional positions, including blocked positions that do not appear in the traversable graph.
+    subgraph Topology["Traversable topology"]
+        direction TB
+        T0["0"] --- T1["1"]
+        T1 --- T2["2"]
+        T0 --- T3["3"]
+        T2 --- T5["5"]
+        T3 --- T6["6"]
+        T5 --- T8["8"]
+        T6 --- T7["7"]
+        T7 --- T8
+    end
 
-A source realization may also retain ambient layout information, geometry, and region attributes.
+    Layout --> C --> Topology
+```
 
-Topology connectivity and traversability are properties of the scientific realization, not of the ambient domain identity itself.
+_Figure 5.8 illustrates the distinction between the ambient layout and a resulting traversable graph. The layout-side lines are diagrammatic arrangement aids, not declared traversable edges. The final graph excludes blocked position 4. The actual conversion must derive edges from the procedural layout's connectivity rules._
 
-**Generation and conversion**
+**Generation and conversion responsibilities**
 
-Dungeon converts source layouts into scientifically meaningful spatial topology.
+Dungeon is responsible for interpreting the source and constructing the resulting scientific topology.
 
-The identified conversion concerns include:
+The identified conversion concerns are:
 
-- Position identification.
-- Traversability classification.
-- Adjacency construction.
-- Region interpretation.
-- Connected-component handling.
-- Preservation of relevant spatial attributes.
+| Responsibility          | Required interpretation                                                            |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| Position identification | Map the source layout to declared position identities                              |
+| Traversability          | Determine which positions are traversable                                          |
+| Adjacency               | Construct spatial connections from the source layout                               |
+| Domain consistency      | Ensure generated positions agree with the referenced ambient domain                |
+| Spatial attributes      | Retain attributes required by the selected scientific representation               |
+| Connected components    | Determine and preserve connectivity without imposing unsupported task restrictions |
 
-The exact conversion algorithms, source revision, treatment of blocked positions, and validation conditions require verification against the selected generator and consuming task requirements.
+The exact conversion algorithm, treatment of source-specific layout features, and preservation of optional region information require specification.
 
-**Validation and consumers**
+A source's physical geometry and the topology's graph edges must not be conflated. Adjacent coordinates do not necessarily imply a traversable connection.
 
-Dungeon validates its generated topology according to its scientific output requirements.
+**Output and interoperability**
 
-A consuming task determines whether that topology satisfies its geometry, movement, connectivity, and other scientific constraints.
+Dungeon produces the shared SpatialTopology representation:
 
-Dungeon provides spatial information for Arena, RouteBind, and Prospect.
+| Concern               | Representation                                                  |
+| --------------------- | --------------------------------------------------------------- |
+| In-memory topology    | NetworkX `Graph` or `DiGraph`                                   |
+| Persistence           | GraphML                                                         |
+| Node identity         | Domain-scoped position identifiers                              |
+| Spatial connectivity  | Graph edges                                                     |
+| Scientific references | Domain identity, realization identity, interoperability profile |
 
-#### 5.2.3 ObsField — Indexed observation-assignment generation
+The topology may retain additional scientific attributes where justified, but it does not need to reproduce the entire procedural source representation.
+
+An independently developed consumer should be able to interpret the topology through its graph and domain declaration without running `dungeonGen`.
+
+**Scientific validation and testing**
+
+Dungeon must verify both contract conformance and the correctness of its conversion.
+
+| Test area           | Required property                                                                      |
+| ------------------- | -------------------------------------------------------------------------------------- |
+| Domain identity     | Generated nodes belong to the referenced domain                                        |
+| Traversability      | Included graph vertices correspond to traversable source positions                     |
+| Connectivity        | Graph edges agree with the source's admissible connections                             |
+| Source consistency  | Blocked or excluded regions are interpreted according to the selected conversion rules |
+| Persistence         | Required topology content survives GraphML interchange                                 |
+| Generation behavior | Applicable procedural parameters and scientific constraints are respected              |
+
+These tests are independent of Arena, RouteBind, and Prospect.
+
+Whether a topology is connected, supports a particular movement regime, or satisfies another task-specific property is not automatically a Dungeon generation requirement.
+
+#### 5.2.3 ObsField — Categorical observation-assignment generation
 
 **Scientific purpose**
 
-ObsField generates reusable observation assignments over identifiable finite location domains.
+ObsField generates categorical observation assignments over independently identified finite domains.
 
-The general categorical observation field is:
+Unlike Dungeon, it does not generate spatial connectivity. Its principal output is a mapping from positions to observation identities:
 
 $$
 \Phi:I\rightarrow Obs
 $$
 
-where:
+where $I$ is the referenced IndexedDomain and $Obs$ is the referenced ObservationVocabulary.
 
-- $I$ is a finite indexed location domain.
-- $Obs$ is an identifiable observation vocabulary.
-- $\Phi(i)$ is the observation assigned to position $i$.
+The domain may be spatially interpreted or purely indexed. ObsField does not require a topology to generate observations unless the selected assignment procedure explicitly depends on one.
 
-ObsField represents assignments, not connectivity.
+**Generation inputs**
 
-Its domain may be regular, irregular, spatially interpreted, or purely indexed.
+The initial categorical generation capability uses:
 
-**Generation behavior**
+| Input                                 | Scientific role                                            |
+| ------------------------------------- | ---------------------------------------------------------- |
+| IndexedDomain                         | Establishes the positions receiving observations           |
+| ObservationVocabulary                 | Establishes valid categorical observation identities       |
+| Assignment protocol                   | Selects the generation procedure                           |
+| Distribution or assignment parameters | Specify how observations are selected                      |
+| Randomness configuration              | Controls applicable stochastic generation                  |
+| Optional conditioning information     | Supplies additional information for conditioned procedures |
 
-ObsField owns its observation-assignment procedures, distributions, scientific constraints, randomness, realization identity, and generated-information validation.
+Identified generation families include:
 
-Generation procedures may use different information:
+| Family                 | Generation behavior                                         |
+| ---------------------- | ----------------------------------------------------------- |
+| Uniform categorical    | Sample observation identities with equal probabilities      |
+| Nonuniform categorical | Sample according to a specified categorical distribution    |
+| Balanced assignment    | Constrain observation frequencies                           |
+| Region-conditioned     | Condition assignments on declared region information        |
+| Structure-conditioned  | Condition assignments on an additional scientific structure |
 
-| Assignment procedure             | Applicable generation information                             |
-| -------------------------------- | ------------------------------------------------------------- |
-| Uniform categorical              | Indexed domain, vocabulary, random seed                       |
-| Nonuniform categorical           | Indexed domain, vocabulary, probability distribution          |
-| Balanced assignment              | Indexed domain, vocabulary, frequency constraints             |
-| Region-dependent assignment      | Region or spatial information and corresponding distributions |
-| Structure-conditioned assignment | Topology or layout information and assignment constraints     |
+These are candidate generation families, not a claim that all have been implemented or fully specified.
 
-These are identified assignment families. They do not establish that all procedures have been implemented or fully specified.
+A conditioned procedure may use a spatial topology or region description during generation. The resulting categorical observation field still contains only position-to-observation assignments under the common output contract.
 
-Generation information is independent of the common assignment representation.
+**Generated structure**
 
-For example, a region-conditioned generation procedure may consume spatial layout information while producing an observation field with no intrinsic adjacency relation.
+ObsField assigns exactly one valid observation identity to every declared position.
 
-When generation uses another scientific artifact, provenance records the applicable source identity.
-
-**Initial categorical capability**
-
-The initial ObsField capability assigns exactly one categorical observation identity to every declared position:
-
-$$
-\forall i\in I,\quad \Phi(i)\in Obs
-$$
-
-Observation identities may repeat at different positions:
+The assignment is total:
 
 $$
-\Phi(i)=\Phi(j)
-\quad\text{for }i\neq j
+\forall p\in I,\quad \Phi(p)\in Obs
 $$
 
-Consequently, observation identity does not uniquely determine position identity.
+Different positions may receive equal observation identities:
 
-Assignments remain fixed within a realization.
+$$
+p\ne q
+\quad\text{and}\quad
+\Phi(p)=\Phi(q)
+$$
 
-A spatially interpreted observation field may include assignments to positions that an independently supplied topology classifies as blocked.
+Thus, equal observations do not imply equal positions.
 
-**Information representation**
+**Figure 5.9 — Categorical observations over an indexed domain**
 
-The selected in-memory representation is an Apache Arrow `Table`, persisted using Apache Parquet.
+Consider a rectangular domain with nine identified positions and vocabulary:
 
-The initial categorical assignment contains:
+$$
+Obs=\{A,B,C\}
+$$
 
-| Field            | Meaning                                   | Requirement                                        |
-| ---------------- | ----------------------------------------- | -------------------------------------------------- |
-| `position_id`    | Identity of an indexed position           | Non-null string; unique within the realization     |
-| `observation_id` | Assigned categorical observation identity | Non-null string; member of the declared vocabulary |
+The following is one possible realization:
 
-Example:
+| Position | x = 0   | x = 1   | x = 2   |
+| -------- | ------- | ------- | ------- |
+| y = 0    | `0` → A | `1` → B | `2` → C |
+| y = 1    | `3` → A | `4` → B | `5` → C |
+| y = 2    | `6` → B | `7` → A | `8` → C |
+
+Its corresponding Arrow table is:
 
 | `position_id` | `observation_id` |
 | ------------- | ---------------- |
-| `"0"`         | `"7"`            |
-| `"1"`         | `"2"`            |
-| `"2"`         | `"7"`            |
-| `"3"`         | `"11"`           |
-| `"4"`         | `"4"`            |
+| `"0"`         | `"A"`            |
+| `"1"`         | `"B"`            |
+| `"2"`         | `"C"`            |
+| `"3"`         | `"A"`            |
+| `"4"`         | `"B"`            |
+| `"5"`         | `"C"`            |
+| `"6"`         | `"B"`            |
+| `"7"`         | `"A"`            |
+| `"8"`         | `"C"`            |
 
-The selected physical schema uses non-nullable Arrow `pa.string()` fields for both identifiers.
-
-Arrow schema metadata retains:
-
-- `domain_id`
-- `vocabulary_id`
-- `realization_id`
-- `ehp_profile_version`
-
-The associated interpretation context provides the referenced scientific declarations.
-
-The assignment table does not encode adjacency.
-
-**Computational technologies**
-
-| Concern                              | Technology           |
-| ------------------------------------ | -------------------- |
-| In-memory interchange                | Apache Arrow `Table` |
-| Persistent interchange               | Apache Parquet       |
-| Python implementation                | PyArrow              |
-| Numerical generation                 | NumPy                |
-| Optional multidimensional processing | Xarray               |
-
-Generation algorithms may use internal numerical representations without changing the common scientific output contract.
-
-**Indexed domains**
-
-Every ObsField realization references an identifiable finite indexed domain.
-
-Position identities are persisted as strings. Their meaning and membership are established by the corresponding domain declaration.
-
-The approved profile supports:
-
-| Domain family                  | Scientific interpretation                                 |
-| ------------------------------ | --------------------------------------------------------- |
-| Count-only or abstract indexed | Finite positions without required geometry                |
-| Regular rectangular            | Rectangular domain with declared dimensions and indexing  |
-| Finite hexagonal-cell          | Explicit finite membership with axial coordinates         |
-| Irregular ambient              | Explicit finite position set, optionally with coordinates |
-
-The initial count-only convention uses canonical decimal strings from `"0"` through `"N-1"`.
-
-Rectangular domains use a declared row-major indexing convention, coordinate origin, and orientation.
-
-Finite hexagonal-cell domains use explicit `(position_id, q, r)` membership.
-
-The indexed domain does not itself define traversability.
-
-**Observation vocabularies**
-
-Every categorical realization identifies its observation vocabulary.
-
-The vocabulary declares the valid observation identities and their interpretation.
-
-Two realizations containing equal observation identifier strings are semantically compatible only when their vocabulary identities or an explicitly accepted correspondence establish that meaning.
-
-Equal vocabulary cardinality alone does not establish compatibility.
-
-Computational integer indices or tensor encodings may be derived from observation identities but do not replace their persistent scientific identities.
+_Figure 5.9 illustrates one categorical realization. The rectangular arrangement visualizes the domain's addressing. It does not add adjacency to the Arrow table. Every declared position receives an observation, irrespective of whether a separately generated topology would classify that position as traversable._
 
 **Initial assignment protocol**
 
-The initial identified assignment protocol is:
+The initial identified protocol is:
 
 `categorical-random/v1`
 
-It independently samples one categorical observation identity for each declared position.
+It generates one categorical assignment per declared position using the configured distribution and randomness conditions.
 
-Its scientific parameters include:
-
-- Categorical probability distribution.
-- Base random seed.
-- Realization index.
-- Applicable domain identity.
-- Applicable vocabulary identity.
-
-For a uniform categorical vocabulary of cardinality $K$:
+For a uniform categorical distribution with vocabulary cardinality $K$:
 
 $$
-P(\Phi(i)=o)=\frac{1}{K}
+P(\Phi(p)=o)=\frac{1}{K}
 $$
 
-for every observation identity $o\in Obs$.
+for every position $p\in I$ and observation identity $o\in Obs$.
 
-Other procedures may impose balancing, uniqueness, region-dependent sampling, or structure-conditioned constraints while retaining the same categorical output representation.
+The protocol's scientific inputs include the identified domain, vocabulary, distribution parameters, base seed, and realization index.
 
-**Scientific validation**
-
-ObsField validates its generated assignments according to the selected protocol and categorical-field contract.
-
-The initial categorical realization requires:
-
-- Valid domain and vocabulary references.
-- Unique position assignments.
-- Complete coverage of the declared domain.
-- Observation values belonging to the declared vocabulary.
-- The required Arrow physical schema.
-- Consistent scientific identity metadata.
-- Applicable generation-protocol constraints.
-
-For the complete categorical field:
-
-$$
-\{\texttt{position\_id}\text{ in the table}\}=I
-$$
-
-and:
-
-$$
-|\text{rows}|=|I|
-$$
-
-Every declared position must occur exactly once, including positions classified as blocked by a separately supplied topology.
-
-Arrow structural validation alone does not establish uniqueness, complete domain coverage, or vocabulary membership. Those requirements are validated against the resolved scientific declarations.
+Its implementation must establish the specified assignment behavior without changing the shared output representation.
 
 **Reproducibility**
 
-ObsField generation is intended to be record-addressable and deterministic.
+The initial protocol requires record-addressable deterministic generation.
 
-A realization's scientific identity and reproducibility conditions include:
+For a fixed set of scientific generation inputs and a specified implementation, each position's assignment must remain invariant under changes to execution scheduling.
 
-- Generation specification.
-- Domain identity.
-- Vocabulary identity.
-- Assignment protocol and parameters.
-- Randomness policy.
-- Base seed.
-- Realization index.
-- Scientific inputs used during generation.
-
-For fixed scientific inputs and the same supported generation implementation, a realization's content must remain invariant under operational scheduling changes, including:
+In particular, generation must not change the resulting realization merely because of:
 
 - Worker count.
-- Generation order.
+- Processing order.
 - Temporary storage location.
 
-Increasing the requested number of realizations must preserve previously defined realization identities and content.
+Increasing the number of requested realizations must preserve the identities and content of previously defined realizations.
 
-A referenced domain identity is a persistent generation input.
+This requirement is stronger than simply initializing a random-number generator with a seed.
 
-Reconstructing an already identified domain preserves that identity. Independently issuing a new UUID for an otherwise equivalent position universe creates a different identified domain.
+The exact random-stream derivation and assignment algorithm must be specified and tested against the protocol. NumPy provides appropriate numerical and random-generation facilities, but does not automatically guarantee schedule-independent results for arbitrary implementations.
 
-These requirements are specific to the ObsField generation protocol. NumPy's random-generation facilities may support their implementation, but correct record-addressable behavior must be verified independently.
+The referenced domain identity must remain stable when reproducing an existing realization. Independently creating a new UUID for an equivalent domain would establish a different identified scientific input.
 
-**Consumers and scientific composition**
+**Output and interoperability**
 
-ObsField information can be consumed by Arena, RouteBind, Prospect, and other scientifically applicable tasks.
+ObsField produces a CategoricalObservationField conforming to the shared Arrow/Parquet contract.
 
-For a spatial task, let $V_T$ be the traversable positions of a topology and $I$ the observation-field domain.
+| Concern                | Representation                                        |
+| ---------------------- | ----------------------------------------------------- |
+| In-memory data         | Apache Arrow `Table`                                  |
+| Persistent data        | Apache Parquet                                        |
+| Position identities    | Non-null `pa.string()`                                |
+| Observation identities | Non-null `pa.string()`                                |
+| Scientific references  | Domain, vocabulary, realization, and profile metadata |
 
-A compatible position correspondence is:
+ObsField may use NumPy arrays or other internal numerical structures during generation. These implementation details do not change the interchange contract.
 
-$$
-m:V_T\rightarrow I
-$$
+Additional computational libraries should be introduced only where the selected assignment algorithms demonstrate a need for them.
 
-The composed observation assignment is:
+**Scientific validation and testing**
 
-$$
-\phi(v)=\Phi(m(v))
-$$
+ObsField must satisfy the common categorical-field contract and its chosen generation protocol.
 
-for applicable traversable positions $v$.
+| Test area               | Required property                                                             |
+| ----------------------- | ----------------------------------------------------------------------------- |
+| Coverage                | Exactly one assignment exists for every declared position                     |
+| Membership              | All observations belong to the declared vocabulary                            |
+| Identity                | Domain, vocabulary, and realization references remain consistent              |
+| Interchange             | Arrow schema, metadata, and assignments survive Parquet persistence           |
+| Distribution            | Generated assignments follow the selected protocol's statistical requirements |
+| Determinism             | Fixed scientific inputs reproduce the same realization                        |
+| Scheduling independence | Worker count and generation order do not change the realization               |
+| Realization stability   | Extending an existing realization set preserves previously identified outputs |
 
-In the direct same-domain case, shared domain identity and equal persisted position identifiers establish the position correspondence.
+Tests for statistical generation properties must use methods appropriate to the selected distribution and sample size. An individual random realization is not required to contain exactly equal category frequencies merely because its generating distribution is uniform.
 
-For independently identified domains, an explicit mapping is required.
+ObsField's tests do not require Dungeon, Arena, RouteBind, or Prospect.
 
-The consuming task validates the correspondence and its scientific applicability.
+When a conditioned procedure consumes another scientific resource, its tests must additionally verify that the conditioning information is interpreted correctly.
 
-The following UML class diagram illustrates the scientific identity relationships.
-
-**Figure 5.1 — Domain, topology, and observation-field relationships**
-
-```mermaid
-classDiagram
-    direction LR
-
-    class IndexedDomain {
-        domain_id
-        position membership
-    }
-
-    class SpatialTopology {
-        realization_id
-        traversable positions
-        spatial connectivity
-    }
-
-    class CategoricalObservationField {
-        realization_id
-        position assignments
-    }
-
-    class ObservationVocabulary {
-        vocabulary_id
-        observation identities
-    }
-
-    SpatialTopology --> IndexedDomain : references
-    CategoricalObservationField --> IndexedDomain : references
-    CategoricalObservationField --> ObservationVocabulary : references
-```
-
-_Figure 5.1 represents conceptual scientific information relationships, not required Python classes. It illustrates the common-domain case; cross-domain composition requires explicit position correspondence._
-
-Dungeon and ObsField can therefore produce different scientific information referencing the same identified domain.
-
-Dungeon describes traversable positions and connectivity. ObsField describes observation assignments over the declared finite domain.
-
-Neither substrate determines how a task must combine them.
-
-The consuming task establishes correspondence and determines observation encodings, experience construction, targets, and evaluation semantics.
-
-#### 5.2.4 FlatWorld — Spatial-topology generation candidate
+#### 5.2.4 FlatWorld — Regular spatial-topology generation candidate
 
 **Scientific purpose**
 
-FlatWorld is a candidate substrate for generating spatial topology independently of Dungeon.
+FlatWorld is a candidate substrate for producing regular spatial topologies independently of Dungeon.
 
-Its potential scope includes:
+Its potential scope includes rectangular and finite hexagonal-cell environments.
 
-- Regular rectangular grids.
-- Hexagonal-cell grids.
+FlatWorld would provide an alternative topology-generation implementation while using the same SpatialTopology contract.
 
-**Representation and interoperability**
+It would not introduce a new shared topology representation.
 
-FlatWorld is intended to produce topology using the shared NetworkX spatial representation and established position-identity contract.
+**Potential generation capabilities**
 
-This would permit compatible tasks to consume FlatWorld topology without depending on its generation implementation.
+| Topology family     | Intended spatial structure                                            |
+| ------------------- | --------------------------------------------------------------------- |
+| Rectangular grid    | Positions connected according to a specified rectangular neighborhood |
+| Hexagonal-cell grid | Positions connected according to a specified hexagonal neighborhood   |
 
-**Open requirements**
+Candidate movement families include four-neighbor rectangular connectivity and six-neighbor hexagonal connectivity.
 
-The following remain unresolved:
+The precise supported families, treatment of boundaries, obstacles, and directed transitions must be established before implementation.
 
-- Exact supported topology families.
-- Scientific generation algorithms.
-- Generation parameters and randomness conditions.
-- Topology constraints and validation behavior.
-- Applicable geometry and movement semantics.
-- Reproducibility guarantees.
+**Output and interoperability**
 
-FlatWorld remains a candidate until concrete scientific requirements justify and define its implementation.
+FlatWorld would produce a NetworkX `Graph` or `DiGraph` referencing an identified domain, using GraphML for persistence.
 
-Its status does not establish a separate substrate category or require a general spatial-generation framework.
+Its output would satisfy the same shared SpatialTopology contract as Dungeon's output.
+
+This allows independent topology producers without introducing producer-specific representations into consuming tasks.
+
+**Open scientific requirements**
+
+FlatWorld remains a candidate until the following are defined:
+
+| Concern         | Outstanding decision                                   |
+| --------------- | ------------------------------------------------------ |
+| Scope           | Supported regular topology families                    |
+| Inputs          | Required domain declarations and generation parameters |
+| Connectivity    | Exact adjacency and boundary rules                     |
+| Obstacles       | Whether and how blocked positions are generated        |
+| Randomness      | Whether stochastic generation is supported             |
+| Validation      | Family-specific scientific invariants                  |
+| Reproducibility | Applicable generation guarantees                       |
+
+FlatWorld does not justify a separate substrate framework or a generalized topology-generation interface beyond the already selected shared data contract.
+
+#### 5.2.5 Generation responsibilities and verification
+
+All identified substrates use the same architectural separation between shared contract conformance and generation-specific scientific correctness.
+
+| Responsibility       | Shared contract support (`ehp-sn`)                       | Concrete substrate (`ehp-research`)                             |
+| -------------------- | -------------------------------------------------------- | --------------------------------------------------------------- |
+| Representation       | Defines and supports approved native structures          | Produces data using those structures                            |
+| Scientific identity  | Provides shared declarations and consistency checks      | Establishes or references the identities relevant to its output |
+| Generation algorithm | Not responsible                                          | Selects and implements the scientific procedure                 |
+| Output validation    | Checks shared contract conformance                       | Checks generation-specific scientific constraints               |
+| Randomness           | May use established supporting mechanisms where reusable | Defines and verifies the protocol's randomness guarantees       |
+| Interchange          | Provides reusable support where necessary                | Produces independently consumable realizations                  |
+
+A substrate's correctness requires both a conforming output and satisfaction of its own scientific generation specification.
+
+**Figure 5.10 — Independent validation of substrate generation**
+
+```mermaid
+sequenceDiagram
+    participant Test as Substrate test
+    participant S as Concrete substrate
+    participant C as ehp-sn contract support
+
+    Test->>S: Generate from scientific inputs
+    S-->>Test: Generated realization
+
+    Test->>C: Check shared contract conformance
+    C-->>Test: Conformance result
+
+    Test->>Test: Check generation-specific invariants
+    Test->>Test: Check applicable reproducibility guarantees
+```
+
+_Figure 5.10 illustrates independent testing responsibilities. It does not prescribe that generation must invoke a particular validator at runtime, and no consuming task is needed to verify substrate generation._
+
+A complete substrate test strategy should include independently constructed valid and invalid contract fixtures, scientific tests of the generation algorithm, and output interchange tests.
+
+The concrete scientific implementations must not redefine or weaken the shared contract requirements to accommodate their own generation behavior.
+
+Likewise, generator-specific constraints must not be promoted into shared contracts unless they are established requirements of the reusable scientific representation.
+
+These boundaries allow concrete substrates to evolve independently while retaining the data contracts needed for scientific interoperability.
 
 ---
 
